@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>TrailMark</string>
+    <key>CFBundleDisplayName</key>
+    <string>TrailMark</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UILaunchScreen</key>
+    <dict/>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>UIUserInterfaceStyle</key>
+    <string>Dark</string>
+
+    <!-- Background Modes -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+        <string>audio</string>
+    </array>
+
+    <!-- Location Permissions -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>TrailMark utilise le GPS pour détecter votre position et déclencher les annonces vocales aux jalons.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course, même quand le téléphone est dans votre poche.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course.</string>
+
+    <!-- Document Types for GPX import -->
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>GPX File</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Default</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.topografix.gpx</string>
+                <string>public.xml</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- Imported UTTypes -->
+    <key>UTImportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>com.topografix.gpx</string>
+            <key>UTTypeDescription</key>
+            <string>GPX File</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.xml</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>gpx</string>
+                </array>
+                <key>public.mime-type</key>
+                <string>application/gpx+xml</string>
+            </dict>
+        </dict>
+    </array>
+</dict>
+</plist>
