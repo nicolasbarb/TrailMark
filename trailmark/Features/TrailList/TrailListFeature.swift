@@ -5,19 +5,20 @@ import ComposableArchitecture
 struct TrailListFeature {
     @ObservableState
     struct State: Equatable, Sendable {
-        var trails: [Trail] = []
+        var trails: [TrailListItem] = []
         var isLoading = false
         @Presents var destination: Destination.State?
     }
 
     enum Action: Sendable {
         case onAppear
-        case trailsLoaded([Trail])
+        case trailsLoaded([TrailListItem])
         case addButtonTapped
-        case editTrailTapped(Trail)
-        case startTrailTapped(Trail)
-        case deleteTrailTapped(Trail)
+        case editTrailTapped(TrailListItem)
+        case startTrailTapped(TrailListItem)
+        case deleteTrailTapped(TrailListItem)
         case trailDeleted
+        case navigateToEditor(Int64)
         case destination(PresentationAction<Destination.Action>)
     }
 
@@ -42,18 +43,18 @@ struct TrailListFeature {
                 state.destination = .importGPX(ImportFeature.State())
                 return .none
 
-            case let .editTrailTapped(trail):
-                guard let trailId = trail.id else { return .none }
+            case let .editTrailTapped(item):
+                guard let trailId = item.trail.id else { return .none }
                 state.destination = .editor(EditorFeature.State(trailId: trailId))
                 return .none
 
-            case let .startTrailTapped(trail):
-                guard let trailId = trail.id else { return .none }
+            case let .startTrailTapped(item):
+                guard let trailId = item.trail.id else { return .none }
                 state.destination = .run(RunFeature.State(trailId: trailId))
                 return .none
 
-            case let .deleteTrailTapped(trail):
-                guard let trailId = trail.id else { return .none }
+            case let .deleteTrailTapped(item):
+                guard let trailId = item.trail.id else { return .none }
                 return .run { send in
                     try await database.deleteTrail(trailId)
                     await send(.trailDeleted)
@@ -65,14 +66,18 @@ struct TrailListFeature {
                     await send(.trailsLoaded(trails))
                 }
 
+            case let .navigateToEditor(trailId):
+                state.destination = .editor(EditorFeature.State(trailId: trailId))
+                return .none
+
             case .destination(.presented(.importGPX(.importCompleted(let trail)))):
                 state.destination = nil
-                guard trail.id != nil else { return .none }
+                guard let trailId = trail.id else { return .none }
                 // Navigate to editor after successful import
-                return .run { send in
+                return .run { [trailId] send in
                     // Small delay to allow sheet dismissal
                     try await Task.sleep(for: .milliseconds(300))
-                    await send(.editTrailTapped(trail))
+                    await send(.navigateToEditor(trailId))
                 }
 
             case .destination(.dismiss):

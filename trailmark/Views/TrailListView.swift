@@ -22,7 +22,7 @@ struct TrailListView: View {
             }
             .navigationBarHidden(true)
             .onAppear {
-//                store.send(.onAppear)
+                store.send(.onAppear)
             }
             .sheet(
                 item: $store.scope(state: \.destination?.importGPX, action: \.destination.importGPX)
@@ -111,15 +111,15 @@ struct TrailListView: View {
     private var trailList: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                ForEach(store.trails) { trail in
+                ForEach(store.trails) { item in
                     TrailCard(
-                        trail: trail,
-                        onEdit: { store.send(.editTrailTapped(trail)) },
-                        onStart: { store.send(.startTrailTapped(trail)) }
+                        item: item,
+                        onEdit: { store.send(.editTrailTapped(item)) },
+                        onStart: { store.send(.startTrailTapped(item)) }
                     )
                     .contextMenu {
                         Button(role: .destructive) {
-                            store.send(.deleteTrailTapped(trail))
+                            store.send(.deleteTrailTapped(item))
                         } label: {
                             Label("Supprimer", systemImage: "trash")
                         }
@@ -136,9 +136,11 @@ struct TrailListView: View {
 // MARK: - Trail Card
 
 private struct TrailCard: View {
-    let trail: Trail
+    let item: TrailListItem
     let onEdit: () -> Void
     let onStart: () -> Void
+
+    private var trail: Trail { item.trail }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -182,7 +184,7 @@ private struct TrailCard: View {
                         .background(TM.border)
 
                     statColumn(
-                        value: "0", // Will be updated with actual count
+                        value: "\(item.milestoneCount)",
                         unit: nil,
                         label: "Jalons"
                     )
@@ -258,7 +260,6 @@ private struct TrailCard: View {
             TrailListFeature()
         }
     )
-    .preferredColorScheme(.dark)
 }
 
 #Preview("Avec parcours") {
@@ -266,37 +267,49 @@ private struct TrailCard: View {
         store: Store(
             initialState: TrailListFeature.State(
                 trails: [
-                    Trail(
-                        id: 1,
-                        name: "Tour du Mont Blanc",
-                        createdAt: Date().addingTimeInterval(-86400 * 7),
-                        distance: 42_500,
-                        dPlus: 2_850,
-                        trailColor: .orange
+                    TrailListItem(
+                        trail: Trail(
+                            id: 1,
+                            name: "Tour du Mont Blanc",
+                            createdAt: Date().addingTimeInterval(-86400 * 7),
+                            distance: 42_500,
+                            dPlus: 2_850,
+                            trailColor: .orange
+                        ),
+                        milestoneCount: 12
                     ),
-                    Trail(
-                        id: 2,
-                        name: "Traversée des Bauges",
-                        createdAt: Date().addingTimeInterval(-86400 * 3),
-                        distance: 28_300,
-                        dPlus: 1_650,
-                        trailColor: .green
+                    TrailListItem(
+                        trail: Trail(
+                            id: 2,
+                            name: "Traversée des Bauges",
+                            createdAt: Date().addingTimeInterval(-86400 * 3),
+                            distance: 28_300,
+                            dPlus: 1_650,
+                            trailColor: .green
+                        ),
+                        milestoneCount: 8
                     ),
-                    Trail(
-                        id: 3,
-                        name: "Boucle Col de la Croix",
-                        createdAt: Date().addingTimeInterval(-86400),
-                        distance: 15_800,
-                        dPlus: 890,
-                        trailColor: .blue
+                    TrailListItem(
+                        trail: Trail(
+                            id: 3,
+                            name: "Boucle Col de la Croix",
+                            createdAt: Date().addingTimeInterval(-86400),
+                            distance: 15_800,
+                            dPlus: 890,
+                            trailColor: .blue
+                        ),
+                        milestoneCount: 5
                     ),
-                    Trail(
-                        id: 4,
-                        name: "UTMB CCC",
-                        createdAt: Date(),
-                        distance: 101_000,
-                        dPlus: 6_100,
-                        trailColor: .purple
+                    TrailListItem(
+                        trail: Trail(
+                            id: 4,
+                            name: "UTMB CCC",
+                            createdAt: Date(),
+                            distance: 101_000,
+                            dPlus: 6_100,
+                            trailColor: .purple
+                        ),
+                        milestoneCount: 24
                     ),
                 ]
             )
@@ -304,5 +317,4 @@ private struct TrailCard: View {
             TrailListFeature()
         }
     )
-    .preferredColorScheme(.dark)
 }

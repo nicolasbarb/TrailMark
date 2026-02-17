@@ -232,5 +232,4 @@ struct RunView: View {
             RunFeature()
         }
     )
-    .preferredColorScheme(.dark)
 }
