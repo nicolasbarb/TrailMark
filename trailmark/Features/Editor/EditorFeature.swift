@@ -47,6 +47,13 @@ struct MilestoneSheetFeature {
     }
 }
 
+// MARK: - Editor Tab
+
+enum EditorTab: Equatable, Sendable {
+    case map
+    case milestones
+}
+
 // MARK: - Editor Feature
 
 @Reducer
@@ -55,23 +62,19 @@ struct EditorFeature {
     struct State: Equatable, Sendable {
         let trailId: Int64
         var trailDetail: TrailDetail?
-        var selectedTab: Tab = .map
+        var selectedTab: EditorTab = .map
         var cursorPointIndex: Int?
         var milestones: [Milestone] = []
         var showToast = false
+        @Presents var alert: AlertState<Action.Alert>?
         @Presents var milestoneSheet: MilestoneSheetFeature.State?
-
-        enum Tab: Equatable, Sendable {
-            case map
-            case milestones
-        }
     }
 
     enum Action: BindableAction, Sendable {
         case binding(BindingAction<State>)
         case onAppear
         case trailLoaded(TrailDetail)
-        case tabSelected(State.Tab)
+        case tabSelected(EditorTab)
         case cursorMoved(Int?)
         case profileTapped(Int)
         case saveButtonTapped
@@ -81,6 +84,13 @@ struct EditorFeature {
         case editMilestone(Milestone)
         case hideToast
         case backTapped
+        case deleteTrailButtonTapped
+        case alert(PresentationAction<Alert>)
+
+        @CasePathable
+        enum Alert: Sendable {
+            case confirmDelete
+        }
     }
 
     @Dependency(\.database) var database
@@ -227,8 +237,33 @@ struct EditorFeature {
                 return .run { _ in
                     await dismiss()
                 }
+
+            case .deleteTrailButtonTapped:
+                state.alert = AlertState {
+                    TextState("Supprimer ce parcours ?")
+                } actions: {
+                    ButtonState(role: .cancel) {
+                        TextState("Annuler")
+                    }
+                    ButtonState(role: .destructive, action: .confirmDelete) {
+                        TextState("Supprimer")
+                    }
+                } message: {
+                    TextState("Cette action supprimera définitivement le parcours et tous ses jalons.")
+                }
+                return .none
+
+            case .alert(.presented(.confirmDelete)):
+                return .run { [trailId = state.trailId] _ in
+                    try await database.deleteTrail(trailId)
+                    await dismiss()
+                }
+
+            case .alert:
+                return .none
             }
         }
+        .ifLet(\.$alert, action: \.alert)
         .ifLet(\.$milestoneSheet, action: \.milestoneSheet) {
             MilestoneSheetFeature()
         }

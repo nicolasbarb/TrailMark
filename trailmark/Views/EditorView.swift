@@ -55,13 +55,23 @@ struct EditorView: View {
                     }
                 }
             }
+            ToolbarSpacer(.fixed, placement: .primaryAction)
+            ToolbarItem(placement: .destructiveAction) {
+                Button("Supprimer", systemImage: "trash", role: .destructive) {
+                    store.send(.deleteTrailButtonTapped)
+                }
+                .tint(Color.red)
+            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Sauvegarder", systemImage: "checkmark") {
                     store.send(.saveButtonTapped)
                 }
+                .tint(Color.accentColor)
             }
         }
         .toolbarRole(.editor)
+        .alert($store.scope(state: \.alert, action: \.alert))
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             store.send(.onAppear)
         }
@@ -79,11 +89,14 @@ struct EditorView: View {
 
     private var tabPicker: some View {
         VStack(spacing: 0) {
-            Picker("Onglet", selection: $store.selectedTab.sending(\.tabSelected)) {
+            Picker("Onglet", selection: Binding(
+                get: { store.selectedTab },
+                set: { store.send(.tabSelected($0)) }
+            )) {
                 Text("🗺 Carte")
-                    .tag(EditorFeature.State.Tab.map)
+                    .tag(EditorTab.map)
                 Text("📍 Jalons" + (store.milestones.isEmpty ? "" : " (\(store.milestones.count))"))
-                    .tag(EditorFeature.State.Tab.milestones)
+                    .tag(EditorTab.milestones)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
@@ -129,7 +142,7 @@ struct EditorView: View {
                     store.send(.profileTapped(index))
                 }
             )
-            .frame(height: 170)
+            .containerRelativeFrame(.vertical) { height, _ in height / 4 }
         }
     }
 
@@ -510,7 +523,7 @@ private enum PreviewData {
 }
 
 private struct EditorPreviewWrapper: View {
-    let tab: EditorFeature.State.Tab
+    let tab: EditorTab
     let milestones: [Milestone]
 
     var body: some View {
