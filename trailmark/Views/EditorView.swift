@@ -11,8 +11,7 @@ struct EditorView: View {
 
             if let detail = store.trailDetail {
                 VStack(spacing: 0) {
-                    editorHeader(detail: detail)
-                    tabBar
+                    tabPicker
                     tabContent(detail: detail)
                 }
             } else {
@@ -30,7 +29,39 @@ struct EditorView: View {
                 .animation(.spring, value: store.showToast)
             }
         }
-        .navigationBarHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .title) {
+                if let detail = store.trailDetail {
+                    Text(detail.trail.name)
+                }
+            }
+            ToolbarItem(placement: .subtitle) {
+                if let detail = store.trailDetail {
+                    HStack(spacing: 4) {
+                        Text(detail.distKm)
+                            .font(.system(.caption2, design: .monospaced, weight: .bold))
+                            .foregroundStyle(TM.textSecondary)
+                        Text("km")
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundStyle(TM.textMuted)
+                        Text("·")
+                            .foregroundStyle(TM.textMuted)
+                        Text("\(detail.trail.dPlus)")
+                            .font(.system(.caption2, design: .monospaced, weight: .bold))
+                            .foregroundStyle(TM.textSecondary)
+                        Text("m+")
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundStyle(TM.textMuted)
+                    }
+                }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Sauvegarder", systemImage: "checkmark") {
+                    store.send(.saveButtonTapped)
+                }
+            }
+        }
+        .toolbarRole(.editor)
         .onAppear {
             store.send(.onAppear)
         }
@@ -44,110 +75,24 @@ struct EditorView: View {
         }
     }
 
-    // MARK: - Header
+    // MARK: - Tab Picker
 
-    private func editorHeader(detail: TrailDetail) -> some View {
+    private var tabPicker: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                // Back button
-                Button {
-                    store.send(.backTapped)
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.body)
-                        .foregroundStyle(TM.textSecondary)
-                }
-
-                // Logo and file info
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("TrailMark")
-                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.accent)
-                    Text(detail.trail.name)
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(TM.textMuted)
-                }
-
-                Spacer()
-
-                // Stats
-                HStack(spacing: 4) {
-                    Text(detail.distKm)
-                        .font(.system(.caption2, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.textPrimary)
-                    Text("km")
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(TM.textMuted)
-                    Text("\(detail.trail.dPlus)")
-                        .font(.system(.caption2, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.textPrimary)
-                    Text("m+")
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(TM.textMuted)
-                }
-
-                // Save button
-                Button {
-                    store.send(.saveButtonTapped)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "square.and.arrow.down")
-                            .font(.caption)
-                        Text("Sauver")
-                            .font(.caption.weight(.semibold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(TM.accentGradient, in: RoundedRectangle(cornerRadius: 9))
-                    .shadow(color: TM.accent.opacity(0.3), radius: 8, y: 4)
-                }
+            Picker("Onglet", selection: $store.selectedTab.sending(\.tabSelected)) {
+                Text("🗺 Carte")
+                    .tag(EditorFeature.State.Tab.map)
+                Text("📍 Jalons" + (store.milestones.isEmpty ? "" : " (\(store.milestones.count))"))
+                    .tag(EditorFeature.State.Tab.milestones)
             }
+            .pickerStyle(.segmented)
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.vertical, 12)
 
             Rectangle()
                 .fill(TM.bgTertiary)
                 .frame(height: 1)
         }
-    }
-
-    // MARK: - Tab Bar
-
-    private var tabBar: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                tabButton(title: "🗺 Carte", tab: .map)
-                tabButton(
-                    title: "📍 Jalons" + (store.milestones.isEmpty ? "" : " (\(store.milestones.count))"),
-                    tab: .milestones
-                )
-            }
-            .padding(.horizontal, 16)
-
-            Rectangle()
-                .fill(TM.bgTertiary)
-                .frame(height: 1)
-        }
-    }
-
-    private func tabButton(title: String, tab: EditorFeature.State.Tab) -> some View {
-        let isActive = store.selectedTab == tab
-
-        return Button {
-            store.send(.tabSelected(tab))
-        } label: {
-            VStack(spacing: 8) {
-                Text(title)
-                    .font(.subheadline.weight(isActive ? .semibold : .medium))
-                    .foregroundStyle(isActive ? TM.accent : TM.textMuted)
-
-                Rectangle()
-                    .fill(isActive ? TM.accent : .clear)
-                    .frame(height: 2)
-            }
-        }
-        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Tab Content
@@ -436,13 +381,196 @@ struct MilestoneSheetView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        EditorView(
-            store: Store(initialState: EditorFeature.State(trailId: 1)) {
-                EditorFeature()
+// MARK: - Preview Helpers
+
+private enum PreviewData {
+    /// Génère des TrackPoints simulant un parcours de trail réaliste
+    static func generateTrackPoints(count: Int = 200) -> [TrackPoint] {
+        // Point de départ : Col du Galibier (Alpes françaises)
+        let startLat = 45.0641
+        let startLon = 6.4078
+        var points: [TrackPoint] = []
+        var cumulativeDistance: Double = 0
+
+        for i in 0..<count {
+            let progress = Double(i) / Double(count - 1)
+
+            // Simuler un parcours en boucle
+            let angle = progress * 2 * .pi
+            let radius = 0.015 // ~1.5km de rayon
+
+            let lat = startLat + sin(angle) * radius
+            let lon = startLon + cos(angle) * radius * 1.3
+
+            // Profil d'élévation réaliste : montée puis descente
+            let elevation: Double
+            if progress < 0.4 {
+                // Montée
+                elevation = 2100 + (progress / 0.4) * 400
+            } else if progress < 0.6 {
+                // Plateau sommital
+                elevation = 2500 + sin(progress * 20) * 30
+            } else {
+                // Descente
+                elevation = 2500 - ((progress - 0.6) / 0.4) * 400
             }
+
+            // Distance cumulative (~15km total)
+            if i > 0 {
+                cumulativeDistance += 15000 / Double(count - 1)
+            }
+
+            points.append(TrackPoint(
+                id: Int64(i + 1),
+                trailId: 1,
+                index: i,
+                latitude: lat,
+                longitude: lon,
+                elevation: elevation,
+                distance: cumulativeDistance
+            ))
+        }
+        return points
+    }
+
+    static let trail = Trail(
+        id: 1,
+        name: "Col du Galibier",
+        createdAt: Date(),
+        distance: 15000,
+        dPlus: 450,
+        trailColor: .orange
+    )
+
+    static var trackPoints: [TrackPoint] {
+        generateTrackPoints()
+    }
+
+    static func milestones(from points: [TrackPoint]) -> [Milestone] {
+        [
+            Milestone(
+                id: 1,
+                trailId: 1,
+                pointIndex: 20,
+                latitude: points[20].latitude,
+                longitude: points[20].longitude,
+                elevation: points[20].elevation,
+                distance: points[20].distance,
+                type: .montee,
+                message: "Début de la montée, gardez un rythme régulier",
+                name: "Départ montée"
+            ),
+            Milestone(
+                id: 2,
+                trailId: 1,
+                pointIndex: 80,
+                latitude: points[80].latitude,
+                longitude: points[80].longitude,
+                elevation: points[80].elevation,
+                distance: points[80].distance,
+                type: .ravito,
+                message: "Ravitaillement dans 200 mètres, eau et barres",
+                name: "Ravito Col"
+            ),
+            Milestone(
+                id: 3,
+                trailId: 1,
+                pointIndex: 110,
+                latitude: points[110].latitude,
+                longitude: points[110].longitude,
+                elevation: points[110].elevation,
+                distance: points[110].distance,
+                type: .danger,
+                message: "Attention, passage technique avec pierrier",
+                name: nil
+            ),
+            Milestone(
+                id: 4,
+                trailId: 1,
+                pointIndex: 140,
+                latitude: points[140].latitude,
+                longitude: points[140].longitude,
+                elevation: points[140].elevation,
+                distance: points[140].distance,
+                type: .descente,
+                message: "Descente rapide, attention aux genoux",
+                name: "Descente finale"
+            )
+        ]
+    }
+
+    static var trailDetail: TrailDetail {
+        let points = trackPoints
+        return TrailDetail(
+            trail: trail,
+            trackPoints: points,
+            milestones: milestones(from: points)
         )
     }
-    .preferredColorScheme(.dark)
+}
+
+private struct EditorPreviewWrapper: View {
+    let tab: EditorFeature.State.Tab
+    let milestones: [Milestone]
+
+    var body: some View {
+        NavigationStack {
+            Color.clear
+                .navigationDestination(isPresented: .constant(true)) {
+                    let points = PreviewData.trackPoints
+                    let ms = milestones.isEmpty ? [] : PreviewData.milestones(from: points)
+
+                    EditorView(
+                        store: Store(
+                            initialState: {
+                                var state = EditorFeature.State(trailId: 1)
+                                state.trailDetail = TrailDetail(
+                                    trail: PreviewData.trail,
+                                    trackPoints: points,
+                                    milestones: ms
+                                )
+                                state.milestones = ms
+                                state.selectedTab = tab
+                                return state
+                            }()
+                        ) {
+                            EditorFeature()
+                        }
+                    )
+                }
+        }
+    }
+}
+
+#Preview("Editor - Map Tab") {
+    EditorPreviewWrapper(tab: .map, milestones: PreviewData.milestones(from: PreviewData.trackPoints))
+}
+
+#Preview("Editor - Milestones Tab") {
+    EditorPreviewWrapper(tab: .milestones, milestones: PreviewData.milestones(from: PreviewData.trackPoints))
+}
+
+#Preview("Editor - Empty Milestones") {
+    EditorPreviewWrapper(tab: .milestones, milestones: [])
+}
+
+#Preview("Milestone Sheet") {
+    MilestoneSheetView(
+        store: Store(
+            initialState: MilestoneSheetFeature.State(
+                editingMilestone: nil,
+                pointIndex: 50,
+                latitude: 45.0641,
+                longitude: 6.4078,
+                elevation: 2350,
+                distance: 3500,
+                selectedType: .montee,
+                message: "",
+                name: ""
+            )
+        ) {
+            MilestoneSheetFeature()
+        }
+    )
+    .presentationBackground(TM.bgCard)
 }
