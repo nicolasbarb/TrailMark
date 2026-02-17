@@ -1,5 +1,34 @@
 import SwiftUI
 
+// MARK: - Trail Colors
+
+/// Predefined trail colors using native Apple colors
+enum TrailColor: String, CaseIterable, Sendable {
+    case orange
+    case green
+    case blue
+    case purple
+    case cyan
+    case pink
+    case red
+    case yellow
+
+    nonisolated var color: Color {
+        switch self {
+        case .orange: return .orange
+        case .green: return .green
+        case .blue: return .blue
+        case .purple: return .purple
+        case .cyan: return .cyan
+        case .pink: return .pink
+        case .red: return .red
+        case .yellow: return .yellow
+        }
+    }
+
+    nonisolated static var `default`: TrailColor { .orange }
+}
+
 // MARK: - Design System
 
 /// Design tokens using Apple's native semantic colors

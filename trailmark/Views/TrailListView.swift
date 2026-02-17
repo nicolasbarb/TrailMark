@@ -144,7 +144,7 @@ private struct TrailCard: View {
         HStack(spacing: 0) {
             // Left accent bar
             UnevenRoundedRectangle(topLeadingRadius: 14, bottomLeadingRadius: 14)
-                .fill(Color(hex: trail.color))
+                .fill(trail.trailColor.color)
                 .frame(width: 4)
 
             VStack(alignment: .leading, spacing: 12) {
@@ -272,7 +272,7 @@ private struct TrailCard: View {
                         createdAt: Date().addingTimeInterval(-86400 * 7),
                         distance: 42_500,
                         dPlus: 2_850,
-                        color: "f97316"
+                        trailColor: .orange
                     ),
                     Trail(
                         id: 2,
@@ -280,7 +280,7 @@ private struct TrailCard: View {
                         createdAt: Date().addingTimeInterval(-86400 * 3),
                         distance: 28_300,
                         dPlus: 1_650,
-                        color: "22c55e"
+                        trailColor: .green
                     ),
                     Trail(
                         id: 3,
@@ -288,7 +288,7 @@ private struct TrailCard: View {
                         createdAt: Date().addingTimeInterval(-86400),
                         distance: 15_800,
                         dPlus: 890,
-                        color: "3b82f6"
+                        trailColor: .blue
                     ),
                     Trail(
                         id: 4,
@@ -296,7 +296,7 @@ private struct TrailCard: View {
                         createdAt: Date(),
                         distance: 101_000,
                         dPlus: 6_100,
-                        color: "a855f7"
+                        trailColor: .purple
                     ),
                 ]
             )
