@@ -141,6 +141,15 @@ struct Milestone: Hashable, Identifiable, Sendable {
     }
 }
 
+// MARK: - TrailListItem (for list display with milestone count)
+
+struct TrailListItem: Equatable, Identifiable, Sendable {
+    let trail: Trail
+    let milestoneCount: Int
+
+    var id: Int64? { trail.id }
+}
+
 // MARK: - TrailDetail (Aggregated view)
 
 struct TrailDetail: Equatable, Sendable {

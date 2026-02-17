@@ -29,6 +29,7 @@ struct ElevationProfileView: View {
             ZStack(alignment: .topLeading) {
                 // Background
                 TM.bgSecondary
+                    .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // Mini header
@@ -360,5 +361,4 @@ struct ElevationProfileView: View {
 //         onTap: { _ in }
 //     )
 //     .frame(height: 170)
-//     .preferredColorScheme(.dark)
 // }

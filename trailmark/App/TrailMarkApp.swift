@@ -18,7 +18,6 @@ struct TrailMarkApp: App {
     var body: some Scene {
         WindowGroup {
             TrailListView(store: Self.store)
-                .preferredColorScheme(.dark)
         }
     }
 }

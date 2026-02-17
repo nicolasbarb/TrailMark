@@ -128,5 +128,4 @@ struct TrailMapView: View {
         cursorPointIndex: nil,
         trailColor: .orange
     )
-    .preferredColorScheme(.dark)
 }
