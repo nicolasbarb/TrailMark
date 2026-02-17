@@ -1,27 +1,72 @@
 import SwiftUI
 
+// MARK: - Trail Colors
+
+/// Predefined trail colors using native Apple colors
+enum TrailColor: String, CaseIterable, Sendable {
+    case orange
+    case green
+    case blue
+    case purple
+    case cyan
+    case pink
+    case red
+    case yellow
+
+    nonisolated var color: Color {
+        switch self {
+        case .orange: return .orange
+        case .green: return .green
+        case .blue: return .blue
+        case .purple: return .purple
+        case .cyan: return .cyan
+        case .pink: return .pink
+        case .red: return .red
+        case .yellow: return .yellow
+        }
+    }
+
+    nonisolated static var `default`: TrailColor { .orange }
+}
+
 // MARK: - Design System
 
+/// Design tokens using Apple's native semantic colors
+/// Following Human Interface Guidelines for dark mode
 enum TM {
     // MARK: Backgrounds
-    static let bgPrimary = Color(hex: "1a1d23")
-    static let bgSecondary = Color(hex: "22262e")
-    static let bgTertiary = Color(hex: "2a2f38")
-    static let bgCard = Color(hex: "272b34")
+    /// Main screen background - adapts to device (pure black on OLED)
+    static let bgPrimary = Color(uiColor: .systemBackground)
+    /// Cards, elevated surfaces
+    static let bgSecondary = Color(uiColor: .secondarySystemBackground)
+    /// Further elevated content
+    static let bgTertiary = Color(uiColor: .tertiarySystemBackground)
+    /// Card backgrounds (alias for consistency)
+    static let bgCard = Color(uiColor: .secondarySystemBackground)
 
     // MARK: Text
-    static let textPrimary = Color(hex: "e8eaed")
-    static let textSecondary = Color(hex: "9aa0ab")
-    static let textMuted = Color(hex: "6b7280")
+    /// Primary content text
+    static let textPrimary = Color.primary
+    /// Secondary content, subtitles
+    static let textSecondary = Color.secondary
+    /// Disabled text, hints
+    static let textMuted = Color(uiColor: .tertiaryLabel)
 
     // MARK: Accents
-    static let accent = Color(hex: "f97316")
-    static let accentDark = Color(hex: "ea580c")
-    static let trace = Color(hex: "38bdf8")
-    static let traceGlow = Color(hex: "38bdf8").opacity(0.3)
-    static let border = Color(hex: "353a45")
-    static let danger = Color(hex: "ef4444")
-    static let success = Color(hex: "22c55e")
+    /// App accent color - orange for trail/outdoor theme
+    static let accent = Color.orange
+    /// Darker accent variant
+    static let accentDark = Color(uiColor: .systemOrange).opacity(0.85)
+    /// GPS trace color - cyan for visibility
+    static let trace = Color.cyan
+    /// Trace glow effect
+    static let traceGlow = Color.cyan.opacity(0.3)
+    /// Borders and separators
+    static let border = Color(uiColor: .separator)
+    /// Error states
+    static let danger = Color.red
+    /// Success states
+    static let success = Color.green
 
     // MARK: Gradients
     static let accentGradient = LinearGradient(
@@ -36,12 +81,12 @@ enum TM {
 extension MilestoneType {
     var color: Color {
         switch self {
-        case .montee: return Color(hex: "f97316")
-        case .descente: return Color(hex: "38bdf8")
-        case .plat: return Color(hex: "a3e635")
-        case .ravito: return Color(hex: "c084fc")
-        case .danger: return Color(hex: "ef4444")
-        case .info: return Color(hex: "60a5fa")
+        case .montee: return .orange
+        case .descente: return .cyan
+        case .plat: return .green
+        case .ravito: return .purple
+        case .danger: return .red
+        case .info: return .blue
         }
     }
 
@@ -65,33 +110,5 @@ extension MilestoneType {
         case .danger: return "Danger"
         case .info: return "Info"
         }
-    }
-}
-
-// MARK: - Color Extension
-
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (255, 0, 0, 0)
-        }
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: Double(a) / 255
-        )
     }
 }

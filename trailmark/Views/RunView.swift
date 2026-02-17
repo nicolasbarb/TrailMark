@@ -72,7 +72,7 @@ struct RunView: View {
 
                 Text("Rangez le téléphone dans votre poche.\nLes jalons seront annoncés vocalement.")
                     .font(.caption)
-                    .foregroundStyle(Color(hex: "4b5563"))
+                    .foregroundStyle(TM.textMuted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }
@@ -159,7 +159,7 @@ struct RunView: View {
 
                 Text("Les jalons sont annoncés automatiquement\npar GPS. Vous pouvez ranger le téléphone.")
                     .font(.caption)
-                    .foregroundStyle(Color(hex: "4b5563"))
+                    .foregroundStyle(TM.textMuted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
                     .padding(.top, 8)
@@ -232,5 +232,4 @@ struct RunView: View {
             RunFeature()
         }
     )
-    .preferredColorScheme(.dark)
 }

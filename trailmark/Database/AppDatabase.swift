@@ -106,7 +106,7 @@ private var migrator: DatabaseMigrator {
 // MARK: - DatabaseClient
 
 struct DatabaseClient: Sendable {
-    var fetchAllTrails: @Sendable () async throws -> [Trail]
+    var fetchAllTrails: @Sendable () async throws -> [TrailListItem]
     var fetchTrailDetail: @Sendable (Int64) async throws -> TrailDetail?
     var insertTrail: @Sendable (Trail, [TrackPoint]) async throws -> Trail
     var deleteTrail: @Sendable (Int64) async throws -> Void
@@ -123,9 +123,16 @@ extension DatabaseClient: DependencyKey {
         return DatabaseClient(
             fetchAllTrails: {
                 try await database.read { db in
-                    try Trail
+                    let trails = try Trail
                         .order { col in col.createdAt.desc() }
                         .fetchAll(db)
+
+                    return try trails.map { trail in
+                        let count = try Milestone
+                            .where { col in col.trailId == trail.id }
+                            .fetchCount(db)
+                        return TrailListItem(trail: trail, milestoneCount: count)
+                    }
                 }
             },
             fetchTrailDetail: { trailId in
@@ -225,7 +232,7 @@ extension DatabaseClient: DependencyKey {
 
     static var testValue: DatabaseClient {
         DatabaseClient(
-            fetchAllTrails: { [] },
+            fetchAllTrails: { [TrailListItem]() },
             fetchTrailDetail: { _ in nil },
             insertTrail: { trail, _ in trail },
             deleteTrail: { _ in },
@@ -246,9 +253,16 @@ extension DatabaseClient: DependencyKey {
         return DatabaseClient(
             fetchAllTrails: {
                 try await database.read { db in
-                    try Trail
+                    let trails = try Trail
                         .order { col in col.createdAt.desc() }
                         .fetchAll(db)
+
+                    return try trails.map { trail in
+                        let count = try Milestone
+                            .where { col in col.trailId == trail.id }
+                            .fetchCount(db)
+                        return TrailListItem(trail: trail, milestoneCount: count)
+                    }
                 }
             },
             fetchTrailDetail: { trailId in

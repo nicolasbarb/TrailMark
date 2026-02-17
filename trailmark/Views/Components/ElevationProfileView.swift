@@ -28,7 +28,8 @@ struct ElevationProfileView: View {
 
             ZStack(alignment: .topLeading) {
                 // Background
-                Color(hex: "1e2128")
+                TM.bgSecondary
+                    .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // Mini header
@@ -42,7 +43,7 @@ struct ElevationProfileView: View {
 
                         Text("Tap = jalon")
                             .font(.system(size: 9))
-                            .foregroundStyle(Color(hex: "4b5563"))
+                            .foregroundStyle(TM.textMuted)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -134,7 +135,7 @@ struct ElevationProfileView: View {
                 // Label
                 let text = Text("\(Int(ele))")
                     .font(.system(size: 8, design: .monospaced))
-                    .foregroundStyle(Color(hex: "555555"))
+                    .foregroundStyle(Color(uiColor: .tertiaryLabel))
                 context.draw(text, at: CGPoint(x: plotRect.minX - 4, y: y), anchor: .trailing)
             }
 
@@ -149,7 +150,7 @@ struct ElevationProfileView: View {
 
             let text = Text("\(Int(dist))k")
                 .font(.system(size: 8, design: .monospaced))
-                .foregroundStyle(Color(hex: "555555"))
+                .foregroundStyle(Color(uiColor: .tertiaryLabel))
             context.draw(text, at: CGPoint(x: x, y: plotRect.maxY + 8), anchor: .top)
 
             dist += distStep
@@ -360,5 +361,4 @@ struct ElevationProfileView: View {
 //         onTap: { _ in }
 //     )
 //     .frame(height: 170)
-//     .preferredColorScheme(.dark)
 // }
