@@ -170,7 +170,7 @@ struct EditorView: View {
                 trackPoints: detail.trackPoints,
                 milestones: store.milestones,
                 cursorPointIndex: store.cursorPointIndex,
-                trailColor: detail.trail.color
+                trailColor: detail.trail.trailColor
             )
 
             ElevationProfileView(
@@ -257,12 +257,12 @@ struct EditorView: View {
 
                     Text(milestone.message)
                         .font(.subheadline)
-                        .foregroundStyle(Color(hex: "d1d5db"))
+                        .foregroundStyle(TM.textPrimary)
                         .lineLimit(2)
 
                     Text("km \(String(format: "%.1f", milestone.distance / 1000)) · \(Int(milestone.elevation))m")
                         .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(Color(hex: "4b5563"))
+                        .foregroundStyle(TM.textMuted)
                 }
 
                 Spacer()

@@ -10,7 +10,7 @@ struct Trail: Hashable, Identifiable, Sendable {
     var createdAt: Double // Unix timestamp
     var distance: Double // meters
     var dPlus: Int // meters
-    var color: String // hex without #
+    var color: String // TrailColor raw value
 
     nonisolated init(
         id: Int64? = nil,
@@ -18,14 +18,14 @@ struct Trail: Hashable, Identifiable, Sendable {
         createdAt: Date = Date(),
         distance: Double,
         dPlus: Int,
-        color: String = "f97316"
+        trailColor: TrailColor = .default
     ) {
         self.id = id
         self.name = name
         self.createdAt = createdAt.timeIntervalSince1970
         self.distance = distance
         self.dPlus = dPlus
-        self.color = color
+        self.color = trailColor.rawValue
     }
 
     // Init with raw timestamp (for database reconstruction)
@@ -47,6 +47,11 @@ struct Trail: Hashable, Identifiable, Sendable {
 
     nonisolated var createdAtDate: Date {
         Date(timeIntervalSince1970: createdAt)
+    }
+
+    /// SwiftUI Color from stored color value
+    nonisolated var trailColor: TrailColor {
+        TrailColor(rawValue: color) ?? .default
     }
 }
 
