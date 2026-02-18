@@ -55,8 +55,7 @@ private var migrator: DatabaseMigrator {
                 name TEXT NOT NULL,
                 createdAt REAL NOT NULL,
                 distance REAL NOT NULL,
-                dPlus INTEGER NOT NULL,
-                color TEXT NOT NULL DEFAULT 'f97316'
+                dPlus INTEGER NOT NULL
             )
             """)
 
@@ -161,8 +160,7 @@ extension DatabaseClient: DependencyKey {
                             name: trail.name,
                             createdAt: trail.createdAt,
                             distance: trail.distance,
-                            dPlus: trail.dPlus,
-                            color: trail.color
+                            dPlus: trail.dPlus
                         )
                     }
                     .execute(db)
@@ -190,8 +188,7 @@ extension DatabaseClient: DependencyKey {
                         name: trail.name,
                         createdAtTimestamp: trail.createdAt,
                         distance: trail.distance,
-                        dPlus: trail.dPlus,
-                        color: trail.color
+                        dPlus: trail.dPlus
                     )
                 }
             },
@@ -298,8 +295,7 @@ extension DatabaseClient: DependencyKey {
                             name: trail.name,
                             createdAt: trail.createdAt,
                             distance: trail.distance,
-                            dPlus: trail.dPlus,
-                            color: trail.color
+                            dPlus: trail.dPlus
                         )
                     }
                     .execute(db)
@@ -325,8 +321,7 @@ extension DatabaseClient: DependencyKey {
                         name: trail.name,
                         createdAtTimestamp: trail.createdAt,
                         distance: trail.distance,
-                        dPlus: trail.dPlus,
-                        color: trail.color
+                        dPlus: trail.dPlus
                     )
                 }
             },

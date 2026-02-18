@@ -50,8 +50,7 @@ struct ImportFeature {
                             name: trailName,
                             createdAt: Date(),
                             distance: totalDistance,
-                            dPlus: dPlus,
-                            trailColor: .default
+                            dPlus: dPlus
                         )
 
                         let trackPoints = parsedPoints.enumerated().map { index, point in
