@@ -22,7 +22,7 @@ struct TrailListView: View {
             }
             .navigationBarHidden(true)
             .onAppear {
-//                store.send(.onAppear)
+                store.send(.onAppear)
             }
             .sheet(
                 item: $store.scope(state: \.destination?.importGPX, action: \.destination.importGPX)
@@ -144,8 +144,6 @@ private struct TrailCard: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left accent bar
-
             VStack(alignment: .leading, spacing: 12) {
                 // Name and date
                 VStack(alignment: .leading, spacing: 4) {
@@ -196,7 +194,7 @@ private struct TrailCard: View {
                             Text("Éditer")
                                 .font(.caption.weight(.medium))
                         }
-                        .foregroundStyle(TM.textPrimary)
+                        .foregroundStyle(TM.textSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 9)
                         .background(TM.bgTertiary, in: RoundedRectangle(cornerRadius: 10))
