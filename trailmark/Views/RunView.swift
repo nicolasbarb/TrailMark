@@ -19,7 +19,23 @@ struct RunView: View {
                     .tint(TM.accent)
             }
         }
-        .navigationBarHidden(true)
+//        .navigationBarBackButtonHidden(true)
+//        .toolbar {
+//            ToolbarItem(placement: .topBarLeading) {
+//                if !store.isRunning {
+//                    Button {
+//                        store.send(.backTapped)
+//                    } label: {
+//                        HStack(spacing: 4) {
+//                            Image(systemName: "chevron.left")
+//                                .fontWeight(.semibold)
+//                            Text("Retour")
+//                        }
+//                        .foregroundStyle(TM.accent)
+//                    }
+//                }
+//            }
+//        }
         .onAppear {
             store.send(.onAppear)
         }
@@ -29,23 +45,6 @@ struct RunView: View {
 
     private func preRunView(detail: TrailDetail) -> some View {
         VStack(spacing: 0) {
-            // Back button
-            HStack {
-                Button {
-                    store.send(.backTapped)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                        Text("Retour")
-                    }
-                    .font(.caption)
-                    .foregroundStyle(TM.textMuted)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 28)
-            .padding(.top, 16)
-
             Spacer()
 
             // Trail info
@@ -226,9 +225,104 @@ struct RunView: View {
     }
 }
 
-#Preview {
+// MARK: - Preview Data
+
+private enum PreviewData {
+    static let trail = Trail(
+        id: 1,
+        name: "Tour du Mont Blanc",
+        createdAt: Date(),
+        distance: 42_500,
+        dPlus: 2_850
+    )
+
+    static let milestones: [Milestone] = [
+        Milestone(
+            id: 1,
+            trailId: 1,
+            pointIndex: 100,
+            latitude: 45.9,
+            longitude: 6.87,
+            elevation: 1200,
+            distance: 5000,
+            type: .montee,
+            message: "Début de la montée vers le Col de Voza"
+        ),
+        Milestone(
+            id: 2,
+            trailId: 1,
+            pointIndex: 200,
+            latitude: 45.92,
+            longitude: 6.88,
+            elevation: 1650,
+            distance: 10000,
+            type: .ravito,
+            message: "Ravitaillement aux Contamines dans 500 mètres"
+        ),
+    ]
+
+    static let trailDetail = TrailDetail(
+        trail: trail,
+        trackPoints: [],
+        milestones: milestones
+    )
+}
+
+#Preview("Pré-démarrage") {
+    NavigationStack {
+        RunView(
+            store: Store(
+                initialState: RunFeature.State(
+                    trailId: 1,
+                    trailDetail: PreviewData.trailDetail,
+                    isRunning: false
+                )
+            ) {
+                RunFeature()
+            }
+        )
+    }
+}
+
+#Preview("Guidage en cours") {
     RunView(
-        store: Store(initialState: RunFeature.State(trailId: 1)) {
+        store: Store(
+            initialState: RunFeature.State(
+                trailId: 1,
+                trailDetail: PreviewData.trailDetail,
+                isRunning: true
+            )
+        ) {
+            RunFeature()
+        }
+    )
+}
+
+#Preview("Avec annonce TTS") {
+    RunView(
+        store: Store(
+            initialState: RunFeature.State(
+                trailId: 1,
+                trailDetail: PreviewData.trailDetail,
+                isRunning: true,
+                currentTTSMessage: "Début de la montée vers le Col de Voza. Courage, 450 mètres de dénivelé positif."
+            )
+        ) {
+            RunFeature()
+        }
+    )
+}
+
+#Preview("Permission refusée") {
+    RunView(
+        store: Store(
+            initialState: RunFeature.State(
+                trailId: 1,
+                trailDetail: PreviewData.trailDetail,
+                isRunning: false,
+                authorizationDenied: true
+            )
+        ) {
             RunFeature()
         }
     )
