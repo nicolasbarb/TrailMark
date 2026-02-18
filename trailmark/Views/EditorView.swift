@@ -18,16 +18,6 @@ struct EditorView: View {
                 ProgressView()
                     .tint(TM.accent)
             }
-
-            // Toast
-            if store.showToast {
-                VStack {
-                    toastView
-                    Spacer()
-                }
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .animation(.spring, value: store.showToast)
-            }
         }
         .toolbar {
             ToolbarItem(placement: .title) {
@@ -37,22 +27,12 @@ struct EditorView: View {
             }
             ToolbarItem(placement: .subtitle) {
                 if let detail = store.trailDetail {
-                    HStack(spacing: 4) {
-                        Text(detail.distKm)
-                            .font(.system(.caption2, design: .monospaced, weight: .bold))
-                            .foregroundStyle(TM.textSecondary)
-                        Text("km")
-                            .font(.system(.caption2, design: .monospaced))
-                            .foregroundStyle(TM.textMuted)
-                        Text("·")
-                            .foregroundStyle(TM.textMuted)
-                        Text("\(detail.trail.dPlus)")
-                            .font(.system(.caption2, design: .monospaced, weight: .bold))
-                            .foregroundStyle(TM.textSecondary)
-                        Text("m+")
-                            .font(.system(.caption2, design: .monospaced))
-                            .foregroundStyle(TM.textMuted)
-                    }
+                    TrailStatsView(distanceKm: detail.distKm, dPlus: detail.trail.dPlus)
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button("Renommer", systemImage: "square.and.pencil") {
+                    store.send(.renameButtonTapped)
                 }
             }
             ToolbarSpacer(.fixed, placement: .primaryAction)
@@ -62,15 +42,57 @@ struct EditorView: View {
                 }
                 .tint(Color.red)
             }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Sauvegarder", systemImage: "checkmark") {
-                    store.send(.saveButtonTapped)
+
+            // Bottom toolbar for milestones
+            if store.selectedTab == .milestones && !store.milestones.isEmpty {
+                if store.isSelectingMilestones {
+                    ToolbarItem(placement: .bottomBar) {
+                        Button(role: .destructive) {
+                            store.send(.deleteSelectedMilestones)
+                        } label: {
+                            Label("Supprimer (\(store.selectedMilestoneIndices.count))", systemImage: "trash")
+                        }
+                        .tint(.red)
+                        .disabled(store.selectedMilestoneIndices.isEmpty)
+                    }
+                    ToolbarSpacer(.flexible, placement: .bottomBar)
+                    ToolbarItem(placement: .bottomBar) {
+                        Button {
+                            store.send(.toggleSelectionMode)
+                        } label: {
+                            Image(systemName: "xmark")
+                        }
+                    }
+                } else {
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Spacer()
+                        Button {
+                            store.send(.toggleSelectionMode)
+                        } label: {
+                            Text("Sélectionner")
+                        }
+                    }
                 }
-                .tint(Color.accentColor)
             }
         }
         .toolbarRole(.editor)
         .alert($store.scope(state: \.alert, action: \.alert))
+        .alert(
+            "Renommer le parcours",
+            isPresented: Binding(
+                get: { store.isRenamingTrail },
+                set: { if !$0 { store.send(.renameCancelled) } }
+            )
+        ) {
+            TextField("Nom du parcours", text: $store.editedTrailName)
+            Button("Annuler", role: .cancel) {
+                store.send(.renameCancelled)
+            }
+            Button("Renommer") {
+                store.send(.renameConfirmed)
+            }
+            .keyboardShortcut(.defaultAction)
+        }
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             store.send(.onAppear)
@@ -79,8 +101,7 @@ struct EditorView: View {
             item: $store.scope(state: \.milestoneSheet, action: \.milestoneSheet)
         ) { sheetStore in
             MilestoneSheetView(store: sheetStore)
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
+                .presentationDetents([.large])
                 .presentationBackground(TM.bgCard)
         }
     }
@@ -179,18 +200,48 @@ struct EditorView: View {
     }
 
     private var milestonesList: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(Array(store.milestones.enumerated()), id: \.offset) { index, milestone in
-                    milestoneRow(milestone: milestone, index: index)
-                }
+        List {
+            ForEach(Array(store.milestones.enumerated()), id: \.offset) { index, milestone in
+                milestoneRow(milestone: milestone, index: index)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        if !store.isSelectingMilestones {
+                            Button(role: .destructive) {
+                                store.send(.deleteMilestone(index))
+                            } label: {
+                                Label("Supprimer", systemImage: "trash")
+                            }
+                            Button {
+                                store.send(.editMilestone(milestone))
+                            } label: {
+                                Label("Modifier", systemImage: "pencil")
+                            }
+                            .tint(.orange)
+                        }
+                    }
             }
+            .listRowInsets(EdgeInsets())
+            .listRowSeparator(.hidden)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     private func milestoneRow(milestone: Milestone, index: Int) -> some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 10) {
+        let isSelected = store.selectedMilestoneIndices.contains(index)
+
+        return VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 10) {
+                // Selection button (only in selection mode)
+                if store.isSelectingMilestones {
+                    Button {
+                        store.send(.toggleMilestoneSelection(index))
+                    } label: {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .font(.title2)
+                            .foregroundStyle(isSelected ? .red : TM.textMuted)
+                    }
+                }
+
                 // Number badge
                 Text("\(index + 1)")
                     .font(.system(.caption2, design: .monospaced, weight: .bold))
@@ -218,55 +269,26 @@ struct EditorView: View {
                         .foregroundStyle(TM.textPrimary)
                         .lineLimit(2)
 
-                    Text("km \(String(format: "%.1f", milestone.distance / 1000)) · \(Int(milestone.elevation))m")
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(TM.textMuted)
+                    PointStatsView(distanceMeters: milestone.distance, altitudeMeters: milestone.elevation)
                 }
 
                 Spacer()
-
-                // Delete button
-                Button {
-                    store.send(.deleteMilestone(index))
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.caption)
-                        .foregroundStyle(TM.textMuted)
-                        .padding(4)
-                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .contentShape(Rectangle())
             .onTapGesture {
-                store.send(.editMilestone(milestone))
+                if store.isSelectingMilestones {
+                    store.send(.toggleMilestoneSelection(index))
+                } else {
+                    store.send(.editMilestone(milestone))
+                }
             }
 
             Rectangle()
                 .fill(TM.bgSecondary)
                 .frame(height: 1)
         }
-    }
-
-    // MARK: - Toast
-
-    private var toastView: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(TM.success)
-            Text("TrailMark sauvegardé !")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(TM.success)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(TM.bgSecondary, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(TM.success.opacity(0.3), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.5), radius: 20)
-        .padding(.top, 8)
     }
 }
 
@@ -276,87 +298,79 @@ struct MilestoneSheetView: View {
     @Bindable var store: StoreOf<MilestoneSheetFeature>
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                // Header
-                HStack {
-                    Text(store.isEditing ? "Modifier" : "Nouveau jalon")
-                        .font(.headline)
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Type selector
+                    sectionLabel("TYPE")
+
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                        ForEach(MilestoneType.allCases, id: \.self) { type in
+                            typeButton(type)
+                        }
+                    }
+                    .padding(.top, 8)
+
+                    // Message
+                    sectionLabel("MESSAGE TTS")
+                        .padding(.top, 14)
+
+                    TextField("ex: Montée de 200m, marchez…", text: $store.message, axis: .vertical)
+                        .lineLimit(3...5)
+                        .font(.body)
                         .foregroundStyle(TM.textPrimary)
+                        .padding(12)
+                        .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(TM.border, lineWidth: 1)
+                        )
+                        .padding(.top, 8)
 
-                    Spacer()
+                    // Name
+                    sectionLabel("NOM (OPTIONNEL)")
+                        .padding(.top, 14)
 
+                    TextField("ex: Col de la Croix", text: $store.name)
+                        .font(.body)
+                        .foregroundStyle(TM.textPrimary)
+                        .padding(12)
+                        .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(TM.border, lineWidth: 1)
+                        )
+                        .padding(.top, 8)
+
+                    // Save button
                     Button {
-                        store.send(.dismissTapped)
+                        store.send(.saveButtonTapped)
                     } label: {
-                        Image(systemName: "xmark")
-                            .font(.body)
-                            .foregroundStyle(TM.textMuted)
+                        Text(store.isEditing ? "Enregistrer" : "Ajouter")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(TM.accent, in: RoundedRectangle(cornerRadius: 12))
                     }
-                }
-
-                // Position
-                Text("km \(String(format: "%.2f", store.distance / 1000)) · \(Int(store.elevation))m")
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(TM.textMuted)
-                    .padding(.top, 4)
-
-                // Type selector
-                sectionLabel("TYPE")
                     .padding(.top, 16)
-
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                    ForEach(MilestoneType.allCases, id: \.self) { type in
-                        typeButton(type)
+                }
+                .padding(20)
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Fermer", systemImage: "xmark", role: .cancel) {
+                        store.send(.dismissTapped)
                     }
                 }
-                .padding(.top, 8)
-
-                // Message
-                sectionLabel("MESSAGE TTS")
-                    .padding(.top, 14)
-
-                TextField("ex: Montée de 200m, marchez…", text: $store.message, axis: .vertical)
-                    .lineLimit(3...5)
-                    .font(.body)
-                    .foregroundStyle(TM.textPrimary)
-                    .padding(12)
-                    .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(TM.border, lineWidth: 1)
-                    )
-                    .padding(.top, 8)
-
-                // Name
-                sectionLabel("NOM (OPTIONNEL)")
-                    .padding(.top, 14)
-
-                TextField("ex: Col de la Croix", text: $store.name)
-                    .font(.body)
-                    .foregroundStyle(TM.textPrimary)
-                    .padding(12)
-                    .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(TM.border, lineWidth: 1)
-                    )
-                    .padding(.top, 8)
-
-                // Save button
-                Button {
-                    store.send(.saveButtonTapped)
-                } label: {
-                    Text(store.isEditing ? "Enregistrer" : "Ajouter")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(TM.accent, in: RoundedRectangle(cornerRadius: 12))
+                ToolbarItem(placement: .title) {
+                    Text(store.isEditing ? "Modifier" : "Nouveau jalon")
                 }
-                .padding(.top, 16)
+                ToolbarItem(placement: .subtitle) {
+                    PointStatsView(distanceMeters: store.distance, altitudeMeters: store.elevation)
+                }
             }
-            .padding(20)
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 
@@ -543,6 +557,7 @@ private struct EditorPreviewWrapper: View {
                                     milestones: ms
                                 )
                                 state.milestones = ms
+                                state.originalMilestones = ms
                                 state.selectedTab = tab
                                 return state
                             }()

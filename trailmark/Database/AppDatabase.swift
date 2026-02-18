@@ -111,6 +111,7 @@ struct DatabaseClient: Sendable {
     var insertTrail: @Sendable (Trail, [TrackPoint]) async throws -> Trail
     var deleteTrail: @Sendable (Int64) async throws -> Void
     var saveMilestones: @Sendable (Int64, [Milestone]) async throws -> Void
+    var updateTrailName: @Sendable (Int64, String) async throws -> Void
 }
 
 // MARK: - DependencyKey
@@ -226,6 +227,13 @@ extension DatabaseClient: DependencyKey {
                         .execute(db)
                     }
                 }
+            },
+            updateTrailName: { trailId, newName in
+                try await database.write { db in
+                    try Trail.update { $0.name = newName }
+                        .where { $0.id == trailId }
+                        .execute(db)
+                }
             }
         )
     }
@@ -236,7 +244,8 @@ extension DatabaseClient: DependencyKey {
             fetchTrailDetail: { _ in nil },
             insertTrail: { trail, _ in trail },
             deleteTrail: { _ in },
-            saveMilestones: { _, _ in }
+            saveMilestones: { _, _ in },
+            updateTrailName: { _, _ in }
         )
     }
 
@@ -350,6 +359,13 @@ extension DatabaseClient: DependencyKey {
                         }
                         .execute(db)
                     }
+                }
+            },
+            updateTrailName: { trailId, newName in
+                try await database.write { db in
+                    try Trail.update { $0.name = newName }
+                        .where { $0.id == trailId }
+                        .execute(db)
                 }
             }
         )
