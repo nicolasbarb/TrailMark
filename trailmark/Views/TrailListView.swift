@@ -144,11 +144,6 @@ private struct TrailCard: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left accent bar
-            UnevenRoundedRectangle(topLeadingRadius: 14, bottomLeadingRadius: 14)
-                .fill(trail.trailColor.color)
-                .frame(width: 4)
-
             VStack(alignment: .leading, spacing: 12) {
                 // Name and date
                 VStack(alignment: .leading, spacing: 4) {
@@ -273,8 +268,7 @@ private struct TrailCard: View {
                             name: "Tour du Mont Blanc",
                             createdAt: Date().addingTimeInterval(-86400 * 7),
                             distance: 42_500,
-                            dPlus: 2_850,
-                            trailColor: .orange
+                            dPlus: 2_850
                         ),
                         milestoneCount: 12
                     ),
@@ -284,8 +278,7 @@ private struct TrailCard: View {
                             name: "Traversée des Bauges",
                             createdAt: Date().addingTimeInterval(-86400 * 3),
                             distance: 28_300,
-                            dPlus: 1_650,
-                            trailColor: .green
+                            dPlus: 1_650
                         ),
                         milestoneCount: 8
                     ),
@@ -295,8 +288,7 @@ private struct TrailCard: View {
                             name: "Boucle Col de la Croix",
                             createdAt: Date().addingTimeInterval(-86400),
                             distance: 15_800,
-                            dPlus: 890,
-                            trailColor: .blue
+                            dPlus: 890
                         ),
                         milestoneCount: 5
                     ),
@@ -306,8 +298,7 @@ private struct TrailCard: View {
                             name: "UTMB CCC",
                             createdAt: Date(),
                             distance: 101_000,
-                            dPlus: 6_100,
-                            trailColor: .purple
+                            dPlus: 6_100
                         ),
                         milestoneCount: 24
                     ),

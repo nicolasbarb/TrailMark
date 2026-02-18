@@ -148,8 +148,7 @@ struct EditorView: View {
             TrailMapView(
                 trackPoints: detail.trackPoints,
                 milestones: store.milestones,
-                cursorPointIndex: store.cursorPointIndex,
-                trailColor: detail.trail.trailColor
+                cursorPointIndex: store.cursorPointIndex
             )
 
             ElevationProfileView(
@@ -465,8 +464,7 @@ private enum PreviewData {
         name: "Col du Galibier",
         createdAt: Date(),
         distance: 15000,
-        dPlus: 450,
-        trailColor: .orange
+        dPlus: 450
     )
 
     static var trackPoints: [TrackPoint] {
