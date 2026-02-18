@@ -65,11 +65,16 @@ struct EditorFeature {
         var selectedTab: EditorTab = .map
         var cursorPointIndex: Int?
         var milestones: [Milestone] = []
+        var originalMilestones: [Milestone] = []
         var showToast = false
         var isRenamingTrail = false
         var editedTrailName = ""
         @Presents var alert: AlertState<Action.Alert>?
         @Presents var milestoneSheet: MilestoneSheetFeature.State?
+
+        var hasMilestoneChanges: Bool {
+            milestones != originalMilestones
+        }
     }
 
     enum Action: BindableAction, Sendable {
@@ -120,6 +125,7 @@ struct EditorFeature {
             case let .trailLoaded(detail):
                 state.trailDetail = detail
                 state.milestones = detail.milestones
+                state.originalMilestones = detail.milestones
                 return .none
 
             case let .tabSelected(tab):
@@ -182,6 +188,7 @@ struct EditorFeature {
 
             case .savingCompleted:
                 state.showToast = true
+                state.originalMilestones = state.milestones
                 return .run { send in
                     try await Task.sleep(for: .milliseconds(1500))
                     await send(.hideToast)
