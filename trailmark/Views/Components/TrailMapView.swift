@@ -5,7 +5,6 @@ struct TrailMapView: View {
     let trackPoints: [TrackPoint]
     let milestones: [Milestone]
     let cursorPointIndex: Int?
-    let trailColor: TrailColor
 
     @State private var position: MapCameraPosition = .automatic
 
@@ -125,7 +124,6 @@ struct TrailMapView: View {
             TrackPoint(id: 3, trailId: 1, index: 2, latitude: 45.82, longitude: 6.82, elevation: 1200, distance: 2000)
         ],
         milestones: [],
-        cursorPointIndex: nil,
-        trailColor: .orange
+        cursorPointIndex: nil
     )
 }
