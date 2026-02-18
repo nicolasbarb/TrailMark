@@ -55,7 +55,11 @@ struct EditorView: View {
                     }
                 }
             }
-            ToolbarSpacer(.fixed, placement: .primaryAction)
+            ToolbarItem(placement: .primaryAction) {
+                Button("Renommer", systemImage: "pencil") {
+                    store.send(.renameButtonTapped)
+                }
+            }
             ToolbarItem(placement: .destructiveAction) {
                 Button("Supprimer", systemImage: "trash", role: .destructive) {
                     store.send(.deleteTrailButtonTapped)
@@ -71,6 +75,21 @@ struct EditorView: View {
         }
         .toolbarRole(.editor)
         .alert($store.scope(state: \.alert, action: \.alert))
+        .alert(
+            "Renommer le parcours",
+            isPresented: Binding(
+                get: { store.isRenamingTrail },
+                set: { if !$0 { store.send(.renameCancelled) } }
+            )
+        ) {
+            TextField("Nom du parcours", text: $store.editedTrailName)
+            Button("Annuler", role: .cancel) {
+                store.send(.renameCancelled)
+            }
+            Button("Renommer") {
+                store.send(.renameConfirmed)
+            }
+        }
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             store.send(.onAppear)

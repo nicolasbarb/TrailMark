@@ -66,6 +66,8 @@ struct EditorFeature {
         var cursorPointIndex: Int?
         var milestones: [Milestone] = []
         var showToast = false
+        var isRenamingTrail = false
+        var editedTrailName = ""
         @Presents var alert: AlertState<Action.Alert>?
         @Presents var milestoneSheet: MilestoneSheetFeature.State?
     }
@@ -85,6 +87,10 @@ struct EditorFeature {
         case hideToast
         case backTapped
         case deleteTrailButtonTapped
+        case renameButtonTapped
+        case renameConfirmed
+        case renameCancelled
+        case trailNameUpdated(String)
         case alert(PresentationAction<Alert>)
 
         @CasePathable
@@ -251,6 +257,28 @@ struct EditorFeature {
                 } message: {
                     TextState("Cette action supprimera définitivement le parcours et tous ses jalons.")
                 }
+                return .none
+
+            case .renameButtonTapped:
+                state.editedTrailName = state.trailDetail?.trail.name ?? ""
+                state.isRenamingTrail = true
+                return .none
+
+            case .renameConfirmed:
+                state.isRenamingTrail = false
+                let newName = state.editedTrailName.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !newName.isEmpty else { return .none }
+                return .run { [trailId = state.trailId] send in
+                    try await database.updateTrailName(trailId, newName)
+                    await send(.trailNameUpdated(newName))
+                }
+
+            case .renameCancelled:
+                state.isRenamingTrail = false
+                return .none
+
+            case let .trailNameUpdated(newName):
+                state.trailDetail?.trail.name = newName
                 return .none
 
             case .alert(.presented(.confirmDelete)):
