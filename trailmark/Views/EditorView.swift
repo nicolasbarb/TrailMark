@@ -56,7 +56,7 @@ struct EditorView: View {
                 }
             }
             ToolbarItem(placement: .primaryAction) {
-                Button("Renommer", systemImage: "pencil") {
+                Button("Renommer", systemImage: "square.and.pencil") {
                     store.send(.renameButtonTapped)
                 }
             }
@@ -66,11 +66,12 @@ struct EditorView: View {
                 }
                 .tint(Color.red)
             }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Sauvegarder", systemImage: "checkmark") {
-                    store.send(.saveButtonTapped)
+            if store.hasMilestoneChanges {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Sauvegarder", systemImage: "checkmark") {
+                        store.send(.saveButtonTapped)
+                    }
                 }
-                .tint(Color.accentColor)
             }
         }
         .toolbarRole(.editor)
@@ -89,6 +90,7 @@ struct EditorView: View {
             Button("Renommer") {
                 store.send(.renameConfirmed)
             }
+            .keyboardShortcut(.defaultAction)
         }
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -198,13 +200,28 @@ struct EditorView: View {
     }
 
     private var milestonesList: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(Array(store.milestones.enumerated()), id: \.offset) { index, milestone in
-                    milestoneRow(milestone: milestone, index: index)
-                }
+        List {
+            ForEach(Array(store.milestones.enumerated()), id: \.offset) { index, milestone in
+                milestoneRow(milestone: milestone, index: index)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            store.send(.deleteMilestone(index))
+                        } label: {
+                            Label("Supprimer", systemImage: "trash")
+                        }
+                        Button {
+                            store.send(.editMilestone(milestone))
+                        } label: {
+                            Label("Modifier", systemImage: "pencil")
+                        }
+                        .tint(.orange)
+                    }
             }
+            .listRowInsets(EdgeInsets())
+            .listRowSeparator(.hidden)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     private func milestoneRow(milestone: Milestone, index: Int) -> some View {
@@ -245,13 +262,12 @@ struct EditorView: View {
                 Spacer()
 
                 // Delete button
-                Button {
+                Button(role: .destructive) {
                     store.send(.deleteMilestone(index))
                 } label: {
-                    Image(systemName: "xmark")
-                        .font(.caption)
-                        .foregroundStyle(TM.textMuted)
-                        .padding(4)
+                    Image(systemName: "trash")
+                        .font(.body)
+                        .foregroundStyle(.red)
                 }
             }
             .padding(.horizontal, 16)
@@ -562,6 +578,7 @@ private struct EditorPreviewWrapper: View {
                                     milestones: ms
                                 )
                                 state.milestones = ms
+                                state.originalMilestones = ms
                                 state.selectedTab = tab
                                 return state
                             }()
