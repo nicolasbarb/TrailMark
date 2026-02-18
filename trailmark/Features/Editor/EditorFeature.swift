@@ -66,9 +66,10 @@ struct EditorFeature {
         var cursorPointIndex: Int?
         var milestones: [Milestone] = []
         var originalMilestones: [Milestone] = []
-        var showToast = false
         var isRenamingTrail = false
         var editedTrailName = ""
+        var isSelectingMilestones = false
+        var selectedMilestoneIndices: Set<Int> = []
         @Presents var alert: AlertState<Action.Alert>?
         @Presents var milestoneSheet: MilestoneSheetFeature.State?
 
@@ -89,7 +90,9 @@ struct EditorFeature {
         case milestoneSheet(PresentationAction<MilestoneSheetFeature.Action>)
         case deleteMilestone(Int)
         case editMilestone(Milestone)
-        case hideToast
+        case toggleSelectionMode
+        case toggleMilestoneSelection(Int)
+        case deleteSelectedMilestones
         case backTapped
         case deleteTrailButtonTapped
         case renameButtonTapped
@@ -178,7 +181,39 @@ struct EditorFeature {
             case let .deleteMilestone(index):
                 guard index < state.milestones.count else { return .none }
                 state.milestones.remove(at: index)
+                return .run { [trailId = state.trailId, milestones = state.milestones] send in
+                    try await database.saveMilestones(trailId, milestones)
+                    await send(.savingCompleted)
+                }
+
+            case .toggleSelectionMode:
+                state.isSelectingMilestones.toggle()
+                if !state.isSelectingMilestones {
+                    state.selectedMilestoneIndices.removeAll()
+                }
                 return .none
+
+            case let .toggleMilestoneSelection(index):
+                if state.selectedMilestoneIndices.contains(index) {
+                    state.selectedMilestoneIndices.remove(index)
+                } else {
+                    state.selectedMilestoneIndices.insert(index)
+                }
+                return .none
+
+            case .deleteSelectedMilestones:
+                let indicesToDelete = state.selectedMilestoneIndices.sorted(by: >)
+                for index in indicesToDelete {
+                    if index < state.milestones.count {
+                        state.milestones.remove(at: index)
+                    }
+                }
+                state.selectedMilestoneIndices.removeAll()
+                state.isSelectingMilestones = false
+                return .run { [trailId = state.trailId, milestones = state.milestones] send in
+                    try await database.saveMilestones(trailId, milestones)
+                    await send(.savingCompleted)
+                }
 
             case .saveButtonTapped:
                 return .run { [trailId = state.trailId, milestones = state.milestones] send in
@@ -187,15 +222,7 @@ struct EditorFeature {
                 }
 
             case .savingCompleted:
-                state.showToast = true
                 state.originalMilestones = state.milestones
-                return .run { send in
-                    try await Task.sleep(for: .milliseconds(1500))
-                    await send(.hideToast)
-                }
-
-            case .hideToast:
-                state.showToast = false
                 return .none
 
             case .milestoneSheet(.presented(.typeSelected(let type))):
@@ -234,7 +261,10 @@ struct EditorFeature {
                 }
 
                 state.milestoneSheet = nil
-                return .none
+                return .run { [trailId = state.trailId, milestones = state.milestones] send in
+                    try await database.saveMilestones(trailId, milestones)
+                    await send(.savingCompleted)
+                }
 
             case .milestoneSheet(.presented(.dismissTapped)):
                 state.milestoneSheet = nil

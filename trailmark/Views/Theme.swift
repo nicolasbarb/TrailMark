@@ -49,6 +49,8 @@ enum TM {
     static let textPrimary = Color.primary
     /// Secondary content, subtitles
     static let textSecondary = Color.secondary
+    /// Tertiary text, units, labels
+    static let textTertiary = Color(uiColor: .secondaryLabel)
     /// Disabled text, hints
     static let textMuted = Color(uiColor: .tertiaryLabel)
 
