@@ -1,0 +1,9 @@
+app_identifier("com.nbarb.trailmark")
+apple_id(ENV["APPLE_ID"] || "your-apple-id@example.com")
+team_id("GFYJNR5373")
+
+# App Store Connect Team ID (if different from Developer Portal)
+# itc_team_id("123456789")
+
+# For more information about the Appfile, see:
+# https://docs.fastlane.tools/advanced/#appfile
