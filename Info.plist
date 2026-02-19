@@ -2,66 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- Required Bundle Keys -->
-    <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-    <key>CFBundleName</key>
-    <string>$(PRODUCT_NAME)</string>
-    <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
-    <key>CFBundlePackageType</key>
-    <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
-    <key>CFBundleVersion</key>
-    <string>$(CURRENT_PROJECT_VERSION)</string>
-    <key>CFBundleShortVersionString</key>
-    <string>$(MARKETING_VERSION)</string>
-    <key>CFBundleInfoDictionaryVersion</key>
-    <string>6.0</string>
-    <key>CFBundleDevelopmentRegion</key>
-    <string>$(DEVELOPMENT_LANGUAGE)</string>
-
-    <!-- App Icon -->
-    <key>CFBundleIconName</key>
-    <string>AppIcon</string>
-
-    <!-- Display Name -->
-    <key>CFBundleDisplayName</key>
-    <string>TrailMark</string>
-
-    <!-- App Category -->
-    <key>LSApplicationCategoryType</key>
-    <string>public.app-category.sports</string>
-
-    <!-- Launch Screen -->
-    <key>UILaunchScreen</key>
-    <dict/>
-
-    <!-- Supported Orientations -->
-    <key>UISupportedInterfaceOrientations</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-    </array>
-
-    <!-- Background Modes -->
+    <!-- Background Modes (array - can't be INFOPLIST_KEY) -->
     <key>UIBackgroundModes</key>
     <array>
         <string>location</string>
         <string>audio</string>
     </array>
 
-    <!-- GPS Permissions -->
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>TrailMark utilise le GPS pour détecter votre position et déclencher les annonces vocales aux jalons.</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course, même quand le téléphone est dans votre poche.</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course.</string>
-
     <!-- Export Compliance -->
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
 
-    <!-- Document Types for GPX import -->
+    <!-- Document Types for GPX import (array of dicts - can't be INFOPLIST_KEY) -->
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
@@ -79,7 +31,7 @@
         </dict>
     </array>
 
-    <!-- Imported UTTypes -->
+    <!-- Imported UTTypes (array of dicts - can't be INFOPLIST_KEY) -->
     <key>UTImportedTypeDeclarations</key>
     <array>
         <dict>
