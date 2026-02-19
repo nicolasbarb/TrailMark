@@ -31,6 +31,14 @@ struct RunFeature {
         var authorizationDenied = false
         var triggeredMilestoneIds: Set<Int64> = []
         var currentTTSMessage: String?
+
+        // Debug
+        var showDebugView = false
+        var currentLatitude: Double?
+        var currentLongitude: Double?
+        var closestMilestoneDistance: Int?
+        var closestMilestoneMessage: String?
+        var locationUpdateCount: Int = 0
     }
 
     enum Action: Equatable, Sendable {
@@ -43,6 +51,7 @@ struct RunFeature {
         case milestoneTriggered(Milestone)
         case ttsFinished
         case backTapped
+        case toggleDebugView
     }
 
     @Dependency(\.database) var database
@@ -110,6 +119,11 @@ struct RunFeature {
                 let currentLocation = CLLocation(latitude: lat, longitude: lon)
                 print("[Run] 📍 Position: \(String(format: "%.6f", lat)), \(String(format: "%.6f", lon))")
 
+                // Update debug info
+                state.currentLatitude = lat
+                state.currentLongitude = lon
+                state.locationUpdateCount += 1
+
                 // Check milestones
                 var closestDistance: Double = .infinity
                 var closestMilestone: Milestone?
@@ -133,8 +147,14 @@ struct RunFeature {
                     }
                 }
 
+                // Update debug info
                 if let closest = closestMilestone {
+                    state.closestMilestoneDistance = Int(closestDistance)
+                    state.closestMilestoneMessage = closest.message
                     print("[Run] Jalon le plus proche: \(Int(closestDistance))m - \"\(closest.message.prefix(30))...\"")
+                } else {
+                    state.closestMilestoneDistance = nil
+                    state.closestMilestoneMessage = nil
                 }
 
                 return .none
@@ -183,6 +203,11 @@ struct RunFeature {
                         await dismiss()
                     }
                 }
+
+            case .toggleDebugView:
+                state.showDebugView.toggle()
+                print("[Run] Debug view: \(state.showDebugView ? "ON" : "OFF")")
+                return .none
             }
         }
     }
