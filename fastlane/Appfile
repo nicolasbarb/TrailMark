@@ -1,5 +1,5 @@
 app_identifier("com.nbarb.trailmark")
-apple_id(ENV["APPLE_ID"] || "your-apple-id@example.com")
+apple_id(ENV["APPLE_ID"] || "nicolas.barb.pro@gmail.com")
 team_id("GFYJNR5373")
 
 # App Store Connect Team ID (if different from Developer Portal)
