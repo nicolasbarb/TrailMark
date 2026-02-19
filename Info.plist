@@ -9,7 +9,7 @@
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
     <key>CFBundleVersion</key>
-    <string>2</string>
+    <string>1</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
     <key>CFBundlePackageType</key>
@@ -30,6 +30,10 @@
         <string>location</string>
         <string>audio</string>
     </array>
+
+    <!-- Export Compliance (no custom encryption, only HTTPS) -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
 
     <!-- Location Permissions -->
     <key>NSLocationWhenInUseUsageDescription</key>
