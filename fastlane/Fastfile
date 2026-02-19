@@ -1,0 +1,71 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Push a new build to TestFlight"
+  lane :beta do
+    # Ensure we're on a clean git state
+    ensure_git_status_clean
+
+    # Increment build number
+    increment_build_number(
+      xcodeproj: "trailmark.xcodeproj"
+    )
+
+    # Build the app
+    build_app(
+      project: "trailmark.xcodeproj",
+      scheme: "trailmark",
+      export_method: "app-store",
+      clean: true
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+
+    # Commit the version bump
+    commit_version_bump(
+      xcodeproj: "trailmark.xcodeproj",
+      message: "chore: bump build number to #{get_build_number}"
+    )
+
+    # Push to remote
+    push_to_git_remote
+  end
+
+  desc "Push to TestFlight without version bump"
+  lane :beta_no_bump do
+    build_app(
+      project: "trailmark.xcodeproj",
+      scheme: "trailmark",
+      export_method: "app-store",
+      clean: true
+    )
+
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Increment build number only"
+  lane :bump do
+    increment_build_number(
+      xcodeproj: "trailmark.xcodeproj"
+    )
+
+    commit_version_bump(
+      xcodeproj: "trailmark.xcodeproj",
+      message: "chore: bump build number to #{get_build_number}"
+    )
+  end
+
+  desc "Run tests"
+  lane :test do
+    run_tests(
+      project: "trailmark.xcodeproj",
+      scheme: "trailmark",
+      devices: ["iPhone 16"]
+    )
+  end
+end
