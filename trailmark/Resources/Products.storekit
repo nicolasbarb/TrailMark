@@ -1,0 +1,129 @@
+{
+  "identifier" : "E7B95A1E-9C3C-4D8A-B5F2-1A2B3C4D5E6F",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "1234567890",
+    "_developerTeamID" : "GFYJNR5373",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 745243200,
+    "_locale" : "fr_FR",
+    "_storefront" : "FRA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "D1A2B3C4-E5F6-7890-ABCD-EF1234567890",
+      "localizations" : [
+
+      ],
+      "name" : "TrailMark Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "1.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A1B2C3D4-E5F6-7890-1234-567890ABCDEF",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Accès illimité aux parcours",
+              "displayName" : "Premium Mensuel",
+              "locale" : "fr_FR"
+            }
+          ],
+          "productID" : "trailmark_premium_monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium Mensuel",
+          "subscriptionGroupID" : "D1A2B3C4-E5F6-7890-ABCD-EF1234567890",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "B2C3D4E5-F678-9012-3456-7890ABCDEF12",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Accès illimité aux parcours - Économisez 58%",
+              "displayName" : "Premium Annuel",
+              "locale" : "fr_FR"
+            }
+          ],
+          "productID" : "trailmark_premium_annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Premium Annuel",
+          "subscriptionGroupID" : "D1A2B3C4-E5F6-7890-ABCD-EF1234567890",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

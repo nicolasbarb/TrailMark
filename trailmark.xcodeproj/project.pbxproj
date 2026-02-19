@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3F95E3922F446A860004B7A7 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3912F446A860004B7A7 /* ComposableArchitecture */; };
 		3F95E3942F446A860004B7A7 /* SQLiteData in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3932F446A860004B7A7 /* SQLiteData */; };
+		3F95E3962F446A860004B7A7 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3952F446A860004B7A7 /* RevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +60,7 @@
 			files = (
 				3F95E3942F446A860004B7A7 /* SQLiteData in Frameworks */,
 				3F95E3922F446A860004B7A7 /* ComposableArchitecture in Frameworks */,
+				3F95E3962F446A860004B7A7 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -129,6 +131,7 @@
 			packageProductDependencies = (
 				3F95E3912F446A860004B7A7 /* ComposableArchitecture */,
 				3F95E3932F446A860004B7A7 /* SQLiteData */,
+				3F95E3952F446A860004B7A7 /* RevenueCat */,
 			);
 			productName = trailmark;
 			productReference = 3F7872A02F445DC200FB9399 /* trailmark.app */;
@@ -215,6 +218,7 @@
 			packageReferences = (
 				3F7872FA2F4466D300FB9399 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				3F7872FB2F44673F00FB9399 /* XCRemoteSwiftPackageReference "sqlite-data" */,
+				3F7872FC2F44680000FB9399 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3F7872A12F445DC200FB9399 /* Products */;
@@ -436,7 +440,6 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -469,7 +472,6 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -607,8 +609,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.17.1;
+				kind = exactVersion;
+				version = 1.21.0;
 			};
 		};
 		3F7872FB2F44673F00FB9399 /* XCRemoteSwiftPackageReference "sqlite-data" */ = {
@@ -617,6 +619,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.5.2;
+			};
+		};
+		3F7872FC2F44680000FB9399 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -631,6 +641,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3F7872FB2F44673F00FB9399 /* XCRemoteSwiftPackageReference "sqlite-data" */;
 			productName = SQLiteData;
+		};
+		3F95E3952F446A860004B7A7 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3F7872FC2F44680000FB9399 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -22,7 +22,7 @@ struct MilestoneSheetFeature {
         var isEditing: Bool { editingMilestone != nil }
     }
 
-    enum Action: BindableAction, Sendable {
+    enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
         case typeSelected(MilestoneType)
         case saveButtonTapped
@@ -78,7 +78,7 @@ struct EditorFeature {
         }
     }
 
-    enum Action: BindableAction, Sendable {
+    enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
         case onAppear
         case trailLoaded(TrailDetail)

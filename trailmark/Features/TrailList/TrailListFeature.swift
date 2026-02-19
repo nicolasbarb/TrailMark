@@ -4,43 +4,69 @@ import ComposableArchitecture
 @Reducer
 struct TrailListFeature {
     @ObservableState
-    struct State: Equatable, Sendable {
+    struct State: Equatable {
         var trails: [TrailListItem] = []
         var isLoading = false
+        var isPremium = false
         @Presents var destination: Destination.State?
     }
 
-    enum Action: Sendable {
+    enum Action: Equatable {
         case onAppear
         case trailsLoaded([TrailListItem])
+        case premiumStatusChanged(Bool)
         case addButtonTapped
         case editTrailTapped(TrailListItem)
         case startTrailTapped(TrailListItem)
         case deleteTrailTapped(TrailListItem)
         case trailDeleted
         case navigateToEditor(Int64)
+        case openImport
         case destination(PresentationAction<Destination.Action>)
     }
+    
+    enum TrailListCancelID: Equatable/*, Hashable, Sendable*/ {
+        case premiumStatus
+    }
+
 
     @Dependency(\.database) var database
+    @Dependency(\.subscription) var subscription
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case .onAppear:
                 state.isLoading = true
-                return .run { send in
-                    let trails = try await database.fetchAllTrails()
-                    await send(.trailsLoaded(trails))
-                }
+                return .merge(
+                    .run { send in
+                        let trails = try await database.fetchAllTrails()
+                        await send(.trailsLoaded(trails))
+                    },
+                    .run { send in
+                        for await isPremium in subscription.premiumStatusStream() {
+                            await send(.premiumStatusChanged(isPremium))
+                        }
+                    }
+                    .cancellable(id: TrailListCancelID.premiumStatus)
+                )
 
             case let .trailsLoaded(trails):
                 state.isLoading = false
                 state.trails = trails
                 return .none
 
+            case let .premiumStatusChanged(isPremium):
+                state.isPremium = isPremium
+                return .none
+
             case .addButtonTapped:
-                state.destination = .importGPX(ImportFeature.State())
+                // Free users are limited to 1 trail
+                if !state.isPremium && state.trails.count >= 1 {
+                    state.destination = .paywall(PaywallFeature.State())
+                } else {
+                    state.destination = .importGPX(ImportFeature.State())
+                }
                 return .none
 
             case let .editTrailTapped(item):
@@ -70,6 +96,10 @@ struct TrailListFeature {
                 state.destination = .editor(EditorFeature.State(trailId: trailId))
                 return .none
 
+            case .openImport:
+                state.destination = .importGPX(ImportFeature.State())
+                return .none
+
             case .destination(.presented(.importGPX(.importCompleted(let trail)))):
                 state.destination = nil
                 guard let trailId = trail.id else { return .none }
@@ -78,6 +108,24 @@ struct TrailListFeature {
                     // Small delay to allow sheet dismissal
                     try await Task.sleep(for: .milliseconds(300))
                     await send(.navigateToEditor(trailId))
+                }
+
+            case .destination(.presented(.paywall(.purchaseCompleted(true)))):
+                // Purchase succeeded, dismiss paywall and open import
+                state.destination = nil
+                state.isPremium = true
+                return .run { send in
+                    try await Task.sleep(for: .milliseconds(300))
+                    await send(.openImport)
+                }
+
+            case .destination(.presented(.paywall(.restoreCompleted(true)))):
+                // Restore succeeded, dismiss paywall and open import
+                state.destination = nil
+                state.isPremium = true
+                return .run { send in
+                    try await Task.sleep(for: .milliseconds(300))
+                    await send(.openImport)
                 }
 
             case .destination(.dismiss):
@@ -101,16 +149,18 @@ struct TrailListFeature {
     @Reducer
     struct Destination {
         @ObservableState
-        enum State: Equatable, Sendable {
+        enum State: Equatable {
             case importGPX(ImportFeature.State)
             case editor(EditorFeature.State)
             case run(RunFeature.State)
+            case paywall(PaywallFeature.State)
         }
 
-        enum Action: Sendable {
+        enum Action: Equatable {
             case importGPX(ImportFeature.Action)
             case editor(EditorFeature.Action)
             case run(RunFeature.Action)
+            case paywall(PaywallFeature.Action)
         }
 
         var body: some Reducer<State, Action> {
@@ -122,6 +172,9 @@ struct TrailListFeature {
             }
             Scope(state: \.run, action: \.run) {
                 RunFeature()
+            }
+            Scope(state: \.paywall, action: \.paywall) {
+                PaywallFeature()
             }
         }
     }

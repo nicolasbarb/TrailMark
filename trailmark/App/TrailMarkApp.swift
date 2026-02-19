@@ -1,6 +1,7 @@
 import SwiftUI
 import ComposableArchitecture
 import Dependencies
+import RevenueCat
 
 @main
 struct TrailMarkApp: App {
@@ -13,6 +14,10 @@ struct TrailMarkApp: App {
         try! prepareDependencies {
             try $0.bootstrapDatabase()
         }
+
+        // Configure RevenueCat
+        Purchases.logLevel = .debug
+        Purchases.configure(withAPIKey: "test_QrTpXTemJkitHByxyvcjzRoVAPa")
     }
 
     var body: some Scene {

@@ -39,6 +39,11 @@ struct TrailListView: View {
             ) { runStore in
                 RunView(store: runStore)
             }
+            .sheet(
+                item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)
+            ) { paywallStore in
+                PaywallView(store: paywallStore)
+            }
         }
     }
 

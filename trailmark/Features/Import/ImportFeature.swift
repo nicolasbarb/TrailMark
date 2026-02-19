@@ -11,7 +11,7 @@ struct ImportFeature {
         var error: String?
     }
 
-    enum Action: Sendable {
+    enum Action: Equatable {
         case uploadZoneTapped
         case filePickerDismissed
         case fileSelected(String) // URL path as String for Sendable
