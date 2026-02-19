@@ -15,7 +15,8 @@ platform :ios do
     build_app(
       project: "trailmark.xcodeproj",
       scheme: "trailmark",
-      export_method: "app-store",
+      export_method: "app-store-connect",
+      export_xcargs: "-allowProvisioningUpdates",
       clean: true
     )
 
@@ -39,7 +40,8 @@ platform :ios do
     build_app(
       project: "trailmark.xcodeproj",
       scheme: "trailmark",
-      export_method: "app-store",
+      export_method: "app-store-connect",
+      export_xcargs: "-allowProvisioningUpdates",
       clean: true
     )
 
