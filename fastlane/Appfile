@@ -1,17 +1,3 @@
 app_identifier("com.nbarb.trailmark")
 apple_id(ENV["APPLE_ID"] || "nicolas.barb.pro@gmail.com")
 team_id("GFYJNR5373")
-
-# App Store Connect API Key
-# Replace YOUR_KEY_ID and YOUR_ISSUER_ID after creating the key
-api_key_path = File.join(Dir.pwd, "fastlane", "AuthKey.p8")
-if File.exist?(api_key_path)
-  app_store_connect_api_key(
-    key_id: ENV["ASC_KEY_ID"] || "KN4CQZ4P8G",
-    issuer_id: ENV["ASC_ISSUER_ID"] || "52d3d37b-494c-4d95-afee-3272957150c7",
-    key_filepath: api_key_path
-  )
-end
-
-# For more information about the Appfile, see:
-# https://docs.fastlane.tools/advanced/#appfile

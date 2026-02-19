@@ -11,14 +11,30 @@ def api_key
 end
 
 platform :ios do
+  before_all do
+    unless File.exist?("./fastlane/AuthKey.p8")
+      UI.user_error!("AuthKey.p8 not found in fastlane directory. Download from App Store Connect > Users > Keys")
+    end
+  end
+
   desc "Push a new build to TestFlight"
   lane :beta do
-    # Ensure we're on a clean git state
     ensure_git_status_clean
 
-    # Increment build number
+    # Increment build number based on TestFlight (avoids agvtool issues)
+    current_build = latest_testflight_build_number(api_key: api_key)
+    new_build = current_build + 1
+
     increment_build_number(
+      build_number: new_build,
       xcodeproj: "trailmark.xcodeproj"
+    )
+
+    # Commit version bump BEFORE build (so repo stays clean if build fails)
+    commit_version_bump(
+      xcodeproj: "trailmark.xcodeproj",
+      message: "chore: bump build number to #{new_build}",
+      include: ["Info.plist"]
     )
 
     # Build the app
@@ -34,12 +50,6 @@ platform :ios do
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: true
-    )
-
-    # Commit the version bump
-    commit_version_bump(
-      xcodeproj: "trailmark.xcodeproj",
-      message: "chore: bump build number to #{get_build_number}"
     )
 
     # Push to remote
@@ -64,13 +74,18 @@ platform :ios do
 
   desc "Increment build number only"
   lane :bump do
+    current_build = latest_testflight_build_number(api_key: api_key)
+    new_build = current_build + 1
+
     increment_build_number(
+      build_number: new_build,
       xcodeproj: "trailmark.xcodeproj"
     )
 
     commit_version_bump(
       xcodeproj: "trailmark.xcodeproj",
-      message: "chore: bump build number to #{get_build_number}"
+      message: "chore: bump build number to #{new_build}",
+      include: ["Info.plist"]
     )
   end
 
@@ -79,7 +94,7 @@ platform :ios do
     run_tests(
       project: "trailmark.xcodeproj",
       scheme: "trailmark",
-      devices: ["iPhone 16"]
+      device: "iPhone 16"
     )
   end
 end
