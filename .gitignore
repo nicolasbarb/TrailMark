@@ -40,5 +40,9 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 fastlane/AuthKey*.p8
 
+# Build artifacts
+*.ipa
+*.dSYM.zip
+
 # Code Injection
 iOSInjectionProject/
