@@ -4,6 +4,12 @@ import ComposableArchitecture
 struct RunView: View {
     let store: StoreOf<RunFeature>
 
+    // Debug tap detection
+    #if DEBUG
+    @State private var tapCount = 0
+    @State private var lastTapTime: Date?
+    #endif
+
     var body: some View {
         ZStack {
             TM.bgPrimary.ignoresSafeArea()
@@ -18,28 +24,114 @@ struct RunView: View {
                 ProgressView()
                     .tint(TM.accent)
             }
+
+            // Debug overlay
+            #if DEBUG
+            if store.showDebugView {
+                debugOverlay
+            }
+            #endif
         }
-//        .navigationBarBackButtonHidden(true)
-//        .toolbar {
-//            ToolbarItem(placement: .topBarLeading) {
-//                if !store.isRunning {
-//                    Button {
-//                        store.send(.backTapped)
-//                    } label: {
-//                        HStack(spacing: 4) {
-//                            Image(systemName: "chevron.left")
-//                                .fontWeight(.semibold)
-//                            Text("Retour")
-//                        }
-//                        .foregroundStyle(TM.accent)
-//                    }
-//                }
-//            }
-//        }
+        .contentShape(Rectangle())
+        #if DEBUG
+        .onTapGesture {
+            guard store.isRunning else { return }
+            handleDebugTap()
+        }
+        #endif
         .onAppear {
             store.send(.onAppear)
         }
     }
+
+    #if DEBUG
+    private func handleDebugTap() {
+        let now = Date()
+
+        if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) < 1.5 {
+            tapCount += 1
+        } else {
+            tapCount = 1
+        }
+
+        lastTapTime = now
+
+        if tapCount >= 5 {
+            store.send(.toggleDebugView)
+            tapCount = 0
+        }
+    }
+    #endif
+
+    // MARK: - Debug Overlay
+
+    #if DEBUG
+    private var debugOverlay: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Image(systemName: "ladybug.fill")
+                    .foregroundStyle(TM.danger)
+                Text("DEBUG")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(TM.danger)
+                Spacer()
+                Button {
+                    store.send(.toggleDebugView)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(TM.textMuted)
+                }
+            }
+
+            Divider()
+                .background(TM.border)
+
+            debugRow(label: "GPS updates", value: "\(store.locationUpdateCount)")
+
+            if let lat = store.currentLatitude, let lon = store.currentLongitude {
+                debugRow(label: "Position", value: "\(String(format: "%.6f", lat)), \(String(format: "%.6f", lon))")
+            } else {
+                debugRow(label: "Position", value: "—")
+            }
+
+            if let distance = store.closestMilestoneDistance {
+                debugRow(label: "Prochain jalon", value: "\(distance)m")
+            } else {
+                debugRow(label: "Prochain jalon", value: "—")
+            }
+
+            if let message = store.closestMilestoneMessage {
+                debugRow(label: "Prochain message", value: String(message.prefix(40)) + (message.count > 40 ? "..." : ""))
+            }
+
+            debugRow(label: "Jalons déclenchés", value: "\(store.triggeredMilestoneIds.count)/\(store.trailDetail?.milestones.count ?? 0)")
+
+            if let tts = store.currentTTSMessage {
+                debugRow(label: "TTS", value: "🔊 " + String(tts.prefix(30)))
+            }
+        }
+        .font(.system(size: 11, design: .monospaced))
+        .padding(12)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(TM.danger.opacity(0.3), lineWidth: 1)
+        )
+        .padding(.horizontal, 16)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .padding(.top, 60)
+    }
+
+    private func debugRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(TM.textMuted)
+            Spacer()
+            Text(value)
+                .foregroundStyle(TM.textPrimary)
+        }
+    }
+    #endif
 
     // MARK: - Pre-Run View
 
@@ -321,6 +413,27 @@ private enum PreviewData {
                 trailDetail: PreviewData.trailDetail,
                 isRunning: false,
                 authorizationDenied: true
+            )
+        ) {
+            RunFeature()
+        }
+    )
+}
+
+#Preview("Debug View") {
+    RunView(
+        store: Store(
+            initialState: RunFeature.State(
+                trailId: 1,
+                trailDetail: PreviewData.trailDetail,
+                isRunning: true,
+                triggeredMilestoneIds: [1],
+                showDebugView: true,
+                currentLatitude: 45.832156,
+                currentLongitude: 6.865234,
+                closestMilestoneDistance: 127,
+                closestMilestoneMessage: "Ravitaillement aux Contamines dans 500 mètres",
+                locationUpdateCount: 42
             )
         ) {
             RunFeature()
