@@ -15,6 +15,22 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios setup_match
+
+```sh
+[bundle exec] fastlane ios setup_match
+```
+
+Setup all certificates and profiles (development, adhoc, appstore)
+
+### ios regenerate_certificates
+
+```sh
+[bundle exec] fastlane ios regenerate_certificates
+```
+
+Clean and regenerate all certificates and profiles
+
 ### ios beta
 
 ```sh
@@ -29,15 +45,15 @@ Push a new build to TestFlight
 [bundle exec] fastlane ios beta_no_bump
 ```
 
-Push to TestFlight without version bump
+Push to TestFlight without version bump (rebuild)
 
-### ios bump
+### ios build
 
 ```sh
-[bundle exec] fastlane ios bump
+[bundle exec] fastlane ios build
 ```
 
-Increment build number only
+Build app for release (without upload)
 
 ### ios test
 
