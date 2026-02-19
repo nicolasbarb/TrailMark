@@ -2,30 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleName</key>
-    <string>TrailMark</string>
-    <key>CFBundleDisplayName</key>
-    <string>TrailMark</string>
-    <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-    <key>CFBundleVersion</key>
-    <string>1</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
-    <key>CFBundleIconName</key>
-    <string>AppIcon</string>
-    <key>LSRequiresIPhoneOS</key>
-    <true/>
-    <key>UILaunchScreen</key>
-    <dict/>
-    <key>UISupportedInterfaceOrientations</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-    </array>
     <!-- Background Modes -->
     <key>UIBackgroundModes</key>
     <array>
@@ -33,17 +9,9 @@
         <string>audio</string>
     </array>
 
-    <!-- Export Compliance (no custom encryption, only HTTPS) -->
+    <!-- Export Compliance -->
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
-
-    <!-- Location Permissions -->
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>TrailMark utilise le GPS pour détecter votre position et déclencher les annonces vocales aux jalons.</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course, même quand le téléphone est dans votre poche.</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course.</string>
 
     <!-- Document Types for GPX import -->
     <key>CFBundleDocumentTypes</key>
