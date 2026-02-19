@@ -2,12 +2,42 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!-- App Icon -->
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
+
+    <!-- Display Name -->
+    <key>CFBundleDisplayName</key>
+    <string>TrailMark</string>
+
+    <!-- App Category -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.sports</string>
+
+    <!-- Launch Screen -->
+    <key>UILaunchScreen</key>
+    <dict/>
+
+    <!-- Supported Orientations -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+
     <!-- Background Modes -->
     <key>UIBackgroundModes</key>
     <array>
         <string>location</string>
         <string>audio</string>
     </array>
+
+    <!-- GPS Permissions -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>TrailMark utilise le GPS pour détecter votre position et déclencher les annonces vocales aux jalons.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course, même quand le téléphone est dans votre poche.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course.</string>
 
     <!-- Export Compliance -->
     <key>ITSAppUsesNonExemptEncryption</key>

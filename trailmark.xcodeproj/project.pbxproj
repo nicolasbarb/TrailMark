@@ -425,15 +425,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GFYJNR5373;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = trailmark/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TrailMark;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course, même quand le téléphone est dans votre poche.";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TrailMark utilise le GPS pour détecter votre position et déclencher les annonces vocales aux jalons.";
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -465,15 +458,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GFYJNR5373;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = trailmark/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TrailMark;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course, même quand le téléphone est dans votre poche.";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "TrailMark utilise le GPS pour détecter votre position et déclencher les annonces vocales aux jalons.";
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
