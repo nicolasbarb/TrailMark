@@ -1,0 +1,26 @@
+# Matchfile
+
+# Git repository URL for storing certificates and provisioning profiles
+# Shared with Holfy (same Apple Developer account)
+git_url("git@github.com:App-Filea/filea-certificates.git")
+
+# Storage mode
+storage_mode("git")
+
+# App Identifier
+app_identifier(["com.nbarb.trailmark"])
+
+# Your Apple Developer Team ID
+team_id("GFYJNR5373")
+
+# Username (Apple ID email)
+username("nicolas.barb.pro@gmail.com")
+
+# Platform
+platform("ios")
+
+# Readonly mode (set to true for CI)
+readonly(false)
+
+# Force recreate if profiles are expired
+force_for_new_devices(true)

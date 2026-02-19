@@ -39,6 +39,7 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 fastlane/AuthKey*.p8
+fastlane/builds/
 
 # Build artifacts
 *.ipa

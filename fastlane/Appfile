@@ -1,3 +1,3 @@
 app_identifier("com.nbarb.trailmark")
-apple_id(ENV["APPLE_ID"] || "nicolas.barb.pro@gmail.com")
+apple_id("nicolas.barb.pro@gmail.com")
 team_id("GFYJNR5373")

@@ -19,53 +19,146 @@ platform :ios do
     end
   end
 
+  # ==================== MATCH ====================
+
+  desc "Setup all certificates and profiles (development, adhoc, appstore)"
+  lane :setup_match do
+    UI.important("🔧 Génération des certificats Development...")
+    match(type: "development", force: true, force_for_new_devices: true)
+
+    UI.important("🔧 Génération des certificats AdHoc...")
+    match(type: "adhoc", force: true, force_for_new_devices: true)
+
+    UI.important("🔧 Génération des certificats App Store...")
+    match(type: "appstore", force: true, force_for_new_devices: true)
+
+    UI.success("✅ Tous les certificats et profils ont été créés avec succès!")
+  end
+
+  desc "Clean and regenerate all certificates and profiles"
+  lane :regenerate_certificates do
+    UI.important("🗑️  Suppression des certificats et profils...")
+    match_nuke(type: "development", skip_confirmation: true)
+    match_nuke(type: "adhoc", skip_confirmation: true)
+    match_nuke(type: "appstore", skip_confirmation: true)
+
+    UI.success("✅ Anciens certificats supprimés, régénération...")
+    setup_match
+  end
+
+  # ==================== BETA ====================
+
   desc "Push a new build to TestFlight"
-  lane :beta do
+  lane :beta do |options|
+    # Version bump if requested (bump: "major", "minor", or "patch")
+    if options[:bump]
+      current_version = get_version_number(xcodeproj: "trailmark.xcodeproj", target: "trailmark")
+      version_parts = current_version.split('.')
+      major = version_parts[0].to_i
+      minor = version_parts[1]&.to_i || 0
+      patch = version_parts[2]&.to_i || 0
+
+      case options[:bump]
+      when "major"
+        major += 1
+        minor = 0
+        patch = 0
+      when "minor"
+        minor += 1
+        patch = 0
+      when "patch"
+        patch += 1
+      end
+
+      new_version = "#{major}.#{minor}.#{patch}"
+      increment_version_number(xcodeproj: "trailmark.xcodeproj", version_number: new_version)
+      UI.success("✅ Version incrémentée de #{current_version} à #{new_version}")
+    end
+
+    # Ensure git status is clean
     ensure_git_status_clean
 
-    # Increment build number based on TestFlight (avoids agvtool issues)
-    current_build = latest_testflight_build_number(api_key: api_key)
-    new_build = current_build + 1
+    # Setup certificates and provisioning profiles
+    match(type: "appstore", api_key: api_key, readonly: is_ci, verbose: true)
 
-    increment_build_number(
-      build_number: new_build,
-      xcodeproj: "trailmark.xcodeproj"
+    # Get latest TestFlight build number and increment
+    latest_build = latest_testflight_build_number(
+      api_key: api_key,
+      app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
+      initial_build_number: 0
     )
+    new_build = latest_build + 1
 
-    # Commit version bump BEFORE build (so repo stays clean if build fails)
-    commit_version_bump(
-      xcodeproj: "trailmark.xcodeproj",
-      message: "chore: bump build number to #{new_build}",
-      include: ["Info.plist"]
-    )
+    increment_build_number(xcodeproj: "trailmark.xcodeproj", build_number: new_build)
 
     # Build the app
     build_app(
-      project: "trailmark.xcodeproj",
       scheme: "trailmark",
+      project: "trailmark.xcodeproj",
+      clean: true,
+      output_directory: "./fastlane/builds",
+      output_name: "trailmark",
       export_method: "app-store",
-      export_xcargs: "-allowProvisioningUpdates",
-      clean: true
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
+      export_options: {
+        method: "app-store",
+        provisioningProfiles: {
+          CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier) => "match AppStore #{CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)}"
+        }
+      }
     )
+
+    # Get changelog from last commit body
+    changelog = sh("git log -1 --pretty=%b").strip
+    if changelog.empty?
+      changelog = "Corrections de bugs et améliorations des performances"
+      UI.important("⚠️  Aucune description de commit trouvée, utilisation du changelog par défaut")
+    end
 
     # Upload to TestFlight
     upload_to_testflight(
       api_key: api_key,
-      skip_waiting_for_build_processing: true
+      skip_waiting_for_build_processing: true,
+      skip_submission: true,
+      distribute_external: false,
+      notify_external_testers: false,
+      changelog: changelog
     )
+
+    # Commit version and build number changes
+    commit_version_bump(
+      message: "Bump version to #{get_version_number(xcodeproj: 'trailmark.xcodeproj')} build #{new_build} [skip ci]",
+      xcodeproj: "trailmark.xcodeproj",
+      include: ["Info.plist"],
+      force: true
+    )
+
+    # Tag release
+    add_git_tag(tag: "testflight/#{get_version_number(xcodeproj: 'trailmark.xcodeproj')}/#{new_build}")
 
     # Push to remote
     push_to_git_remote
   end
 
-  desc "Push to TestFlight without version bump"
+  # ==================== OTHER LANES ====================
+
+  desc "Push to TestFlight without version bump (rebuild)"
   lane :beta_no_bump do
+    match(type: "appstore", api_key: api_key, readonly: true)
+
     build_app(
-      project: "trailmark.xcodeproj",
       scheme: "trailmark",
+      project: "trailmark.xcodeproj",
+      clean: true,
+      output_directory: "./fastlane/builds",
       export_method: "app-store",
-      export_xcargs: "-allowProvisioningUpdates",
-      clean: true
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
+      export_options: {
+        method: "app-store",
+        provisioningProfiles: {
+          CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier) => "match AppStore #{CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)}"
+        }
+      }
     )
 
     upload_to_testflight(
@@ -74,20 +167,18 @@ platform :ios do
     )
   end
 
-  desc "Increment build number only"
-  lane :bump do
-    current_build = latest_testflight_build_number(api_key: api_key)
-    new_build = current_build + 1
+  desc "Build app for release (without upload)"
+  lane :build do
+    match(type: "appstore", api_key: api_key, readonly: true)
 
-    increment_build_number(
-      build_number: new_build,
-      xcodeproj: "trailmark.xcodeproj"
-    )
+    increment_build_number(xcodeproj: "trailmark.xcodeproj")
 
-    commit_version_bump(
-      xcodeproj: "trailmark.xcodeproj",
-      message: "chore: bump build number to #{new_build}",
-      include: ["Info.plist"]
+    build_app(
+      scheme: "trailmark",
+      project: "trailmark.xcodeproj",
+      export_method: "app-store",
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
+      output_directory: "./fastlane/builds"
     )
   end
 
