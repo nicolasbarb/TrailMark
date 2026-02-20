@@ -6,14 +6,6 @@ import CoreLocation
 struct OnboardingView: View {
     @Bindable var store: StoreOf<OnboardingFeature>
 
-    private var clAuthorizationStatus: CLAuthorizationStatus {
-        switch store.locationAuthorizationStatus {
-        case .notDetermined: return .notDetermined
-        case .authorized: return .authorizedWhenInUse
-        case .denied: return .denied
-        }
-    }
-
     var body: some View {
         ZStack {
             switch store.currentPhase {
@@ -76,10 +68,13 @@ struct OnboardingView: View {
                     onRequestLocation: {
                         store.send(.requestLocationAuthorization)
                     },
-                    onLocationSkipped: {
-                        // Nothing special to do, just continue
+                    onOpenSettings: {
+                        store.send(.openSettings)
                     },
-                    locationStatus: clAuthorizationStatus
+                    onLocationSkipped: {
+                        store.send(.locationSkipped)
+                    },
+                    locationStatus: store.locationStatus
                 )
                 .transition(.opacity)
 

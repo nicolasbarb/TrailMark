@@ -12,8 +12,9 @@ struct OnboardingCarousel: View {
     var tint: Color = .orange
     var hideBezels: Bool = false
     var items: [Item]
-    var onComplete: () -> ()
+    var onComplete: () -> Void
     var onRequestLocation: (() -> Void)? = nil
+    var onOpenSettings: (() -> Void)? = nil
     var onLocationSkipped: (() -> Void)? = nil
     var locationStatus: CLAuthorizationStatus = .notDetermined
     /// View Properties
@@ -22,7 +23,6 @@ struct OnboardingCarousel: View {
     @State private var screenshotSize: CGSize = .zero
     @State private var showLocationOverlay: Bool = false
     @State private var animatePin: Bool = false
-    @Environment(\.openURL) private var openURL
 
     /// Si zoomScale > 1, le fond noir est visible donc texte clair
     private var isZoomed: Bool { items[currentIndex].zoomScale > 1 }
@@ -55,7 +55,6 @@ struct OnboardingCarousel: View {
 
             BackButton()
         }
-        .preferredColorScheme(.light)
     }
 
     /// Screenshot View
@@ -89,17 +88,7 @@ struct OnboardingCarousel: View {
                                             screenshotSize = newValue
                                         }
                                 } else {
-                                    // Écran intro avec le logo (sans device frame)
-                                    ZStack {
-                                        Color.clear
-
-                                        Image("AppIcon")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 120, height: 120)
-                                            .clipShape(RoundedRectangle(cornerRadius: 28))
-                                    }
-                                    .frame(width: targetWidth, height: targetHeight)
+                                    AppIconPlaceholderView(width: targetWidth, height: targetHeight)
                                 }
                             }
                         }
@@ -117,50 +106,16 @@ struct OnboardingCarousel: View {
             .overlay {
                 // Device frame seulement si l'item courant a un screenshot
                 if !hideBezels && items[currentIndex].screenshot != nil {
-                    /// Device Frame UI
-                    ZStack {
-                        shape
-                            .stroke(.white, lineWidth: 6)
-
-                        shape
-                            .stroke(.black, lineWidth: 4)
-
-                        shape
-                            .stroke(.black, lineWidth: 6)
-                            .padding(4)
-                    }
-                    .padding(-7)
+                    DeviceFrameView()
                 }
             }
             .overlay {
                 // Location permission overlay (pin + pulse + dim)
                 if items[currentIndex].isLocationStep {
-                    ZStack {
-                        // Dim overlay
-                        Rectangle()
-                            .fill(.black.opacity(showLocationOverlay ? 0.5 : 0))
-
-                        // Pulse and pin
-                        if showLocationOverlay {
-                            ZStack {
-                                PulseRingView(tint: .white, size: 150)
-                                    .transition(.blurReplace)
-
-                                Image(systemName: "mappin")
-                                    .font(.system(size: 40, weight: .bold))
-                                    .foregroundStyle(.white.shadow(.drop(radius: 5)))
-                                    .rotation3DEffect(
-                                        .init(degrees: animatePin ? -40 : 0),
-                                        axis: (x: 1, y: 0, z: 0)
-                                    )
-                                    .scaleEffect(animatePin ? 1 : 10)
-                                    .opacity(animatePin ? 1 : 0)
-                                    .blur(radius: animatePin ? 0 : 5)
-                                    .offset(y: -12)
-                            }
-                        }
-                    }
-                    .clipShape(ConcentricRectangle(corners: .concentric, isUniform: true))
+                    LocationOverlayView(
+                        isVisible: showLocationOverlay,
+                        animatePin: animatePin
+                    )
                 }
             }
             .containerShape(RoundedRectangle(cornerRadius: deviceCornerRadius))
@@ -200,20 +155,17 @@ struct OnboardingCarousel: View {
                         let isActive = currentIndex == index
 
                         VStack(spacing: 6) {
-                            let itemIsZoomed = item.zoomScale > 1
                             Text(item.title)
                                 .font(.title2)
                                 .fontWeight(.semibold)
                                 .lineLimit(1)
                                 .foregroundStyle(currentTextColor)
-//                                .foregroundStyle(itemIsZoomed ? .white : .black)
 
                             Text(item.subtitle)
                                 .font(.callout)
                                 .lineLimit(2)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(currentTextSecondaryColor)
-//                                .foregroundStyle(itemIsZoomed ? .white.opacity(0.8) : .black.opacity(0.6))
                         }
                         .frame(width: size.width)
                         .compositingGroup()
@@ -237,16 +189,11 @@ struct OnboardingCarousel: View {
     /// Indicator View
     @ViewBuilder
     func IndicatorView() -> some View {
-        HStack(spacing: 6) {
-            ForEach(items.indices, id: \.self) { index in
-                let isActive: Bool = currentIndex == index
-
-                Capsule()
-                    .fill(currentTextColor.opacity(isActive ? 1 : 0.4))
-                    .frame(width: isActive ? 25 : 6, height: 6)
-            }
-        }
-        .padding(.bottom, 5)
+        OnboardingIndicatorView(
+            itemCount: items.count,
+            currentIndex: currentIndex,
+            textColor: currentTextColor
+        )
     }
 
     /// Bottom Continue Button
@@ -290,22 +237,17 @@ struct OnboardingCarousel: View {
     /// Location permission buttons
     @ViewBuilder
     func LocationButtons() -> some View {
+        let isAuthorized = locationStatus == .authorizedWhenInUse || locationStatus == .authorizedAlways
+
         VStack(spacing: 12) {
             Button {
-                if locationStatus == .denied {
-                    // Ouvrir les réglages
-                    if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                        openURL(settingsURL)
-                    }
-                } else if locationStatus == .authorizedWhenInUse || locationStatus == .authorizedAlways {
-                    // Déjà autorisé, avancer
+                if isAuthorized {
                     advanceFromLocationStep()
                 } else {
-                    // Demander la permission
                     onRequestLocation?()
                 }
             } label: {
-                Text(locationButtonText)
+                Text(isAuthorized ? "Continuer" : "Autoriser la localisation")
                     .fontWeight(.medium)
                     .contentTransition(.numericText())
                     .padding(.vertical, 6)
@@ -315,42 +257,24 @@ struct OnboardingCarousel: View {
             .buttonSizing(.flexible)
             .padding(.horizontal, 30)
 
-            Button {
-                if locationStatus == .notDetermined {
+            if !isAuthorized {
+                Button {
                     onLocationSkipped?()
+                    advanceFromLocationStep()
+                } label: {
+                    Text("Plus tard")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.gray)
                 }
-                advanceFromLocationStep()
-            } label: {
-                Text(locationSubButtonText)
-                    .font(locationStatus == .notDetermined ? .body : .caption)
-                    .fontWeight(locationStatus == .notDetermined ? .semibold : .regular)
-                    .foregroundStyle(.gray)
-                    .contentTransition(.numericText())
             }
-            .allowsHitTesting(locationStatus != .authorizedWhenInUse && locationStatus != .authorizedAlways)
         }
         .animation(.snappy, value: locationStatus)
-    }
-
-    private var locationButtonText: String {
-        switch locationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            return "Continuer"
-        case .denied, .restricted:
-            return "Ouvrir les réglages"
-        default:
-            return "Autoriser la localisation"
-        }
-    }
-
-    private var locationSubButtonText: String {
-        switch locationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            return "Localisation autorisée ✓"
-        case .denied, .restricted:
-            return "La localisation est nécessaire pour\nle guidage vocal pendant ta course."
-        default:
-            return "Plus tard"
+        .onChange(of: locationStatus) { _, newStatus in
+            // Auto-advance when user denies permission
+            if newStatus == .denied || newStatus == .restricted {
+                onLocationSkipped?()
+                advanceFromLocationStep()
+            }
         }
     }
 
@@ -437,51 +361,6 @@ struct OnboardingCarousel: View {
 
     var animation: Animation {
         .interpolatingSpring(duration: 0.65, bounce: 0, initialVelocity: 0)
-    }
-}
-
-// MARK: - Pulse Ring View
-
-fileprivate struct PulseRingView: View {
-    var tint: Color
-    var size: CGFloat
-    @State private var animate: [Bool] = [false, false, false]
-    @State private var showRings: Bool = false
-    @Environment(\.scenePhase) private var phase
-
-    var body: some View {
-        ZStack {
-            if showRings {
-                ZStack {
-                    RingView(index: 0)
-                    RingView(index: 1)
-                    RingView(index: 2)
-                }
-                .onAppear {
-                    for index in 0..<animate.count {
-                        let delay = Double(index) * 0.2
-                        withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: false).delay(delay)) {
-                            animate[index] = true
-                        }
-                    }
-                }
-                .onDisappear {
-                    animate = [false, false, false]
-                }
-            }
-        }
-        .onChange(of: phase, initial: true) { _, newValue in
-            showRings = newValue != .background
-        }
-        .frame(width: size, height: size)
-    }
-
-    @ViewBuilder
-    func RingView(index: Int) -> some View {
-        Circle()
-            .fill(tint)
-            .opacity(animate[index] ? 0 : 0.4)
-            .scaleEffect(animate[index] ? 2 : 0)
     }
 }
 
