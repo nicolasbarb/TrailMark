@@ -88,19 +88,19 @@ struct TrailListView: View {
 
             Spacer()
 
-            #if DEBUG
-            // Bouton debug pour simuler l'expiration
-            if store.isPremium {
-                Button {
-                    store.send(.debugSimulateExpiration)
-                } label: {
-                    Image(systemName: "clock.badge.xmark")
-                        .font(.system(size: 14))
-                        .foregroundStyle(TM.textMuted)
-                        .frame(width: 32, height: 32)
-                }
-            }
-            #endif
+            // TODO: Remettre pour tester l'expiration
+            // #if DEBUG
+            // if store.isPremium {
+            //     Button {
+            //         store.send(.debugSimulateExpiration)
+            //     } label: {
+            //         Image(systemName: "clock.badge.xmark")
+            //             .font(.system(size: 14))
+            //             .foregroundStyle(TM.textMuted)
+            //             .frame(width: 32, height: 32)
+            //     }
+            // }
+            // #endif
 
             Button {
                 store.send(.addButtonTapped)
