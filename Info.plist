@@ -13,6 +13,10 @@
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
 
+    <!-- Document handling: copy files, don't open in place -->
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <false/>
+
     <!-- Document Types for GPX import (array of dicts - can't be INFOPLIST_KEY) -->
     <key>CFBundleDocumentTypes</key>
     <array>
