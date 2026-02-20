@@ -27,7 +27,7 @@ struct RootFeature {
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
-            case .onboarding(.completeOnboarding):
+            case .onboarding(.carouselCompleted):
                 // Sauvegarder que l'onboarding est complété
                 UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
                 state.hasCompletedOnboarding = true
