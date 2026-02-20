@@ -12,7 +12,6 @@ struct OnboardingFeature {
 
         enum Phase: Equatable {
             case carousel
-            case location
             case paywall
         }
 
@@ -27,7 +26,6 @@ struct OnboardingFeature {
         case carouselCompleted
         case requestLocationAuthorization
         case locationAuthorizationChanged(State.LocationAuthorizationStatus)
-        case locationCompleted
         case skipPaywall
         case paywallCompleted
         case completeOnboarding
@@ -39,7 +37,7 @@ struct OnboardingFeature {
         Reduce { state, action in
             switch action {
             case .carouselCompleted:
-                state.currentPhase = .location
+                state.currentPhase = .paywall
                 return .none
 
             case .requestLocationAuthorization:
@@ -59,10 +57,6 @@ struct OnboardingFeature {
 
             case let .locationAuthorizationChanged(status):
                 state.locationAuthorizationStatus = status
-                return .none
-
-            case .locationCompleted:
-                state.currentPhase = .paywall
                 return .none
 
             case .skipPaywall:
