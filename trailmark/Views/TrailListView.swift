@@ -39,10 +39,26 @@ struct TrailListView: View {
             ) { runStore in
                 RunView(store: runStore)
             }
-            .sheet(
+            .fullScreenCover(
                 item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)
             ) { paywallStore in
-                PaywallView(store: paywallStore)
+                PaywallContainerView(store: paywallStore)
+            }
+            .alert(
+                "Abonnement expiré",
+                isPresented: Binding(
+                    get: { store.showExpiredAlert },
+                    set: { if !$0 { store.send(.dismissExpiredAlert) } }
+                )
+            ) {
+                Button("Renouveler") {
+                    store.send(.renewTapped)
+                }
+                Button("Plus tard", role: .cancel) {
+                    store.send(.dismissExpiredAlert)
+                }
+            } message: {
+                Text("Votre abonnement Premium a expiré. Renouvelez pour continuer à créer des parcours illimités.")
             }
         }
     }
@@ -52,15 +68,39 @@ struct TrailListView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("TrailMark")
-                    .font(.system(.title2, design: .monospaced, weight: .bold))
-                    .foregroundStyle(TM.accent)
+                HStack(spacing: 6) {
+                    Text("TrailMark")
+                        .font(.system(.title2, design: .monospaced, weight: .bold))
+                        .foregroundStyle(TM.accent)
+                    if store.isPremium {
+                        Text("PRO")
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 3)
+                            .background(TM.accent, in: RoundedRectangle(cornerRadius: 4))
+                    }
+                }
                 Text("Mes parcours")
                     .font(.caption)
                     .foregroundStyle(TM.textMuted)
             }
 
             Spacer()
+
+            #if DEBUG
+            // Bouton debug pour simuler l'expiration
+            if store.isPremium {
+                Button {
+                    store.send(.debugSimulateExpiration)
+                } label: {
+                    Image(systemName: "clock.badge.xmark")
+                        .font(.system(size: 14))
+                        .foregroundStyle(TM.textMuted)
+                        .frame(width: 32, height: 32)
+                }
+            }
+            #endif
 
             Button {
                 store.send(.addButtonTapped)
@@ -116,11 +156,14 @@ struct TrailListView: View {
     private var trailList: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                ForEach(store.trails) { item in
+                ForEach(Array(store.trails.enumerated()), id: \.element.id) { index, item in
+                    let isLocked = !store.isPremium && index > 0
                     TrailCard(
                         item: item,
+                        isLocked: isLocked,
                         onEdit: { store.send(.editTrailTapped(item)) },
-                        onStart: { store.send(.startTrailTapped(item)) }
+                        onStart: { store.send(.startTrailTapped(item)) },
+                        onUnlock: { store.send(.addButtonTapped) }
                     )
                     .contextMenu {
                         Button(role: .destructive) {
@@ -142,96 +185,116 @@ struct TrailListView: View {
 
 private struct TrailCard: View {
     let item: TrailListItem
+    let isLocked: Bool
     let onEdit: () -> Void
     let onStart: () -> Void
+    let onUnlock: () -> Void
 
     private var trail: Trail { item.trail }
 
     var body: some View {
-        HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 12) {
-                // Name and date
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(trail.name)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(TM.textPrimary)
+        ZStack(alignment: .topTrailing) {
+            HStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 12) {
+                    // Name and date
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(trail.name)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(TM.textPrimary)
 
-                    Text(trail.createdAtDate.formatted(date: .abbreviated, time: .omitted))
-                        .font(.caption2)
-                        .foregroundStyle(TM.textMuted)
-                }
+                        Text(trail.createdAtDate.formatted(date: .abbreviated, time: .omitted))
+                            .font(.caption2)
+                            .foregroundStyle(TM.textMuted)
+                    }
 
-                // Stats
-                HStack(spacing: 0) {
-                    statColumn(
-                        value: String(format: "%.1f", trail.distance / 1000),
-                        unit: "km",
-                        label: "Distance"
-                    )
+                    // Stats
+                    HStack(spacing: 0) {
+                        statColumn(
+                            value: String(format: "%.1f", trail.distance / 1000),
+                            unit: "km",
+                            label: "Distance"
+                        )
 
-                    Divider()
-                        .frame(width: 1, height: 24)
-                        .background(TM.border)
+                        Divider()
+                            .frame(width: 1, height: 24)
+                            .background(TM.border)
 
-                    statColumn(
-                        value: "\(trail.dPlus)",
-                        unit: "m",
-                        label: "D+"
-                    )
+                        statColumn(
+                            value: "\(trail.dPlus)",
+                            unit: "m",
+                            label: "D+"
+                        )
 
-                    Divider()
-                        .frame(width: 1, height: 24)
-                        .background(TM.border)
+                        Divider()
+                            .frame(width: 1, height: 24)
+                            .background(TM.border)
 
-                    statColumn(
-                        value: "\(item.milestoneCount)",
-                        unit: nil,
-                        label: "Jalons"
-                    )
-                }
-
-                // Action buttons
-                HStack(spacing: 8) {
-                    Button(action: onEdit) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "pencil")
-                                .font(.caption2)
-                            Text("Éditer")
-                                .font(.caption.weight(.medium))
-                        }
-                        .foregroundStyle(TM.textSecondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 9)
-                        .background(TM.bgTertiary, in: RoundedRectangle(cornerRadius: 10))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(TM.border, lineWidth: 1)
+                        statColumn(
+                            value: "\(item.milestoneCount)",
+                            unit: nil,
+                            label: "Jalons"
                         )
                     }
 
-                    Button(action: onStart) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "play.fill")
-                                .font(.caption2)
-                            Text("Démarrer")
-                                .font(.caption.weight(.medium))
+                    // Action buttons
+                    if isLocked {
+                        Button(action: onUnlock) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption2)
+                                Text("Débloquer avec Pro")
+                                    .font(.caption.weight(.medium))
+                            }
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 9)
+                            .background(TM.accentGradient, in: RoundedRectangle(cornerRadius: 10))
+                            .shadow(color: TM.accent.opacity(0.3), radius: 8, y: 4)
                         }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 9)
-                        .background(TM.accentGradient, in: RoundedRectangle(cornerRadius: 10))
-                        .shadow(color: TM.accent.opacity(0.3), radius: 8, y: 4)
+                    } else {
+                        HStack(spacing: 8) {
+                            Button(action: onEdit) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "pencil")
+                                        .font(.caption2)
+                                    Text("Éditer")
+                                        .font(.caption.weight(.medium))
+                                }
+                                .foregroundStyle(TM.textSecondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 9)
+                                .background(TM.bgTertiary, in: RoundedRectangle(cornerRadius: 10))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(TM.border, lineWidth: 1)
+                                )
+                            }
+
+                            Button(action: onStart) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "play.fill")
+                                        .font(.caption2)
+                                    Text("Démarrer")
+                                        .font(.caption.weight(.medium))
+                                }
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 9)
+                                .background(TM.accentGradient, in: RoundedRectangle(cornerRadius: 10))
+                                .shadow(color: TM.accent.opacity(0.3), radius: 8, y: 4)
+                            }
+                        }
                     }
                 }
+                .padding(14)
+                .padding(.leading, 4)
             }
-            .padding(14)
-            .padding(.leading, 4)
+            .background(TM.bgSecondary, in: RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(TM.bgTertiary, lineWidth: 1)
+            )
         }
-        .background(TM.bgSecondary, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(TM.bgTertiary, lineWidth: 1)
-        )
     }
 
     private func statColumn(value: String, unit: String?, label: String) -> some View {
