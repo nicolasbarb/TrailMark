@@ -8,6 +8,7 @@ struct TrailListFeature {
         var trails: [TrailListItem] = []
         var isLoading = false
         var isPremium = false
+        var showExpiredAlert = false
         @Presents var destination: Destination.State?
     }
 
@@ -22,7 +23,12 @@ struct TrailListFeature {
         case trailDeleted
         case navigateToEditor(Int64)
         case openImport
+        case dismissExpiredAlert
+        case renewTapped
         case destination(PresentationAction<Destination.Action>)
+
+        // DEBUG: Simuler l'expiration
+        case debugSimulateExpiration
     }
     
     enum TrailListCancelID: Equatable/*, Hashable, Sendable*/ {
@@ -57,8 +63,32 @@ struct TrailListFeature {
                 return .none
 
             case let .premiumStatusChanged(isPremium):
+                // Détecter l'expiration : était premium, ne l'est plus
+                let wasExpired = state.isPremium && !isPremium
                 state.isPremium = isPremium
+                if wasExpired {
+                    state.showExpiredAlert = true
+                }
                 return .none
+
+            case .dismissExpiredAlert:
+                state.showExpiredAlert = false
+                return .none
+
+            case .renewTapped:
+                state.showExpiredAlert = false
+                state.destination = .paywall(PaywallFeature.State())
+                return .none
+
+            #if DEBUG
+            case .debugSimulateExpiration:
+                // Simule la transition premium → non-premium
+                if state.isPremium {
+                    state.isPremium = false
+                    state.showExpiredAlert = true
+                }
+                return .none
+            #endif
 
             case .addButtonTapped:
                 // Free users are limited to 1 trail
@@ -110,7 +140,7 @@ struct TrailListFeature {
                     await send(.navigateToEditor(trailId))
                 }
 
-            case .destination(.presented(.paywall(.purchaseCompleted(true)))):
+            case .destination(.presented(.paywall(.purchaseCompleted))):
                 // Purchase succeeded, dismiss paywall and open import
                 state.destination = nil
                 state.isPremium = true
@@ -119,7 +149,7 @@ struct TrailListFeature {
                     await send(.openImport)
                 }
 
-            case .destination(.presented(.paywall(.restoreCompleted(true)))):
+            case .destination(.presented(.paywall(.restoreCompleted))):
                 // Restore succeeded, dismiss paywall and open import
                 state.destination = nil
                 state.isPremium = true
