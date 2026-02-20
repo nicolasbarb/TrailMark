@@ -5,8 +5,8 @@ import RevenueCat
 
 @main
 struct TrailMarkApp: App {
-    static let store = Store(initialState: TrailListFeature.State()) {
-        TrailListFeature()
+    static let store = Store(initialState: RootFeature.State()) {
+        RootFeature()
     }
 
     init() {
@@ -22,7 +22,7 @@ struct TrailMarkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TrailListView(store: Self.store)
+            RootView(store: Self.store)
         }
     }
 }
