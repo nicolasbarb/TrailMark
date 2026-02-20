@@ -14,7 +14,6 @@ struct OnboardingCarousel: View {
     var items: [Item]
     var onComplete: () -> Void
     var onRequestLocation: (() -> Void)? = nil
-    var onOpenSettings: (() -> Void)? = nil
     var onLocationSkipped: (() -> Void)? = nil
     var locationStatus: CLAuthorizationStatus = .notDetermined
     /// View Properties
