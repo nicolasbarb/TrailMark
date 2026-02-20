@@ -14,6 +14,7 @@ struct OnboardingCarousel: View {
     var onComplete: () -> ()
     /// View Properties
     @State private var currentIndex: Int = 0
+    @State private var scrollIndex: Int = 0  // Index visuel du screenshot (peut différer de currentIndex)
     @State private var screenshotSize: CGSize = .zero
 
     /// Si zoomScale > 1, le fond noir est visible donc texte clair, sinon texte sombre
@@ -91,7 +92,7 @@ struct OnboardingCarousel: View {
             .scrollTargetBehavior(.viewAligned)
             .scrollIndicators(.hidden)
             .scrollPosition(id: .init(get: {
-                return currentIndex
+                return scrollIndex
             }, set: { _ in }))
         }
         .clipShape(shape)
@@ -190,8 +191,15 @@ struct OnboardingCarousel: View {
                 onComplete()
             }
 
+            let nextIndex = min(currentIndex + 1, items.count - 1)
+            let nextItem = items[nextIndex]
+
             withAnimation(animation) {
-                currentIndex = min(currentIndex + 1, items.count - 1)
+                currentIndex = nextIndex
+                // Ne pas scroller si le prochain item utilise le même screenshot
+                if !nextItem.sameScreenshotAsPrevious {
+                    scrollIndex = nextIndex
+                }
             }
         } label: {
             Text(currentIndex == items.count - 1 ? "C'est parti !" : "Continuer")
@@ -209,8 +217,15 @@ struct OnboardingCarousel: View {
     @ViewBuilder
     func BackButton() -> some View {
         Button {
+            let currentItem = items[currentIndex]
+            let prevIndex = max(currentIndex - 1, 0)
+
             withAnimation(animation) {
-                currentIndex = max(currentIndex - 1, 0)
+                currentIndex = prevIndex
+                // Ne pas scroller si l'item actuel utilise le même screenshot que le précédent
+                if !currentItem.sameScreenshotAsPrevious {
+                    scrollIndex = prevIndex
+                }
             }
         } label: {
             Image(systemName: "chevron.left")
@@ -256,6 +271,8 @@ struct OnboardingCarousel: View {
         var screenshot: UIImage?
         var zoomScale: CGFloat = 1
         var zoomAnchor: UnitPoint = .center
+        /// Si true, pas d'animation de scroll horizontal, seulement le zoom/anchor change
+        var sameScreenshotAsPrevious: Bool = false
     }
 
     var animation: Animation {

@@ -39,7 +39,8 @@ struct OnboardingView: View {
                             subtitle: "Analyse le dénivelé et marque les moments clés :\nmontées, descentes, ravitos, dangers...",
                             screenshot: UIImage(named: "editScreenshot"),
                             zoomScale: 1.5,
-                            zoomAnchor: .init(x: 0.5, y: 1.2)
+                            zoomAnchor: .init(x: 0.5, y: 1.2),
+                            sameScreenshotAsPrevious: true
                         ),
                         .init(
                             id: 4,
