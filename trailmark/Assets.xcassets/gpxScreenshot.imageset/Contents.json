@@ -1,0 +1,25 @@
+{
+  "images" : [
+    {
+      "filename" : "Simulator Screenshot - iPhone 17 Pro Max - 2026-02-20 at 19.46.02.png",
+      "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "Simulator Screenshot - iPhone 17 Pro Max - 2026-02-20 at 19.46.05.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true
+  }
+}

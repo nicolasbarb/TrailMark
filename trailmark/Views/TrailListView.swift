@@ -5,61 +5,59 @@ struct TrailListView: View {
     @Bindable var store: StoreOf<TrailListFeature>
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                TM.bgPrimary.ignoresSafeArea()
+        ZStack {
+            TM.bgPrimary.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // Header
-                    header
+            VStack(spacing: 0) {
+                // Header
+                header
 
-                    if store.trails.isEmpty && !store.isLoading {
-                        emptyState
-                    } else {
-                        trailList
-                    }
+                if store.trails.isEmpty && !store.isLoading {
+                    emptyState
+                } else {
+                    trailList
                 }
             }
-            .navigationBarHidden(true)
-            .onAppear {
-                store.send(.onAppear)
+        }
+        .navigationBarHidden(true)
+        .onAppear {
+            store.send(.onAppear)
+        }
+        .sheet(
+            item: $store.scope(state: \.destination?.importGPX, action: \.destination.importGPX)
+        ) { importStore in
+            ImportView(store: importStore)
+        }
+        .navigationDestination(
+            item: $store.scope(state: \.destination?.editor, action: \.destination.editor)
+        ) { editorStore in
+            EditorView(store: editorStore)
+        }
+        .navigationDestination(
+            item: $store.scope(state: \.destination?.run, action: \.destination.run)
+        ) { runStore in
+            RunView(store: runStore)
+        }
+        .fullScreenCover(
+            item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)
+        ) { paywallStore in
+            PaywallContainerView(store: paywallStore)
+        }
+        .alert(
+            "Abonnement expiré",
+            isPresented: Binding(
+                get: { store.showExpiredAlert },
+                set: { if !$0 { store.send(.dismissExpiredAlert) } }
+            )
+        ) {
+            Button("Renouveler") {
+                store.send(.renewTapped)
             }
-            .sheet(
-                item: $store.scope(state: \.destination?.importGPX, action: \.destination.importGPX)
-            ) { importStore in
-                ImportView(store: importStore)
+            Button("Plus tard", role: .cancel) {
+                store.send(.dismissExpiredAlert)
             }
-            .navigationDestination(
-                item: $store.scope(state: \.destination?.editor, action: \.destination.editor)
-            ) { editorStore in
-                EditorView(store: editorStore)
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.destination?.run, action: \.destination.run)
-            ) { runStore in
-                RunView(store: runStore)
-            }
-            .fullScreenCover(
-                item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)
-            ) { paywallStore in
-                PaywallContainerView(store: paywallStore)
-            }
-            .alert(
-                "Abonnement expiré",
-                isPresented: Binding(
-                    get: { store.showExpiredAlert },
-                    set: { if !$0 { store.send(.dismissExpiredAlert) } }
-                )
-            ) {
-                Button("Renouveler") {
-                    store.send(.renewTapped)
-                }
-                Button("Plus tard", role: .cancel) {
-                    store.send(.dismissExpiredAlert)
-                }
-            } message: {
-                Text("Votre abonnement Premium a expiré. Renouvelez pour continuer à créer des parcours illimités.")
-            }
+        } message: {
+            Text("Votre abonnement Premium a expiré. Renouvelez pour continuer à créer des parcours illimités.")
         }
     }
 
@@ -88,19 +86,19 @@ struct TrailListView: View {
 
             Spacer()
 
-            #if DEBUG
-            // Bouton debug pour simuler l'expiration
-            if store.isPremium {
-                Button {
-                    store.send(.debugSimulateExpiration)
-                } label: {
-                    Image(systemName: "clock.badge.xmark")
-                        .font(.system(size: 14))
-                        .foregroundStyle(TM.textMuted)
-                        .frame(width: 32, height: 32)
-                }
-            }
-            #endif
+            // TODO: Remettre pour tester l'expiration
+            // #if DEBUG
+            // if store.isPremium {
+            //     Button {
+            //         store.send(.debugSimulateExpiration)
+            //     } label: {
+            //         Image(systemName: "clock.badge.xmark")
+            //             .font(.system(size: 14))
+            //             .foregroundStyle(TM.textMuted)
+            //             .frame(width: 32, height: 32)
+            //     }
+            // }
+            // #endif
 
             Button {
                 store.send(.addButtonTapped)
