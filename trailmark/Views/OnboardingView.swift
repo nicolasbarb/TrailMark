@@ -121,9 +121,8 @@ private struct IntroView: View {
             .tint(.orange)
             .buttonStyle(.glassProminent)
             .buttonSizing(.flexible)
-            .padding(.horizontal, 30)
-            .padding(.bottom, 50)
         }
+        .padding(16)
     }
 }
 
