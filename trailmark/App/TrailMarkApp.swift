@@ -5,10 +5,6 @@ import RevenueCat
 
 @main
 struct TrailMarkApp: App {
-    static let store = Store(initialState: RootFeature.State()) {
-        RootFeature()
-    }
-
     init() {
         // Bootstrap the database before any dependencies are accessed
         try! prepareDependencies {
@@ -22,7 +18,9 @@ struct TrailMarkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(store: Self.store)
+            RootView(store: Store(initialState: RootFeature.State()) {
+                RootFeature()
+            })
         }
     }
 }

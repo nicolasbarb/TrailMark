@@ -3,50 +3,66 @@ import ComposableArchitecture
 
 @Reducer
 struct RootFeature {
+    
     @ObservableState
     struct State: Equatable {
-        var hasCompletedOnboarding: Bool
-        var onboarding: OnboardingFeature.State?
-        var trailList: TrailListFeature.State?
-
-        init() {
-            self.hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-            if hasCompletedOnboarding {
-                self.trailList = TrailListFeature.State()
-            } else {
-                self.onboarding = OnboardingFeature.State()
-            }
-        }
+        var path = StackState<Path.State>()
+        @Shared(.appStorage("hasCompletedOnboarding")) var hasCompletedOnboarding = false
     }
 
     enum Action: Equatable {
-        case onboarding(OnboardingFeature.Action)
-        case trailList(TrailListFeature.Action)
+        case initiate
+        case path(StackAction<Path.State, Path.Action>)
     }
 
-    var body: some Reducer<State, Action> {
+    var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case .onboarding(.carouselCompleted):
+            case .initiate:
+                print("[Root] initiate - hasCompletedOnboarding: \(state.hasCompletedOnboarding)")
+                print("[Root] initiate - path count before: \(state.path.count)")
+                if state.hasCompletedOnboarding {
+                    state.path.append(.trailList(TrailListFeature.State()))
+                } else {
+                    state.path.append(.onboarding(OnboardingFeature.State()))
+                }
+                print("[Root] initiate - path count after: \(state.path.count)")
+                return .none
+
+            case .path(.element(id: _, action: .onboarding(.carouselCompleted))):
                 // Sauvegarder que l'onboarding est complété
-                UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-                state.hasCompletedOnboarding = true
-                state.onboarding = nil
-                state.trailList = TrailListFeature.State()
+                state.$hasCompletedOnboarding.withLock { $0 = true }
+                // Remplacer l'onboarding par la liste
+//                state.path.removeAll()
+                state.path.append(.trailList(TrailListFeature.State()))
                 return .none
 
-            case .onboarding:
-                return .none
-
-            case .trailList:
+            case .path:
                 return .none
             }
         }
-        .ifLet(\.onboarding, action: \.onboarding) {
-            OnboardingFeature()
+        .forEach(\.path, action: \.path) {
+            Path()
         }
-        .ifLet(\.trailList, action: \.trailList) {
-            TrailListFeature()
+    }
+    
+    @Reducer
+    struct Path {
+        
+        @ObservableState
+        enum State: Equatable {
+            case onboarding(OnboardingFeature.State)
+            case trailList(TrailListFeature.State)
+        }
+        
+        enum Action: Equatable {
+            case onboarding(OnboardingFeature.Action)
+            case trailList(TrailListFeature.Action)
+        }
+        
+        var body: some ReducerOf<Self> {
+            Scope(state: \.onboarding, action: \.onboarding) { OnboardingFeature() }
+            Scope(state: \.trailList, action: \.trailList) { TrailListFeature() }
         }
     }
 }

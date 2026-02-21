@@ -2,42 +2,37 @@ import SwiftUI
 import ComposableArchitecture
 
 struct RootView: View {
-    let store: StoreOf<RootFeature>
+    @Bindable var store: StoreOf<RootFeature>
 
     var body: some View {
-        Group {
-            if let onboardingStore = store.scope(state: \.onboarding, action: \.onboarding) {
-                OnboardingView(store: onboardingStore)
-            } else if let trailListStore = store.scope(state: \.trailList, action: \.trailList) {
-                TrailListView(store: trailListStore)
+        NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+            Color.clear
+                .onAppear {
+                    print("[Root] task triggered")
+                    store.send(.initiate)
+                }
+        } destination: { store in
+            let _ = print("[Root] destination called with: \(store.state)")
+            switch store.state {
+            case .onboarding:
+                if let store = store.scope(state: \.onboarding, action: \.onboarding) {
+                    OnboardingView(store: store)
+                        .navigationBarBackButtonHidden()
+                }
+            case .trailList:
+                if let store = store.scope(state: \.trailList, action: \.trailList) {
+                    TrailListView(store: store)
+                        .navigationBarBackButtonHidden()
+                }
             }
         }
+        .navigationViewStyle(.stack)
     }
 }
 
 #Preview("Onboarding") {
     RootView(
-        store: Store(initialState: {
-            var state = RootFeature.State()
-            state.hasCompletedOnboarding = false
-            state.onboarding = OnboardingFeature.State()
-            state.trailList = nil
-            return state
-        }()) {
-            RootFeature()
-        }
-    )
-}
-
-#Preview("Trail List") {
-    RootView(
-        store: Store(initialState: {
-            var state = RootFeature.State()
-            state.hasCompletedOnboarding = true
-            state.onboarding = nil
-            state.trailList = TrailListFeature.State()
-            return state
-        }()) {
+        store: Store(initialState: RootFeature.State()) {
             RootFeature()
         }
     )
