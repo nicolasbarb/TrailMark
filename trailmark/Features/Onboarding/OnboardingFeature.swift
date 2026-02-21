@@ -13,13 +13,20 @@ struct OnboardingFeature {
 
     @ObservableState
     struct State: Equatable {
+        var currentPhase: Phase = .intro
         var locationStatus: CLAuthorizationStatus = .notDetermined
         var isCompleted = false
+
+        enum Phase: Equatable {
+            case intro
+            case carousel
+        }
     }
 
     // MARK: - Action
 
     enum Action: Equatable {
+        case introCompleted
         case carouselCompleted
         case requestLocationAuthorization
         case locationAuthorizationChanged(CLAuthorizationStatus)
@@ -35,6 +42,10 @@ struct OnboardingFeature {
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
+            case .introCompleted:
+                state.currentPhase = .carousel
+                return .none
+
             case .carouselCompleted:
                 state.isCompleted = true
                 return .cancel(id: CancelID.locationAuthorization)
