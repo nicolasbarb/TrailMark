@@ -20,6 +20,5 @@ struct OnboardingIndicatorView: View {
                     .frame(width: isActive ? 25 : 6, height: 6)
             }
         }
-        .padding(.bottom, 5)
     }
 }
