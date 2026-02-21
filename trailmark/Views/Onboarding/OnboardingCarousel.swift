@@ -44,8 +44,10 @@ struct OnboardingCarousel: View {
                 VStack(spacing: 12) {
                     TextContentView()
                     Spacer()
-                    IndicatorView()
-                        .padding(.bottom, 8)
+                    if !items[currentIndex].isLocationStep {
+                        IndicatorView()
+                            .padding(.bottom, 8)
+                    }
                     ContinueButton()
                         .padding(.bottom, 16)
                 }
@@ -54,8 +56,10 @@ struct OnboardingCarousel: View {
                 }
             }
             .padding(.horizontal, 16)
-            
-            BackButton()
+
+            if !items[currentIndex].isLocationStep {
+                BackButton()
+            }
         }
         .contentShape(Rectangle())
         .gesture(items[currentIndex].isLocationStep ? nil : swipeGesture)
@@ -245,7 +249,7 @@ struct OnboardingCarousel: View {
     @ViewBuilder
     func IndicatorView() -> some View {
         OnboardingIndicatorView(
-            itemCount: items.count,
+            itemCount: items.count - 1,
             currentIndex: currentIndex,
             textColor: currentTextColor
         )
@@ -328,7 +332,6 @@ struct OnboardingCarousel: View {
         .tint(tint)
         .buttonStyle(.glassProminent)
         .buttonSizing(.flexible)
-        .padding(.horizontal, 30)
         .animation(.snappy, value: locationStatus)
         .onChange(of: locationStatus) { _, newStatus in
             // Auto-advance when user denies permission
