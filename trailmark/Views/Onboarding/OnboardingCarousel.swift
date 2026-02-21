@@ -57,6 +57,7 @@ struct OnboardingCarousel: View {
             
             BackButton()
         }
+        .contentShape(Rectangle())
         .gesture(items[currentIndex].isLocationStep ? nil : swipeGesture)
     }
 
