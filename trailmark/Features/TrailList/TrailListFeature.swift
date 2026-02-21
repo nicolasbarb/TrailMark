@@ -9,6 +9,7 @@ struct TrailListFeature {
         var isLoading = false
         var isPremium = false
         var showExpiredAlert = false
+        @Shared(.appStorage("trailListVisitCount")) var trailListVisitCount = 0
         @Presents var destination: Destination.State?
     }
 
@@ -44,6 +45,15 @@ struct TrailListFeature {
             switch action {
             case .onAppear:
                 state.isLoading = true
+
+                // Incrémenter le compteur de visites
+                state.$trailListVisitCount.withLock { $0 += 1 }
+
+                // Afficher le paywall à la première visite
+                if state.trailListVisitCount == 1 {
+                    state.destination = .paywall(PaywallFeature.State())
+                }
+
                 return .merge(
                     .run { send in
                         let trails = try await database.fetchAllTrails()
