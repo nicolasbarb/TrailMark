@@ -16,6 +16,7 @@ struct OnboardingFeature {
         var currentPhase: Phase = .intro
         var locationStatus: CLAuthorizationStatus = .notDetermined
         var isLocationSuccess = false
+        var isLocationDenied = false
         var isCompleted = false
 
         enum Phase: Equatable {
@@ -87,11 +88,13 @@ struct OnboardingFeature {
                             await send(.locationSuccessAnimationCompleted)
                         }
                     case .denied, .restricted:
-                        // Track that location was skipped/denied for analytics
-                        return .concatenate(
-                            .send(.locationSkipped),
-                            .send(.carouselCompleted)
-                        )
+                        state.isLocationDenied = true
+                        // Wait for denied animation before completing
+                        return .run { send in
+                            await send(.locationSkipped)
+                            try? await Task.sleep(for: .seconds(2.5))
+                            await send(.locationSuccessAnimationCompleted)
+                        }
                     default:
                         return .none
                     }
