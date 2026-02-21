@@ -76,11 +76,9 @@ struct RunFeature {
                 return .none
 
             case .startButtonTapped:
-                print("[Run] Bouton Start appuyé - demande permission GPS")
-                return .run { send in
-                    let status = await location.requestAuthorization()
-                    await send(.authorizationResult(status.rawValue))
-                }
+                print("[Run] Bouton Start appuyé - vérification permission GPS")
+                let status = location.authorizationStatus()
+                return .send(.authorizationResult(status.rawValue))
 
             case let .authorizationResult(rawValue):
                 let status = CLAuthorizationStatus(rawValue: rawValue) ?? .notDetermined

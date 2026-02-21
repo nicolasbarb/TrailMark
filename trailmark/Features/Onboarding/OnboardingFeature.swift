@@ -15,6 +15,7 @@ struct OnboardingFeature {
     struct State: Equatable {
         var currentPhase: Phase = .intro
         var locationStatus: CLAuthorizationStatus = .notDetermined
+        var isLocationSuccess = false
         var isCompleted = false
 
         enum Phase: Equatable {
@@ -29,7 +30,8 @@ struct OnboardingFeature {
         case introCompleted
         case carouselCompleted
         case requestLocationAuthorization
-        case locationAuthorizationChanged(CLAuthorizationStatus)
+        case locationAuthorizationEvent(LocationClient.DelegateEvent)
+        case locationSuccessAnimationCompleted
         case locationSkipped
     }
 
@@ -51,15 +53,52 @@ struct OnboardingFeature {
                 return .cancel(id: CancelID.locationAuthorization)
 
             case .requestLocationAuthorization:
-                return .run { send in
-                    let status = await location.requestAuthorization()
-                    await send(.locationAuthorizationChanged(status))
+                print("[Onboarding] requestLocationAuthorization action received")
+                return .run { [location] send in
+                    // CLLocationManager requires main thread for delegate callbacks
+                    let delegateStream = await MainActor.run {
+                        let stream = location.delegate()
+                        print("[Onboarding] Delegate stream created on main thread")
+                        location.requestWhenInUseAuthorization()
+                        print("[Onboarding] requestWhenInUseAuthorization called")
+                        return stream
+                    }
+
+                    // Listen for authorization changes
+                    for await event in delegateStream {
+                        print("[Onboarding] Received event: \(event)")
+                        await send(.locationAuthorizationEvent(event))
+                    }
+                    print("[Onboarding] Delegate listener ended")
                 }
                 .cancellable(id: CancelID.locationAuthorization)
 
-            case let .locationAuthorizationChanged(status):
-                state.locationStatus = status
-                return .none
+            case let .locationAuthorizationEvent(event):
+                switch event {
+                case let .didChangeAuthorization(status):
+                    state.locationStatus = status
+                    // Auto-complete onboarding when permission is granted or denied
+                    switch status {
+                    case .authorizedWhenInUse, .authorizedAlways:
+                        state.isLocationSuccess = true
+                        // Wait for success animation before completing
+                        return .run { send in
+                            try? await Task.sleep(for: .seconds(2.5))
+                            await send(.locationSuccessAnimationCompleted)
+                        }
+                    case .denied, .restricted:
+                        // Track that location was skipped/denied for analytics
+                        return .concatenate(
+                            .send(.locationSkipped),
+                            .send(.carouselCompleted)
+                        )
+                    default:
+                        return .none
+                    }
+                }
+
+            case .locationSuccessAnimationCompleted:
+                return .send(.carouselCompleted)
 
             case .locationSkipped:
                 // Analytics ou autre logique si nécessaire
