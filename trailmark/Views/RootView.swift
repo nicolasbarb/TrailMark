@@ -8,11 +8,9 @@ struct RootView: View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             Color.clear
                 .onAppear {
-                    print("[Root] task triggered")
                     store.send(.initiate)
                 }
         } destination: { store in
-            let _ = print("[Root] destination called with: \(store.state)")
             switch store.state {
             case .onboarding:
                 if let store = store.scope(state: \.onboarding, action: \.onboarding) {
@@ -26,7 +24,6 @@ struct RootView: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
     }
 }
 

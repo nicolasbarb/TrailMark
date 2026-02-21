@@ -28,8 +28,10 @@ struct TrailListFeature {
         case renewTapped
         case destination(PresentationAction<Destination.Action>)
 
+        #if DEBUG
         // DEBUG: Simuler l'expiration
         case debugSimulateExpiration
+        #endif
     }
     
     enum TrailListCancelID: Equatable/*, Hashable, Sendable*/ {
