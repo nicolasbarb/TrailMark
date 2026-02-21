@@ -13,7 +13,7 @@ struct TrailMarkApp: App {
 
         // Configure RevenueCat
         Purchases.logLevel = .debug
-        Purchases.configure(withAPIKey: "test_QrTpXTemJkitHByxyvcjzRoVAPa")
+        Purchases.configure(withAPIKey: "REDACTED_REVENUECAT_KEY")
     }
 
     var body: some Scene {

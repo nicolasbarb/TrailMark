@@ -31,7 +31,7 @@ struct SubscriptionPackage: Equatable, Sendable, Identifiable {
 
 extension SubscriptionClient: DependencyKey {
     // TODO: Replace with your RevenueCat API key
-    private static let apiKey = "test_QrTpXTemJkitHByxyvcjzRoVAPa"
+    private static let apiKey = "REDACTED_REVENUECAT_KEY"
     private static let premiumEntitlementID = "premium"
 
     static var liveValue: SubscriptionClient {
