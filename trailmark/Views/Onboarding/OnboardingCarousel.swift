@@ -16,6 +16,7 @@ struct OnboardingCarousel: View {
     var onRequestLocation: (() -> Void)? = nil
     var onLocationSkipped: (() -> Void)? = nil
     var locationStatus: CLAuthorizationStatus = .notDetermined
+    var isLocationSuccess: Bool = false
     /// View Properties
     @State private var currentIndex: Int = 0
     @State private var scrollIndex: Int = 0  // Index visuel du screenshot (peut différer de currentIndex)
@@ -175,7 +176,8 @@ struct OnboardingCarousel: View {
                 if items[currentIndex].isLocationStep {
                     LocationOverlayView(
                         isVisible: showLocationOverlay,
-                        animatePin: animatePin
+                        animatePin: animatePin,
+                        isSuccess: isLocationSuccess
                     )
                 }
             }
@@ -263,6 +265,7 @@ struct OnboardingCarousel: View {
         if currentItem.isLocationStep {
             // Location permission buttons
             LocationButtons()
+                .animation(.smooth(duration: 0.4), value: isLocationSuccess)
         } else {
             // Regular continue button + skip
             VStack(spacing: 12) {
@@ -317,28 +320,26 @@ struct OnboardingCarousel: View {
     func LocationButtons() -> some View {
         let isAuthorized = locationStatus == .authorizedWhenInUse || locationStatus == .authorizedAlways
 
-        Button {
-            if isAuthorized {
-                advanceFromLocationStep()
-            } else {
-                onRequestLocation?()
+        if !isLocationSuccess {
+            Button {
+                print("[Carousel] Location button tapped, isAuthorized: \(isAuthorized)")
+                if isAuthorized {
+                    advanceFromLocationStep()
+                } else {
+                    print("[Carousel] Calling onRequestLocation")
+                    onRequestLocation?()
+                }
+            } label: {
+                Text(isAuthorized ? "Continuer" : "Autoriser la localisation")
+                    .fontWeight(.medium)
+                    .contentTransition(.numericText())
+                    .padding(.vertical, 6)
             }
-        } label: {
-            Text(isAuthorized ? "Continuer" : "Autoriser la localisation")
-                .fontWeight(.medium)
-                .contentTransition(.numericText())
-                .padding(.vertical, 6)
-        }
-        .tint(tint)
-        .buttonStyle(.glassProminent)
-        .buttonSizing(.flexible)
-        .animation(.snappy, value: locationStatus)
-        .onChange(of: locationStatus) { _, newStatus in
-            // Auto-advance when user denies permission
-            if newStatus == .denied || newStatus == .restricted {
-                onLocationSkipped?()
-                advanceFromLocationStep()
-            }
+            .tint(tint)
+            .buttonStyle(.glassProminent)
+            .buttonSizing(.flexible)
+            .animation(.snappy, value: locationStatus)
+            .transition(.opacity.combined(with: .scale(scale: 0.9)))
         }
     }
 

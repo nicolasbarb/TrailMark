@@ -8,6 +8,7 @@ import SwiftUI
 struct LocationOverlayView: View {
     let isVisible: Bool
     let animatePin: Bool
+    var isSuccess: Bool = false
 
     var body: some View {
         ZStack {
@@ -18,20 +19,23 @@ struct LocationOverlayView: View {
             // Pulse and pin
             if isVisible {
                 ZStack {
-                    PulseRingView(tint: .white, size: 150)
+                    PulseRingView(tint: isSuccess ? .green : .white, size: 150)
                         .transition(.blurReplace)
+                        .animation(.smooth(duration: 0.5), value: isSuccess)
 
-                    Image(systemName: "mappin")
+                    Image(systemName: isSuccess ? "checkmark.circle" : "mappin")
                         .font(.system(size: 40, weight: .bold))
-                        .foregroundStyle(.white.shadow(.drop(radius: 5)))
+                        .foregroundStyle((isSuccess ? Color.green : Color.white).shadow(.drop(radius: 5)))
+                        .contentTransition(.symbolEffect(.replace.byLayer.downUp))
                         .rotation3DEffect(
-                            .init(degrees: animatePin ? -40 : 0),
+                            .init(degrees: animatePin && !isSuccess ? -40 : 0),
                             axis: (x: 1, y: 0, z: 0)
                         )
                         .scaleEffect(animatePin ? 1 : 10)
                         .opacity(animatePin ? 1 : 0)
                         .blur(radius: animatePin ? 0 : 5)
-                        .offset(y: -12)
+                        .offset(y: isSuccess ? 0 : -12)
+                        .animation(.smooth(duration: 0.5), value: isSuccess)
                 }
             }
         }
@@ -82,5 +86,35 @@ struct PulseRingView: View {
             .fill(tint)
             .opacity(animate[index] ? 0 : 0.4)
             .scaleEffect(animate[index] ? 2 : 0)
+    }
+}
+
+#Preview("Location Success Animation") {
+    @Previewable @State var isSuccess = false
+
+    ZStack {
+        Color.black.ignoresSafeArea()
+
+        VStack(spacing: 40) {
+            RoundedRectangle(cornerRadius: 50)
+                .fill(.gray.opacity(0.3))
+                .frame(width: 250, height: 500)
+                .overlay {
+                    LocationOverlayView(
+                        isVisible: true,
+                        animatePin: true,
+                        isSuccess: isSuccess
+                    )
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 50))
+
+            Button(isSuccess ? "Reset" : "Simulate Success") {
+                withAnimation(.smooth) {
+                    isSuccess.toggle()
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(isSuccess ? .red : .green)
+        }
     }
 }

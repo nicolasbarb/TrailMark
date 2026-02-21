@@ -71,7 +71,8 @@ struct OnboardingView: View {
                     onLocationSkipped: {
                         store.send(.locationSkipped)
                     },
-                    locationStatus: store.locationStatus
+                    locationStatus: store.locationStatus,
+                    isLocationSuccess: store.isLocationSuccess
                 )
                 .transition(.asymmetric(
                     insertion: .move(edge: .trailing),

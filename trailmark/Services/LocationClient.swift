@@ -5,40 +5,72 @@ import Dependencies
 // MARK: - LocationClient
 
 struct LocationClient: Sendable {
-    var requestAuthorization: @Sendable () async -> CLAuthorizationStatus
+    var authorizationStatus: @Sendable () -> CLAuthorizationStatus
+    var requestWhenInUseAuthorization: @Sendable () -> Void
+    var delegate: @Sendable () -> AsyncStream<DelegateEvent>
     var startTracking: @Sendable () -> AsyncStream<CLLocation>
     var stopTracking: @Sendable () -> Void
-    var authorizationStatus: @Sendable () -> CLAuthorizationStatus
+
+    enum DelegateEvent: Equatable {
+        case didChangeAuthorization(CLAuthorizationStatus)
+    }
 }
 
 // MARK: - DependencyKey
 
 extension LocationClient: DependencyKey {
     static var liveValue: LocationClient {
-        let manager = LocationManager()
+        let locationManager = CLLocationManager()
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = 10
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.pausesLocationUpdatesAutomatically = false
+        locationManager.showsBackgroundLocationIndicator = true
 
         return LocationClient(
-            requestAuthorization: {
-                await manager.requestAuthorization()
+            authorizationStatus: {
+                locationManager.authorizationStatus
+            },
+            requestWhenInUseAuthorization: {
+                locationManager.requestWhenInUseAuthorization()
+            },
+            delegate: {
+                // Use buffering to ensure events aren't lost before iteration starts
+                AsyncStream(bufferingPolicy: .bufferingNewest(10)) { continuation in
+                    let delegate = Delegate(continuation: continuation)
+                    locationManager.delegate = delegate
+                    continuation.onTermination = { _ in
+                        _ = delegate // Keep delegate alive
+                    }
+                }
             },
             startTracking: {
-                manager.startTracking()
+                AsyncStream { continuation in
+                    let delegate = TrackingDelegate(
+                        continuation: continuation,
+                        locationManager: locationManager
+                    )
+                    locationManager.delegate = delegate
+                    locationManager.startUpdatingLocation()
+                    continuation.onTermination = { _ in
+                        locationManager.stopUpdatingLocation()
+                        _ = delegate
+                    }
+                }
             },
             stopTracking: {
-                manager.stopTracking()
-            },
-            authorizationStatus: {
-                manager.currentAuthorizationStatus()
+                locationManager.stopUpdatingLocation()
             }
         )
     }
 
     static var testValue: LocationClient {
         LocationClient(
-            requestAuthorization: { .authorizedWhenInUse },
+            authorizationStatus: { .authorizedWhenInUse },
+            requestWhenInUseAuthorization: { },
+            delegate: { .finished },
             startTracking: { AsyncStream { _ in } },
-            stopTracking: { },
-            authorizationStatus: { .authorizedWhenInUse }
+            stopTracking: { }
         )
     }
 }
@@ -50,91 +82,43 @@ extension DependencyValues {
     }
 }
 
-// MARK: - LocationManager
+// MARK: - Delegate for Authorization
 
-private final class LocationManager: NSObject, CLLocationManagerDelegate, @unchecked Sendable {
-    nonisolated(unsafe) private let clManager = CLLocationManager()
-    private let lock = NSLock()
-    nonisolated(unsafe) private var _continuation: AsyncStream<CLLocation>.Continuation?
-    nonisolated(unsafe) private var _authorizationContinuation: CheckedContinuation<CLAuthorizationStatus, Never>?
+extension LocationClient {
+    private class Delegate: NSObject, CLLocationManagerDelegate {
+        let continuation: AsyncStream<LocationClient.DelegateEvent>.Continuation
 
-    nonisolated private var continuation: AsyncStream<CLLocation>.Continuation? {
-        get { lock.withLock { _continuation } }
-        set { lock.withLock { _continuation = newValue } }
-    }
-
-    nonisolated private var authorizationContinuation: CheckedContinuation<CLAuthorizationStatus, Never>? {
-        get { lock.withLock { _authorizationContinuation } }
-        set { lock.withLock { _authorizationContinuation = newValue } }
-    }
-
-    nonisolated func currentAuthorizationStatus() -> CLAuthorizationStatus {
-        clManager.authorizationStatus
-    }
-
-    override init() {
-        super.init()
-        clManager.delegate = self
-        clManager.desiredAccuracy = kCLLocationAccuracyBest
-        clManager.distanceFilter = 10
-        clManager.allowsBackgroundLocationUpdates = true
-        clManager.pausesLocationUpdatesAutomatically = false
-        clManager.showsBackgroundLocationIndicator = true
-    }
-
-    func requestAuthorization() async -> CLAuthorizationStatus {
-        let status = clManager.authorizationStatus
-
-        switch status {
-        case .notDetermined:
-            return await withCheckedContinuation { continuation in
-                self.authorizationContinuation = continuation
-                self.clManager.requestWhenInUseAuthorization()
-            }
-        case .authorizedWhenInUse:
-            // Escalate to Always
-            return await withCheckedContinuation { continuation in
-                self.authorizationContinuation = continuation
-                self.clManager.requestAlwaysAuthorization()
-            }
-        default:
-            return status
-        }
-    }
-
-    nonisolated func startTracking() -> AsyncStream<CLLocation> {
-        AsyncStream { continuation in
+        init(continuation: AsyncStream<LocationClient.DelegateEvent>.Continuation) {
             self.continuation = continuation
-            continuation.onTermination = { [weak self] _ in
-                self?.clManager.stopUpdatingLocation()
+        }
+
+        func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+            print("[LocationClient] Authorization changed: \(manager.authorizationStatus.rawValue)")
+            continuation.yield(.didChangeAuthorization(manager.authorizationStatus))
+        }
+    }
+}
+
+// MARK: - Delegate for Tracking
+
+extension LocationClient {
+    private class TrackingDelegate: NSObject, CLLocationManagerDelegate {
+        let continuation: AsyncStream<CLLocation>.Continuation
+        let locationManager: CLLocationManager
+
+        init(continuation: AsyncStream<CLLocation>.Continuation, locationManager: CLLocationManager) {
+            self.continuation = continuation
+            self.locationManager = locationManager
+        }
+
+        func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+            for location in locations {
+                continuation.yield(location)
             }
-            self.clManager.startUpdatingLocation()
         }
-    }
 
-    nonisolated func stopTracking() {
-        clManager.stopUpdatingLocation()
-        continuation?.finish()
-        continuation = nil
-    }
-
-    // MARK: - CLLocationManagerDelegate
-
-    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        for location in locations {
-            continuation?.yield(location)
+        func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+            print("[LocationClient] Location error: \(error.localizedDescription)")
         }
-    }
-
-    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        if let cont = authorizationContinuation {
-            cont.resume(returning: manager.authorizationStatus)
-            authorizationContinuation = nil
-        }
-    }
-
-    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        // Log error but continue tracking
-        print("Location error: \(error.localizedDescription)")
     }
 }
