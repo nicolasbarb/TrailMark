@@ -17,6 +17,7 @@ struct OnboardingCarousel: View {
     var onLocationSkipped: (() -> Void)? = nil
     var locationStatus: CLAuthorizationStatus = .notDetermined
     var isLocationSuccess: Bool = false
+    var isLocationDenied: Bool = false
     /// View Properties
     @State private var currentIndex: Int = 0
     @State private var scrollIndex: Int = 0  // Index visuel du screenshot (peut différer de currentIndex)
@@ -177,7 +178,8 @@ struct OnboardingCarousel: View {
                     LocationOverlayView(
                         isVisible: showLocationOverlay,
                         animatePin: animatePin,
-                        isSuccess: isLocationSuccess
+                        isSuccess: isLocationSuccess,
+                        isDenied: isLocationDenied
                     )
                 }
             }
@@ -320,7 +322,7 @@ struct OnboardingCarousel: View {
     func LocationButtons() -> some View {
         let isAuthorized = locationStatus == .authorizedWhenInUse || locationStatus == .authorizedAlways
 
-        if !isLocationSuccess {
+        if !isLocationSuccess && !isLocationDenied {
             Button {
                 print("[Carousel] Location button tapped, isAuthorized: \(isAuthorized)")
                 if isAuthorized {

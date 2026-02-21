@@ -9,6 +9,21 @@ struct LocationOverlayView: View {
     let isVisible: Bool
     let animatePin: Bool
     var isSuccess: Bool = false
+    var isDenied: Bool = false
+
+    private var hasResult: Bool { isSuccess || isDenied }
+
+    private var resultSymbol: String {
+        if isSuccess { return "checkmark.circle" }
+        if isDenied { return "xmark.circle" }
+        return "mappin"
+    }
+
+    private var resultColor: Color {
+        if isSuccess { return .green }
+        if isDenied { return .red }
+        return .white
+    }
 
     var body: some View {
         ZStack {
@@ -19,23 +34,23 @@ struct LocationOverlayView: View {
             // Pulse and pin
             if isVisible {
                 ZStack {
-                    PulseRingView(tint: isSuccess ? .green : .white, size: 150)
+                    PulseRingView(tint: resultColor, size: 150)
                         .transition(.blurReplace)
-                        .animation(.smooth(duration: 0.5), value: isSuccess)
+                        .animation(.smooth(duration: 0.5), value: hasResult)
 
-                    Image(systemName: isSuccess ? "checkmark.circle" : "mappin")
+                    Image(systemName: resultSymbol)
                         .font(.system(size: 40, weight: .bold))
-                        .foregroundStyle((isSuccess ? Color.green : Color.white).shadow(.drop(radius: 5)))
+                        .foregroundStyle(resultColor.shadow(.drop(radius: 5)))
                         .contentTransition(.symbolEffect(.replace.byLayer.downUp))
                         .rotation3DEffect(
-                            .init(degrees: animatePin && !isSuccess ? -40 : 0),
+                            .init(degrees: animatePin && !hasResult ? -40 : 0),
                             axis: (x: 1, y: 0, z: 0)
                         )
                         .scaleEffect(animatePin ? 1 : 10)
                         .opacity(animatePin ? 1 : 0)
                         .blur(radius: animatePin ? 0 : 5)
-                        .offset(y: isSuccess ? 0 : -12)
-                        .animation(.smooth(duration: 0.5), value: isSuccess)
+                        .offset(y: hasResult ? 0 : -12)
+                        .animation(.smooth(duration: 0.5), value: hasResult)
                 }
             }
         }
@@ -89,8 +104,9 @@ struct PulseRingView: View {
     }
 }
 
-#Preview("Location Success Animation") {
+#Preview("Location Animation") {
     @Previewable @State var isSuccess = false
+    @Previewable @State var isDenied = false
 
     ZStack {
         Color.black.ignoresSafeArea()
@@ -103,18 +119,39 @@ struct PulseRingView: View {
                     LocationOverlayView(
                         isVisible: true,
                         animatePin: true,
-                        isSuccess: isSuccess
+                        isSuccess: isSuccess,
+                        isDenied: isDenied
                     )
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 50))
 
-            Button(isSuccess ? "Reset" : "Simulate Success") {
-                withAnimation(.smooth) {
-                    isSuccess.toggle()
+            HStack(spacing: 16) {
+                Button("Success") {
+                    withAnimation(.smooth) {
+                        isSuccess = true
+                        isDenied = false
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+
+                Button("Denied") {
+                    withAnimation(.smooth) {
+                        isDenied = true
+                        isSuccess = false
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+
+                Button("Reset") {
+                    withAnimation(.smooth) {
+                        isSuccess = false
+                        isDenied = false
+                    }
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(isSuccess ? .red : .green)
         }
     }
 }
