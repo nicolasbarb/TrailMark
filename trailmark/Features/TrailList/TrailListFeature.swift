@@ -23,6 +23,7 @@ struct TrailListFeature {
         case deleteTrailTapped(TrailListItem)
         case trailDeleted
         case navigateToEditor(Int64)
+        case navigateToEditorWithPendingData(PendingTrailData)
         case openImport
         case dismissExpiredAlert
         case renewTapped
@@ -155,18 +156,21 @@ struct TrailListFeature {
                 state.destination = .editor(EditorFeature.State(trailId: trailId))
                 return .none
 
+            case let .navigateToEditorWithPendingData(pendingData):
+                state.destination = .editor(EditorFeature.State(pendingData: pendingData))
+                return .none
+
             case .openImport:
                 state.destination = .importGPX(ImportFeature.State())
                 return .none
 
-            case .destination(.presented(.importGPX(.importCompleted(let trail)))):
+            case .destination(.presented(.importGPX(.importCompleted(let pendingData)))):
                 state.destination = nil
-                guard let trailId = trail.id else { return .none }
-                // Navigate to editor after successful import
-                return .run { [trailId] send in
+                // Navigate to editor with pending data (will save in background)
+                return .run { send in
                     // Small delay to allow sheet dismissal
                     try await Task.sleep(for: .milliseconds(300))
-                    await send(.navigateToEditor(trailId))
+                    await send(.navigateToEditorWithPendingData(pendingData))
                 }
 
             case .destination(.presented(.paywall(.purchaseCompleted))):
