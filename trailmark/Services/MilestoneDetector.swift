@@ -94,46 +94,54 @@ enum MilestoneDetector {
     private static func detectSignificantSegments(trackPoints: [TrackPoint], smoothedElevations: [Double]) -> [Segment] {
         var segments: [Segment] = []
 
-        var segmentStartIndex = 0
+        // Sous-échantillonner pour éviter le bruit des micro-segments
+        // On prend un point tous les 50m minimum
+        let sampledIndices = samplePoints(trackPoints: trackPoints, minDistance: 50)
+        guard sampledIndices.count >= 2 else { return [] }
+
+        var segmentStartIdx = 0
         var currentTrend: Trend = .flat
         var cumulativeChange: Double = 0
-        var lastElevation = smoothedElevations[0]
+        var lastElevation = smoothedElevations[sampledIndices[0]]
 
-        for i in 1..<trackPoints.count {
-            let currentElevation = smoothedElevations[i]
+        for i in 1..<sampledIndices.count {
+            let pointIndex = sampledIndices[i]
+            let currentElevation = smoothedElevations[pointIndex]
             let delta = currentElevation - lastElevation
 
-            // Déterminer la tendance de ce delta
-            let deltaTrend: Trend = delta > 5 ? .climbing : (delta < -5 ? .descending : .flat)
+            // Déterminer la tendance (seuil de 3m pour éviter le bruit)
+            let deltaTrend: Trend = delta > 3 ? .climbing : (delta < -3 ? .descending : .flat)
 
-            // Si on change de tendance ou si on accumule assez de dénivelé
+            // Si on change de tendance
             let trendChanged = deltaTrend != .flat && deltaTrend != currentTrend && currentTrend != .flat
 
             if trendChanged {
                 // Vérifier si le segment précédent était significatif
                 let threshold = currentTrend == .climbing ? minimumClimbElevation : minimumDescentElevation
                 if abs(cumulativeChange) >= threshold {
+                    let startPointIndex = sampledIndices[segmentStartIdx]
+                    let endPointIndex = sampledIndices[i - 1]
                     let segment = Segment(
-                        startIndex: segmentStartIndex,
-                        endIndex: i - 1,
+                        startIndex: startPointIndex,
+                        endIndex: endPointIndex,
                         trend: currentTrend,
-                        startDistance: trackPoints[segmentStartIndex].distance,
-                        endDistance: trackPoints[i - 1].distance,
-                        startElevation: smoothedElevations[segmentStartIndex],
-                        endElevation: smoothedElevations[i - 1]
+                        startDistance: trackPoints[startPointIndex].distance,
+                        endDistance: trackPoints[endPointIndex].distance,
+                        startElevation: smoothedElevations[startPointIndex],
+                        endElevation: smoothedElevations[endPointIndex]
                     )
                     segments.append(segment)
                 }
 
                 // Commencer un nouveau segment
-                segmentStartIndex = i - 1
+                segmentStartIdx = i - 1
                 currentTrend = deltaTrend
                 cumulativeChange = delta
             } else if deltaTrend != .flat {
                 // Continuer à accumuler dans la même direction
                 if currentTrend == .flat {
                     currentTrend = deltaTrend
-                    segmentStartIndex = i - 1
+                    segmentStartIdx = i - 1
                 }
                 cumulativeChange += delta
             }
@@ -144,19 +152,43 @@ enum MilestoneDetector {
         // Ajouter le dernier segment s'il est significatif
         let threshold = currentTrend == .climbing ? minimumClimbElevation : minimumDescentElevation
         if abs(cumulativeChange) >= threshold {
+            let startPointIndex = sampledIndices[segmentStartIdx]
+            let endPointIndex = sampledIndices[sampledIndices.count - 1]
             let segment = Segment(
-                startIndex: segmentStartIndex,
-                endIndex: trackPoints.count - 1,
+                startIndex: startPointIndex,
+                endIndex: endPointIndex,
                 trend: currentTrend,
-                startDistance: trackPoints[segmentStartIndex].distance,
-                endDistance: trackPoints[trackPoints.count - 1].distance,
-                startElevation: smoothedElevations[segmentStartIndex],
-                endElevation: smoothedElevations[trackPoints.count - 1]
+                startDistance: trackPoints[startPointIndex].distance,
+                endDistance: trackPoints[endPointIndex].distance,
+                startElevation: smoothedElevations[startPointIndex],
+                endElevation: smoothedElevations[endPointIndex]
             )
             segments.append(segment)
         }
 
         return segments
+    }
+
+    /// Sous-échantillonne les points pour garder un point tous les X mètres minimum
+    private static func samplePoints(trackPoints: [TrackPoint], minDistance: Double) -> [Int] {
+        guard !trackPoints.isEmpty else { return [] }
+
+        var indices: [Int] = [0]
+        var lastDistance = trackPoints[0].distance
+
+        for i in 1..<trackPoints.count {
+            if trackPoints[i].distance - lastDistance >= minDistance {
+                indices.append(i)
+                lastDistance = trackPoints[i].distance
+            }
+        }
+
+        // Toujours inclure le dernier point
+        if indices.last != trackPoints.count - 1 {
+            indices.append(trackPoints.count - 1)
+        }
+
+        return indices
     }
 
     // MARK: - Milestone Generation
@@ -232,23 +264,59 @@ enum MilestoneDetector {
         return filtered
     }
 
+    // MARK: - Climb Categories
+
+    enum ClimbCategory: String {
+        case hc = "Hors Catégorie"
+        case cat1 = "Catégorie 1"
+        case cat2 = "Catégorie 2"
+        case cat3 = "Catégorie 3"
+        case cat4 = "Catégorie 4"
+
+        var shortName: String {
+            switch self {
+            case .hc: return "HC"
+            case .cat1: return "Cat 1"
+            case .cat2: return "Cat 2"
+            case .cat3: return "Cat 3"
+            case .cat4: return "Cat 4"
+            }
+        }
+
+        /// Catégorise une montée selon le dénivelé positif
+        static func from(elevationGain: Int) -> ClimbCategory {
+            switch elevationGain {
+            case 1000...: return .hc
+            case 600..<1000: return .cat1
+            case 300..<600: return .cat2
+            case 150..<300: return .cat3
+            default: return .cat4
+            }
+        }
+    }
+
     // MARK: - Message Formatting
 
     private static func formatClimbMessage(dPlus: Int, distKm: Double, slopePercent: Int) -> String {
+        let category = ClimbCategory.from(elevationGain: dPlus)
+
         if distKm >= 1 {
-            return "Montée de \(dPlus) mètres sur \(String(format: "%.1f", distKm)) kilomètres — \(slopePercent)% moyen"
+            return "Montée \(category.shortName) — \(dPlus) mètres sur \(String(format: "%.1f", distKm)) kilomètres, \(slopePercent)% moyen"
         } else {
             let distM = Int(distKm * 1000)
-            return "Montée de \(dPlus) mètres sur \(distM) mètres — \(slopePercent)% moyen"
+            return "Montée \(category.shortName) — \(dPlus) mètres sur \(distM) mètres, \(slopePercent)% moyen"
         }
     }
 
     private static func formatDescentMessage(dMinus: Int, distKm: Double) -> String {
+        // Catégoriser aussi les descentes pour la cohérence
+        let category = ClimbCategory.from(elevationGain: dMinus)
+
         if distKm >= 1 {
-            return "Descente de \(dMinus) mètres sur \(String(format: "%.1f", distKm)) kilomètres"
+            return "Descente \(category.shortName) — \(dMinus) mètres sur \(String(format: "%.1f", distKm)) kilomètres"
         } else {
             let distM = Int(distKm * 1000)
-            return "Descente de \(dMinus) mètres sur \(distM) mètres"
+            return "Descente \(category.shortName) — \(dMinus) mètres sur \(distM) mètres"
         }
     }
 }
