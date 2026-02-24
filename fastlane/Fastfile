@@ -101,11 +101,9 @@ platform :ios do
     )
     new_build = latest_build + 1
 
-    # Increment build number (exactly like Holfy - simple, no extras)
-    increment_build_number(
-      xcodeproj: "trailmark.xcodeproj",
-      build_number: new_build
-    )
+    # Increment build number using sed (increment_build_number doesn't work on this project)
+    sh("sed -i '' 's/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = #{new_build};/g' ../trailmark.xcodeproj/project.pbxproj")
+    UI.success("✅ Build number set to #{new_build} via sed")
 
     # Build the app (exactly like Holfy)
     build_app(
@@ -145,12 +143,9 @@ platform :ios do
 
     UI.success("✅ Build #{new_build} uploaded successfully!")
 
-    # Commit version and build number changes
-    commit_version_bump(
-      message: "Bump version to #{new_version} build #{new_build} [skip ci]",
-      xcodeproj: "trailmark.xcodeproj",
-      force: true
-    )
+    # Commit version and build number changes (using git directly since we used sed)
+    sh("git add ../trailmark.xcodeproj/project.pbxproj")
+    sh("git commit -m 'Bump version to #{new_version} build #{new_build} [skip ci]'")
 
     # Create version tag (vX.Y.Z format) - skip if already exists
     version_tag = "v#{new_version}"
