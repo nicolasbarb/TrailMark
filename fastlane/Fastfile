@@ -17,6 +17,8 @@ platform :ios do
     unless File.exist?(API_KEY_PATH)
       UI.user_error!("AuthKey not found at #{API_KEY_PATH}. Download from App Store Connect > Users > Keys")
     end
+    # Workaround for Xcode 26 altool bug (fastlane/fastlane#29739)
+    ENV["DELIVER_ALTOOL_ADDITIONAL_UPLOAD_PARAMETERS"] = "--use-old-altool"
   end
 
   # ==================== MATCH ====================
