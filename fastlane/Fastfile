@@ -50,7 +50,15 @@ platform :ios do
 
   desc "Push a new build to TestFlight"
   lane :beta do |options|
+    # Ensure we're on main and git is clean FIRST
+    ensure_git_branch(branch: "main")
+    ensure_git_status_clean
+
+    # Pull latest changes
+    sh("git pull origin main")
+
     # Version bump if requested (bump: "major", "minor", or "patch")
+    new_version = nil
     if options[:bump]
       current_version = get_version_number(xcodeproj: "trailmark.xcodeproj", target: "trailmark")
       version_parts = current_version.split('.')
@@ -68,15 +76,16 @@ platform :ios do
         patch = 0
       when "patch"
         patch += 1
+      else
+        UI.user_error!("Invalid bump type: #{options[:bump]}. Use 'major', 'minor', or 'patch'")
       end
 
       new_version = "#{major}.#{minor}.#{patch}"
       increment_version_number(xcodeproj: "trailmark.xcodeproj", version_number: new_version)
       UI.success("✅ Version incrémentée de #{current_version} à #{new_version}")
+    else
+      new_version = get_version_number(xcodeproj: "trailmark.xcodeproj", target: "trailmark")
     end
-
-    # Ensure git status is clean
-    ensure_git_status_clean
 
     # Setup certificates and provisioning profiles
     match(type: "appstore", api_key: api_key, readonly: is_ci, verbose: true)
@@ -127,17 +136,29 @@ platform :ios do
 
     # Commit version and build number changes
     commit_version_bump(
-      message: "Bump version to #{get_version_number(xcodeproj: 'trailmark.xcodeproj')} build #{new_build} [skip ci]",
+      message: "Bump version to #{new_version} build #{new_build} [skip ci]",
       xcodeproj: "trailmark.xcodeproj",
       include: ["Info.plist"],
       force: true
     )
 
-    # Tag release
-    add_git_tag(tag: "testflight/#{get_version_number(xcodeproj: 'trailmark.xcodeproj')}/#{new_build}")
+    # Create version tag (vX.Y.Z format)
+    version_tag = "v#{new_version}"
+    add_git_tag(tag: version_tag)
 
-    # Push to remote
-    push_to_git_remote
+    # Create release branch
+    release_branch = "release/#{new_version}"
+    sh("git checkout -b #{release_branch}")
+    sh("git checkout main")
+
+    # Push everything: main, release branch, and tags
+    push_to_git_remote(tags: true)
+    sh("git push origin #{release_branch}")
+
+    UI.success("🎉 Release #{version_tag} créée et uploadée sur TestFlight!")
+    UI.success("   📦 Version: #{new_version} (build #{new_build})")
+    UI.success("   🏷️  Tag: #{version_tag}")
+    UI.success("   🌿 Branche: #{release_branch}")
   end
 
   # ==================== OTHER LANES ====================
