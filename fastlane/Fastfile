@@ -145,7 +145,7 @@ platform :ios do
 
     # Commit version and build number changes (using git directly since we used sed)
     sh("git add ../trailmark.xcodeproj/project.pbxproj")
-    sh("git commit -m 'Bump version to #{new_version} build #{new_build} [skip ci]'")
+    sh("git diff --staged --quiet || git commit -m 'Bump version to #{new_version} build #{new_build} [skip ci]'")
 
     # Create version tag (vX.Y.Z format) - skip if already exists
     version_tag = "v#{new_version}"
