@@ -143,18 +143,28 @@ platform :ios do
       changelog: changelog
     )
 
-    # Commit version and build number changes (using git directly as workaround)
+    # Commit version and build number changes (only if there are changes)
     sh("git add ../trailmark.xcodeproj/project.pbxproj")
-    sh("git commit -m 'Bump version to #{new_version} build #{new_build} [skip ci]'")
+    sh("git diff --staged --quiet || git commit -m 'Bump version to #{new_version} build #{new_build} [skip ci]'")
 
-    # Create version tag (vX.Y.Z format)
+    # Create version tag (vX.Y.Z format) - skip if already exists
     version_tag = "v#{new_version}"
-    add_git_tag(tag: version_tag)
+    tag_exists = sh("git tag -l #{version_tag}", log: false).strip.length > 0
+    unless tag_exists
+      add_git_tag(tag: version_tag)
+    else
+      UI.important("⚠️  Tag #{version_tag} already exists, skipping tag creation")
+    end
 
-    # Create release branch
+    # Create release branch - skip if already exists
     release_branch = "release/#{new_version}"
-    sh("git checkout -b #{release_branch}")
-    sh("git checkout main")
+    branch_exists = sh("git branch -l #{release_branch}", log: false).strip.length > 0
+    unless branch_exists
+      sh("git checkout -b #{release_branch}")
+      sh("git checkout main")
+    else
+      UI.important("⚠️  Branch #{release_branch} already exists, skipping branch creation")
+    end
 
     # Push everything: main, release branch, and tags
     push_to_git_remote(tags: true)
