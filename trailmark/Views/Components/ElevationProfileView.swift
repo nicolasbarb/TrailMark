@@ -41,7 +41,7 @@ struct ElevationProfileView: View {
 
                         Spacer()
 
-                        Text("Tap = jalon")
+                        Text("Tap = repère")
                             .font(.system(size: 9))
                             .foregroundStyle(TM.textMuted)
                     }
