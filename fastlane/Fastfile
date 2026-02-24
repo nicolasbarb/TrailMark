@@ -102,7 +102,7 @@ platform :ios do
 
     # Clear Xcode derived data to ensure build number is picked up
     UI.message("🧹 Nettoyage du cache Xcode...")
-    sh("rm -rf ~/Library/Developer/Xcode/DerivedData/*")
+    clear_derived_data
 
     # Build the app (pass build number explicitly to avoid cache issues)
     build_app(
