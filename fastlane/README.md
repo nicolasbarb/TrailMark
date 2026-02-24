@@ -45,7 +45,7 @@ Push a new build to TestFlight
 [bundle exec] fastlane ios beta_no_bump
 ```
 
-Push to TestFlight without version bump (rebuild)
+Push to TestFlight without version bump (rebuild with new build number)
 
 ### ios build
 
