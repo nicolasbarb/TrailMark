@@ -135,12 +135,9 @@ platform :ios do
       changelog: changelog
     )
 
-    # Commit version and build number changes
-    commit_version_bump(
-      message: "Bump version to #{new_version} build #{new_build} [skip ci]",
-      xcodeproj: "trailmark.xcodeproj",
-      force: true
-    )
+    # Commit version and build number changes (using git directly as workaround)
+    sh("git add ../trailmark.xcodeproj/project.pbxproj")
+    sh("git commit -m 'Bump version to #{new_version} build #{new_build} [skip ci]'")
 
     # Create version tag (vX.Y.Z format)
     version_tag = "v#{new_version}"
