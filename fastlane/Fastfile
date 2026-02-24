@@ -97,7 +97,13 @@ platform :ios do
     current_build = get_build_number(xcodeproj: "trailmark.xcodeproj")
     UI.message("📦 Building with local build number: #{current_build}")
 
-    # Build the app with current local build number
+    # Use agvtool to ensure ALL version references are updated (fixes Xcode 15+ issues)
+    Dir.chdir("..") do
+      sh("xcrun agvtool new-version -all #{current_build}")
+    end
+    UI.message("✅ agvtool: All version references set to #{current_build}")
+
+    # Build the app
     build_app(
       scheme: "trailmark",
       project: "trailmark.xcodeproj",
@@ -105,7 +111,7 @@ platform :ios do
       output_directory: "./fastlane/builds",
       output_name: "trailmark",
       export_method: "app-store",
-      xcargs: "-skipMacroValidation -skipPackagePluginValidation CURRENT_PROJECT_VERSION=#{current_build}",
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
       export_options: {
         method: "app-store",
         provisioningProfiles: {
@@ -137,10 +143,9 @@ platform :ios do
 
     # Increment build number for next release (only after successful upload)
     next_build = current_build.to_i + 1
-    increment_build_number(
-      xcodeproj: "trailmark.xcodeproj",
-      build_number: next_build
-    )
+    Dir.chdir("..") do
+      sh("xcrun agvtool new-version -all #{next_build}")
+    end
     UI.message("📦 Local build number incremented to #{next_build} for next release")
 
     # Commit version and build number changes
