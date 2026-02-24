@@ -98,7 +98,9 @@ platform :ios do
     )
     new_build = latest_build + 1
 
-    increment_build_number(xcodeproj: "trailmark.xcodeproj", build_number: new_build)
+    # Update build number directly in pbxproj (project uses GENERATE_INFOPLIST_FILE)
+    UI.message("📝 Mise à jour du build number à #{new_build}...")
+    sh("sed -i '' 's/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = #{new_build};/g' ../trailmark.xcodeproj/project.pbxproj")
 
     # Clear Xcode derived data to ensure build number is picked up
     UI.message("🧹 Nettoyage du cache Xcode...")
