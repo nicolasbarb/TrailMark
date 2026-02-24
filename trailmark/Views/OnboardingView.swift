@@ -21,14 +21,14 @@ struct OnboardingView: View {
                     items: [
                         .init(
                             id: 0,
-                            title: "Bienvenue sur TrailMark",
-                            subtitle: "Ton guide vocal pour\nle trail running.",
+                            title: "Tous tes parcours réunis",
+                            subtitle: "Centralise tous tes parcours\net accède-y en un instant.",
                             screenshot: UIImage(named: "listScreenshot")
                         ),
                         .init(
                             id: 1,
                             title: "Importe tes traces GPX",
-                            subtitle: "Centralise tous tes parcours\net accède-y en un instant.",
+                            subtitle: "Depuis tes fichiers, mails\nou apps de trace.",
                             screenshot: UIImage(named: "gpxScreenshot")
                         ),
                         .init(
