@@ -93,17 +93,21 @@ platform :ios do
     # Setup certificates and provisioning profiles
     match(type: "appstore", api_key: api_key, readonly: is_ci, verbose: true)
 
-    # Get current local build number
-    current_build = get_build_number(xcodeproj: "trailmark.xcodeproj")
-    UI.message("📦 Building with local build number: #{current_build}")
+    # Get latest TestFlight build number (exactly like Holfy)
+    latest_build = latest_testflight_build_number(
+      api_key: api_key,
+      app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
+      initial_build_number: 0
+    )
+    new_build = latest_build + 1
 
-    # Use agvtool to ensure ALL version references are updated (fixes Xcode 15+ issues)
-    Dir.chdir("..") do
-      sh("xcrun agvtool new-version -all #{current_build}")
-    end
-    UI.message("✅ agvtool: All version references set to #{current_build}")
+    # Increment build number (exactly like Holfy - simple, no extras)
+    increment_build_number(
+      xcodeproj: "trailmark.xcodeproj",
+      build_number: new_build
+    )
 
-    # Build the app
+    # Build the app (exactly like Holfy)
     build_app(
       scheme: "trailmark",
       project: "trailmark.xcodeproj",
@@ -120,7 +124,7 @@ platform :ios do
       }
     )
 
-    UI.success("✅ IPA créée avec succès: ./fastlane/builds/trailmark.ipa (build #{current_build})")
+    UI.success("✅ IPA créée avec succès: ./fastlane/builds/trailmark.ipa (build #{new_build})")
 
     # Get changelog from last commit body
     changelog = sh("git log -1 --pretty=%b").strip
@@ -139,18 +143,14 @@ platform :ios do
       changelog: changelog
     )
 
-    UI.success("✅ Build #{current_build} uploaded successfully!")
-
-    # Increment build number for next release (only after successful upload)
-    next_build = current_build.to_i + 1
-    Dir.chdir("..") do
-      sh("xcrun agvtool new-version -all #{next_build}")
-    end
-    UI.message("📦 Local build number incremented to #{next_build} for next release")
+    UI.success("✅ Build #{new_build} uploaded successfully!")
 
     # Commit version and build number changes
-    sh("git add ../trailmark.xcodeproj/project.pbxproj")
-    sh("git diff --staged --quiet || git commit -m 'Bump build number to #{next_build} after #{new_version} (#{current_build}) release [skip ci]'")
+    commit_version_bump(
+      message: "Bump version to #{new_version} build #{new_build} [skip ci]",
+      xcodeproj: "trailmark.xcodeproj",
+      force: true
+    )
 
     # Create version tag (vX.Y.Z format) - skip if already exists
     version_tag = "v#{new_version}"
@@ -176,16 +176,32 @@ platform :ios do
     sh("git push origin #{release_branch}")
 
     UI.success("🎉 Release #{version_tag} créée et uploadée sur TestFlight!")
-    UI.success("   📦 Version: #{new_version} (build #{current_build})")
+    UI.success("   📦 Version: #{new_version} (build #{new_build})")
     UI.success("   🏷️  Tag: #{version_tag}")
     UI.success("   🌿 Branche: #{release_branch}")
   end
 
   # ==================== OTHER LANES ====================
 
-  desc "Push to TestFlight without version bump (rebuild)"
+  desc "Push to TestFlight without version bump (rebuild with new build number)"
   lane :beta_no_bump do
     match(type: "appstore", api_key: api_key, readonly: true)
+
+    # Get latest TestFlight build number to guarantee we're always higher
+    latest_build = latest_testflight_build_number(
+      api_key: api_key,
+      app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
+      initial_build_number: 0
+    )
+    new_build = latest_build + 1
+    UI.message("📦 TestFlight latest build: #{latest_build}, building: #{new_build}")
+
+    increment_build_number(
+      xcodeproj: "trailmark.xcodeproj",
+      build_number: new_build
+    )
+
+    clear_derived_data(derived_data_path: "~/Library/Developer/Xcode/DerivedData")
 
     build_app(
       scheme: "trailmark",
@@ -193,7 +209,7 @@ platform :ios do
       clean: true,
       output_directory: "./fastlane/builds",
       export_method: "app-store",
-      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation CURRENT_PROJECT_VERSION=#{new_build}",
       export_options: {
         method: "app-store",
         provisioningProfiles: {
@@ -206,21 +222,39 @@ platform :ios do
       api_key: api_key,
       skip_waiting_for_build_processing: true
     )
+
+    UI.success("✅ Build #{new_build} uploaded successfully!")
   end
 
   desc "Build app for release (without upload)"
   lane :build do
     match(type: "appstore", api_key: api_key, readonly: true)
 
-    increment_build_number(xcodeproj: "trailmark.xcodeproj")
+    # Get latest TestFlight build number + 1
+    latest_build = latest_testflight_build_number(
+      api_key: api_key,
+      app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
+      initial_build_number: 0
+    )
+    new_build = latest_build + 1
+
+    increment_build_number(
+      xcodeproj: "trailmark.xcodeproj",
+      build_number: new_build
+    )
+
+    clear_derived_data(derived_data_path: "~/Library/Developer/Xcode/DerivedData")
 
     build_app(
       scheme: "trailmark",
       project: "trailmark.xcodeproj",
+      clean: true,
       export_method: "app-store",
-      xcargs: "-skipMacroValidation -skipPackagePluginValidation",
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation CURRENT_PROJECT_VERSION=#{new_build}",
       output_directory: "./fastlane/builds"
     )
+
+    UI.success("✅ Built version #{get_version_number(xcodeproj: 'trailmark.xcodeproj')} (build #{new_build})")
   end
 
   desc "Run tests"
