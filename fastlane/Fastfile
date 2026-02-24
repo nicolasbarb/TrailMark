@@ -105,7 +105,7 @@ platform :ios do
     sh("sed -i '' 's/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = #{new_build};/g' ../trailmark.xcodeproj/project.pbxproj")
     UI.success("✅ Build number set to #{new_build} via sed")
 
-    # Build the app (exactly like Holfy)
+    # Build the app
     build_app(
       scheme: "trailmark",
       project: "trailmark.xcodeproj",
@@ -113,6 +113,7 @@ platform :ios do
       output_directory: "./fastlane/builds",
       output_name: "trailmark",
       export_method: "app-store",
+      destination: "generic/platform=iOS",
       xcargs: "-skipMacroValidation -skipPackagePluginValidation",
       export_options: {
         method: "app-store",
