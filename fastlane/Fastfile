@@ -50,17 +50,13 @@ platform :ios do
 
   desc "Push a new build to TestFlight"
   lane :beta do |options|
-    # Ensure we're on main and git is clean FIRST
-    ensure_git_branch(branch: "main")
-    ensure_git_status_clean
-
-    # Pull latest changes
-    sh("git pull origin main")
-
-    # Version bump if requested (bump: "major", "minor", or "patch")
-    new_version = nil
+    # Increment version if bump parameter is provided
     if options[:bump]
-      current_version = get_version_number(xcodeproj: "trailmark.xcodeproj", target: "trailmark")
+      current_version = get_version_number(
+        xcodeproj: "trailmark.xcodeproj",
+        target: "trailmark"
+      )
+
       version_parts = current_version.split('.')
       major = version_parts[0].to_i
       minor = version_parts[1]&.to_i || 0
@@ -76,36 +72,48 @@ platform :ios do
         patch = 0
       when "patch"
         patch += 1
-      else
-        UI.user_error!("Invalid bump type: #{options[:bump]}. Use 'major', 'minor', or 'patch'")
       end
 
       new_version = "#{major}.#{minor}.#{patch}"
+
       increment_version_number(
         xcodeproj: "trailmark.xcodeproj",
         version_number: new_version
       )
-      UI.success("Version incrementee de #{current_version} a #{new_version}")
-    else
-      new_version = get_version_number(xcodeproj: "trailmark.xcodeproj", target: "trailmark")
+
+      UI.success("✅ Version incrémentée de #{current_version} à #{new_version}")
     end
 
-    # Setup certificates and provisioning profiles
-    match(type: "appstore", api_key: api_key, readonly: is_ci, verbose: true)
+    # Setup App Store Connect API Key
+    api_key = app_store_connect_api_key(
+      key_id: "KN4CQZ4P8G",
+      issuer_id: "52d3d37b-494c-4d95-afee-3272957150c7",
+      key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_KN4CQZ4P8G.p8"),
+      in_house: false
+    )
 
-    # Get latest TestFlight build number (exactly like Holfy)
-    latest_build = latest_testflight_build_number(
+    # Setup certificates and provisioning profiles
+    match(
+      type: "appstore",
+      api_key: api_key,
+      readonly: is_ci,
+      verbose: true
+    )
+
+    # Get latest TestFlight build number to avoid conflicts
+    latest_testflight_build_number = latest_testflight_build_number(
       api_key: api_key,
       app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
       initial_build_number: 0
     )
-    new_build = latest_build + 1
 
-    # Increment build number using sed (increment_build_number doesn't work on this project)
-    sh("sed -i '' 's/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = #{new_build};/g' ../trailmark.xcodeproj/project.pbxproj")
-    UI.success("✅ Build number set to #{new_build} via sed")
+    # Increment build number (based on TestFlight)
+    increment_build_number(
+      xcodeproj: "trailmark.xcodeproj",
+      build_number: latest_testflight_build_number + 1
+    )
 
-    # Build the app
+    # Build the app using gym
     build_app(
       scheme: "trailmark",
       project: "trailmark.xcodeproj",
@@ -113,7 +121,6 @@ platform :ios do
       output_directory: "./fastlane/builds",
       output_name: "trailmark",
       export_method: "app-store",
-      destination: "generic/platform=iOS",
       xcargs: "-skipMacroValidation -skipPackagePluginValidation",
       export_options: {
         method: "app-store",
@@ -123,10 +130,10 @@ platform :ios do
       }
     )
 
-    UI.success("✅ IPA créée avec succès: ./fastlane/builds/trailmark.ipa (build #{new_build})")
-
-    # Get changelog from last commit body
+    # Get changelog from last commit body (description only, not the title)
     changelog = sh("git log -1 --pretty=%b").strip
+
+    # Use default message if commit body is empty
     if changelog.empty?
       changelog = "Corrections de bugs et améliorations des performances"
       UI.important("⚠️  Aucune description de commit trouvée, utilisation du changelog par défaut")
@@ -142,39 +149,20 @@ platform :ios do
       changelog: changelog
     )
 
-    UI.success("✅ Build #{new_build} uploaded successfully!")
+    # Commit version and build number changes
+    commit_version_bump(
+      message: "Bump version to #{get_version_number(xcodeproj: 'trailmark.xcodeproj')} build #{lane_context[SharedValues::BUILD_NUMBER]} [skip ci]",
+      xcodeproj: "trailmark.xcodeproj",
+      force: true
+    )
 
-    # Commit version and build number changes (using git directly since we used sed)
-    sh("git add ../trailmark.xcodeproj/project.pbxproj")
-    sh("git diff --staged --quiet || git commit -m 'Bump version to #{new_version} build #{new_build} [skip ci]'")
+    # Tag release
+    add_git_tag(
+      tag: "testflight/#{get_version_number(xcodeproj: 'trailmark.xcodeproj')}/#{lane_context[SharedValues::BUILD_NUMBER]}"
+    )
 
-    # Create version tag (vX.Y.Z format) - skip if already exists
-    version_tag = "v#{new_version}"
-    tag_exists = sh("git tag -l #{version_tag}", log: false).strip.length > 0
-    unless tag_exists
-      add_git_tag(tag: version_tag)
-    else
-      UI.important("⚠️  Tag #{version_tag} already exists, skipping tag creation")
-    end
-
-    # Create release branch - skip if already exists
-    release_branch = "release/#{new_version}"
-    branch_exists = sh("git branch -l #{release_branch}", log: false).strip.length > 0
-    unless branch_exists
-      sh("git checkout -b #{release_branch}")
-      sh("git checkout main")
-    else
-      UI.important("⚠️  Branch #{release_branch} already exists, skipping branch creation")
-    end
-
-    # Push everything: main, release branch, and tags
-    push_to_git_remote(tags: true)
-    sh("git push origin #{release_branch}")
-
-    UI.success("🎉 Release #{version_tag} créée et uploadée sur TestFlight!")
-    UI.success("   📦 Version: #{new_version} (build #{new_build})")
-    UI.success("   🏷️  Tag: #{version_tag}")
-    UI.success("   🌿 Branche: #{release_branch}")
+    # Push to remote
+    push_to_git_remote
   end
 
   # ==================== OTHER LANES ====================
