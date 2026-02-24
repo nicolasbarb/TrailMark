@@ -116,7 +116,7 @@ struct EditorView: View {
             )) {
                 Text("🗺 Carte")
                     .tag(EditorTab.map)
-                Text("📍 Jalons" + (store.milestones.isEmpty ? "" : " (\(store.milestones.count))"))
+                Text("📍 Repères" + (store.milestones.isEmpty ? "" : " (\(store.milestones.count))"))
                     .tag(EditorTab.milestones)
             }
             .pickerStyle(.segmented)
@@ -185,7 +185,7 @@ struct EditorView: View {
             Text("📍")
                 .font(.system(size: 32))
 
-            Text("Aucun jalon")
+            Text("Aucun repère")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(TM.textSecondary)
 
@@ -363,7 +363,7 @@ struct MilestoneSheetView: View {
                     }
                 }
                 ToolbarItem(placement: .title) {
-                    Text(store.isEditing ? "Modifier" : "Nouveau jalon")
+                    Text(store.isEditing ? "Modifier" : "Nouveau repère")
                 }
                 ToolbarItem(placement: .subtitle) {
                     PointStatsView(distanceMeters: store.distance, altitudeMeters: store.elevation)

@@ -292,7 +292,7 @@ struct EditorFeature {
                         TextState("Supprimer")
                     }
                 } message: {
-                    TextState("Cette action supprimera définitivement le parcours et tous ses jalons.")
+                    TextState("Cette action supprimera définitivement le parcours et tous ses repères.")
                 }
                 return .none
 

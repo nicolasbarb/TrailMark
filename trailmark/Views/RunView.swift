@@ -95,16 +95,16 @@ struct RunView: View {
             }
 
             if let distance = store.closestMilestoneDistance {
-                debugRow(label: "Prochain jalon", value: "\(distance)m")
+                debugRow(label: "Prochain repère", value: "\(distance)m")
             } else {
-                debugRow(label: "Prochain jalon", value: "—")
+                debugRow(label: "Prochain repère", value: "—")
             }
 
             if let message = store.closestMilestoneMessage {
                 debugRow(label: "Prochain message", value: String(message.prefix(40)) + (message.count > 40 ? "..." : ""))
             }
 
-            debugRow(label: "Jalons déclenchés", value: "\(store.triggeredMilestoneIds.count)/\(store.trailDetail?.milestones.count ?? 0)")
+            debugRow(label: "Repères déclenchés", value: "\(store.triggeredMilestoneIds.count)/\(store.trailDetail?.milestones.count ?? 0)")
 
             if let tts = store.currentTTSMessage {
                 debugRow(label: "TTS", value: "🔊 " + String(tts.prefix(30)))
@@ -146,7 +146,7 @@ struct RunView: View {
                     .foregroundStyle(TM.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("\(detail.distKm) km · \(detail.trail.dPlus)m D+ · \(detail.milestoneCount) jalons")
+                Text("\(detail.distKm) km · \(detail.trail.dPlus)m D+ · \(detail.milestoneCount) repères")
                     .font(.caption)
                     .foregroundStyle(TM.textMuted)
             }
@@ -161,7 +161,7 @@ struct RunView: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(TM.textPrimary)
 
-                Text("Rangez le téléphone dans votre poche.\nLes jalons seront annoncés vocalement.")
+                Text("Rangez le téléphone dans votre poche.\nLes repères seront annoncés vocalement.")
                     .font(.caption)
                     .foregroundStyle(TM.textMuted)
                     .multilineTextAlignment(.center)
@@ -248,7 +248,7 @@ struct RunView: View {
                     .font(.subheadline)
                     .foregroundStyle(TM.textMuted)
 
-                Text("Les jalons sont annoncés automatiquement\npar GPS. Vous pouvez ranger le téléphone.")
+                Text("Les repères sont annoncés automatiquement\npar GPS. Vous pouvez ranger le téléphone.")
                     .font(.caption)
                     .foregroundStyle(TM.textMuted)
                     .multilineTextAlignment(.center)

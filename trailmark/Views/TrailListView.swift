@@ -230,7 +230,7 @@ private struct TrailCard: View {
                         statColumn(
                             value: "\(item.milestoneCount)",
                             unit: nil,
-                            label: "Jalons"
+                            label: "Repères"
                         )
                     }
 

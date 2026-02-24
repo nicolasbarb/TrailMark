@@ -332,7 +332,7 @@ struct OnboardingCarousel: View {
                     onRequestLocation?()
                 }
             } label: {
-                Text(isAuthorized ? "Continuer" : "Autoriser la localisation")
+                Text("Continuer")
                     .fontWeight(.medium)
                     .contentTransition(.numericText())
                     .padding(.vertical, 6)
@@ -464,7 +464,7 @@ struct OnboardingCarousel: View {
             ),
             .init(
                 id: 3,
-                title: "Place tes jalons",
+                title: "Place tes repères",
                 subtitle: "Marque les moments clés :\nmontées, ravitos, dangers...",
                 screenshot: UIImage(named: "jalonScreenshot"),
                 zoomScale: 1.3,
@@ -473,7 +473,7 @@ struct OnboardingCarousel: View {
             .init(
                 id: 4,
                 title: "Laisse-toi guider",
-                subtitle: "Reçois des annonces vocales\nà chaque jalon pendant ta course.",
+                subtitle: "Reçois des annonces vocales\nà chaque repère pendant ta course.",
                 screenshot: UIImage(named: "playScreenshot")
             )
         ]
