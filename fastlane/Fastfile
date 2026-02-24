@@ -93,21 +93,11 @@ platform :ios do
     # Setup certificates and provisioning profiles
     match(type: "appstore", api_key: api_key, readonly: is_ci, verbose: true)
 
-    # Get latest TestFlight build number and increment
-    latest_build = latest_testflight_build_number(
-      api_key: api_key,
-      app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
-      initial_build_number: 0
-    )
-    new_build = latest_build + 1
+    # Get current local build number
+    current_build = get_build_number(xcodeproj: "trailmark.xcodeproj")
+    UI.message("📦 Building with local build number: #{current_build}")
 
-    # Increment build number
-    increment_build_number(
-      xcodeproj: "trailmark.xcodeproj",
-      build_number: new_build
-    )
-
-    # Build the app with explicit build number
+    # Build the app with current local build number
     build_app(
       scheme: "trailmark",
       project: "trailmark.xcodeproj",
@@ -115,7 +105,7 @@ platform :ios do
       output_directory: "./fastlane/builds",
       output_name: "trailmark",
       export_method: "app-store",
-      xcargs: "-skipMacroValidation -skipPackagePluginValidation CURRENT_PROJECT_VERSION=#{new_build}",
+      xcargs: "-skipMacroValidation -skipPackagePluginValidation CURRENT_PROJECT_VERSION=#{current_build}",
       export_options: {
         method: "app-store",
         provisioningProfiles: {
@@ -141,9 +131,19 @@ platform :ios do
       changelog: changelog
     )
 
-    # Commit version and build number changes (only if there are changes)
+    UI.success("✅ Build #{current_build} uploaded successfully!")
+
+    # Increment build number for next release (only after successful upload)
+    next_build = current_build.to_i + 1
+    increment_build_number(
+      xcodeproj: "trailmark.xcodeproj",
+      build_number: next_build
+    )
+    UI.message("📦 Local build number incremented to #{next_build} for next release")
+
+    # Commit version and build number changes
     sh("git add ../trailmark.xcodeproj/project.pbxproj")
-    sh("git diff --staged --quiet || git commit -m 'Bump version to #{new_version} build #{new_build} [skip ci]'")
+    sh("git diff --staged --quiet || git commit -m 'Bump build number to #{next_build} after #{new_version} (#{current_build}) release [skip ci]'")
 
     # Create version tag (vX.Y.Z format) - skip if already exists
     version_tag = "v#{new_version}"
@@ -169,7 +169,7 @@ platform :ios do
     sh("git push origin #{release_branch}")
 
     UI.success("🎉 Release #{version_tag} créée et uploadée sur TestFlight!")
-    UI.success("   📦 Version: #{new_version} (build #{new_build})")
+    UI.success("   📦 Version: #{new_version} (build #{current_build})")
     UI.success("   🏷️  Tag: #{version_tag}")
     UI.success("   🌿 Branche: #{release_branch}")
   end
