@@ -98,15 +98,10 @@ platform :ios do
     )
     new_build = latest_build + 1
 
-    # Update build number directly in pbxproj (project uses GENERATE_INFOPLIST_FILE)
-    UI.message("📝 Mise à jour du build number à #{new_build}...")
-    sh("sed -i '' 's/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = #{new_build};/g' ../trailmark.xcodeproj/project.pbxproj")
+    # Increment build number
+    increment_build_number(xcodeproj: "trailmark.xcodeproj", build_number: new_build)
 
-    # Clear Xcode derived data to ensure build number is picked up
-    UI.message("🧹 Nettoyage du cache Xcode...")
-    clear_derived_data
-
-    # Build the app (pass build number explicitly to avoid cache issues)
+    # Build the app
     build_app(
       scheme: "trailmark",
       project: "trailmark.xcodeproj",
@@ -144,7 +139,6 @@ platform :ios do
     commit_version_bump(
       message: "Bump version to #{new_version} build #{new_build} [skip ci]",
       xcodeproj: "trailmark.xcodeproj",
-      include: ["Info.plist"],
       force: true
     )
 
