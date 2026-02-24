@@ -114,6 +114,8 @@ platform :ios do
       }
     )
 
+    UI.success("✅ IPA créée avec succès: ./fastlane/builds/trailmark.ipa (build #{current_build})")
+
     # Get changelog from last commit body
     changelog = sh("git log -1 --pretty=%b").strip
     if changelog.empty?
