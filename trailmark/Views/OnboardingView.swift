@@ -27,8 +27,8 @@ struct OnboardingView: View {
                         ),
                         .init(
                             id: 1,
-                            title: "Importe ta trace GPX",
-                            subtitle: "Charge ton parcours depuis\nun fichier GPX.",
+                            title: "Importe tes traces GPX",
+                            subtitle: "Centralise tous tes parcours\net accède-y en un instant.",
                             screenshot: UIImage(named: "gpxScreenshot")
                         ),
                         .init(
@@ -41,8 +41,8 @@ struct OnboardingView: View {
                         ),
                         .init(
                             id: 3,
-                            title: "Place tes jalons",
-                            subtitle: "Analyse le dénivelé et marque les moments clés :\nmontées, descentes, ravitos, dangers...",
+                            title: "Place tes repères",
+                            subtitle: "Marque les moments clés :\nmontées, descentes, ravitos, dangers...",
                             screenshot: UIImage(named: "editScreenshot"),
                             zoomScale: 1.5,
                             zoomAnchor: .init(x: 0.5, y: 1.2),
@@ -51,7 +51,7 @@ struct OnboardingView: View {
                         .init(
                             id: 4,
                             title: "Laisse-toi guider",
-                            subtitle: "Reçois des annonces vocales\nà chaque jalon pendant ta course.",
+                            subtitle: "Reçois des annonces vocales\nà chaque repère pendant ta course.",
                             screenshot: UIImage(named: "playScreenshot")
                         ),
                         .init(
@@ -105,7 +105,7 @@ private struct IntroView: View {
                     .font(.system(.largeTitle, design: .monospaced, weight: .bold))
                     .foregroundStyle(TM.accent)
 
-                Text("Prépare ta course.\nOptimise ta performance.")
+                Text("Bienvenue sur TrailMark,\nPrépare ta course. Optimise ta performance.")
                     .font(.title3)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
