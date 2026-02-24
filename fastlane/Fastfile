@@ -141,8 +141,10 @@ platform :ios do
       UI.important("⚠️  Aucune description de commit trouvée, utilisation du changelog par défaut")
     end
 
-    # Upload to TestFlight
+    # Upload to TestFlight (explicit IPA path to avoid cache issues)
+    ipa_path = "./fastlane/builds/trailmark.ipa"
     upload_to_testflight(
+      ipa: ipa_path,
       api_key: api_key,
       skip_waiting_for_build_processing: true,
       skip_submission: true,
@@ -205,6 +207,7 @@ platform :ios do
     )
 
     upload_to_testflight(
+      ipa: "./fastlane/builds/trailmark.ipa",
       api_key: api_key,
       skip_waiting_for_build_processing: true
     )
