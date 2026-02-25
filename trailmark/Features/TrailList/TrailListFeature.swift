@@ -7,7 +7,7 @@ struct TrailListFeature {
     struct State: Equatable {
         var trails: [TrailListItem] = []
         var isLoading = false
-        var isPremium = false
+        @Shared(.inMemory("isPremium")) var isPremium = false
         var showExpiredAlert = false
         @Shared(.appStorage("trailListVisitCount")) var trailListVisitCount = 0
         @Presents var destination: Destination.State?
@@ -24,7 +24,6 @@ struct TrailListFeature {
         case trailDeleted
         case navigateToEditor(Int64)
         case navigateToEditorWithPendingData(PendingTrailData)
-        case openImport
         case dismissExpiredAlert
         case renewTapped
         case destination(PresentationAction<Destination.Action>)
@@ -95,7 +94,7 @@ struct TrailListFeature {
             case let .premiumStatusChanged(isPremium):
                 // Détecter l'expiration : était premium, ne l'est plus
                 let wasExpired = state.isPremium && !isPremium
-                state.isPremium = isPremium
+                state.$isPremium.withLock { $0 = isPremium }
                 if wasExpired {
                     state.showExpiredAlert = true
                 }
@@ -114,7 +113,7 @@ struct TrailListFeature {
             case .debugSimulateExpiration:
                 // Simule la transition premium → non-premium
                 if state.isPremium {
-                    state.isPremium = false
+                    state.$isPremium.withLock { $0 = false }
                     state.showExpiredAlert = true
                 }
                 return .none
@@ -160,10 +159,6 @@ struct TrailListFeature {
                 state.destination = .editor(EditorFeature.State(pendingData: pendingData))
                 return .none
 
-            case .openImport:
-                state.destination = .importGPX(ImportFeature.State())
-                return .none
-
             case .destination(.presented(.importGPX(.importCompleted(let pendingData)))):
                 state.destination = nil
                 // Navigate to editor with pending data (will save in background)
@@ -174,22 +169,16 @@ struct TrailListFeature {
                 }
 
             case .destination(.presented(.paywall(.purchaseCompleted))):
-                // Purchase succeeded, dismiss paywall and open import
+                // Purchase succeeded, just dismiss paywall and let user tap again
                 state.destination = nil
-                state.isPremium = true
-                return .run { send in
-                    try await Task.sleep(for: .milliseconds(300))
-                    await send(.openImport)
-                }
+                state.$isPremium.withLock { $0 = true }
+                return .none
 
             case .destination(.presented(.paywall(.restoreCompleted))):
-                // Restore succeeded, dismiss paywall and open import
+                // Restore succeeded, just dismiss paywall and let user tap again
                 state.destination = nil
-                state.isPremium = true
-                return .run { send in
-                    try await Task.sleep(for: .milliseconds(300))
-                    await send(.openImport)
-                }
+                state.$isPremium.withLock { $0 = true }
+                return .none
 
             case .destination(.dismiss):
                 // Reload trails when returning from any destination

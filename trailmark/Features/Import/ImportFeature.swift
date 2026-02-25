@@ -14,7 +14,7 @@ struct ImportFeature {
         var parsedTrail: Trail?
         var parsedTrackPoints: [TrackPoint] = []
         var detectedMilestones: [Milestone] = []
-        var isPremium = false
+        @Shared(.inMemory("isPremium")) var isPremium = false
 
         // Paywall
         @Presents var paywall: PaywallFeature.State?
@@ -45,15 +45,11 @@ struct ImportFeature {
         // Output to parent - envoie les données en mémoire, pas de trailId
         case importCompleted(PendingTrailData)
 
-        // Premium status
-        case premiumStatusLoaded(Bool)
-
         // Paywall
         case paywall(PresentationAction<PaywallFeature.Action>)
     }
 
     @Dependency(\.dismiss) var dismiss
-    @Dependency(\.subscription) var subscription
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
@@ -74,62 +70,50 @@ struct ImportFeature {
                 state.error = nil
                 let url = URL(fileURLWithPath: urlPath)
 
-                return .merge(
-                    // Charger le statut premium
-                    .run { send in
-                        let isPremium = await subscription.isPremium()
-                        await send(.premiumStatusLoaded(isPremium))
-                    },
-                    // Parser et analyser (PAS de sauvegarde DB)
-                    .run { send in
-                        do {
-                            // 1. Parser le GPX
-                            let (parsedPoints, dPlus) = try await MainActor.run {
-                                try GPXParser.parse(url: url)
-                            }
-                            let trailName = GPXParser.trailName(from: url)
-                            let totalDistance = parsedPoints.last?.distance ?? 0
-
-                            // 2. Créer le trail (sans id, pas en DB)
-                            let trail = Trail(
-                                id: nil,
-                                name: trailName,
-                                createdAt: Date(),
-                                distance: totalDistance,
-                                dPlus: dPlus
-                            )
-
-                            // 3. Créer les track points (trailId sera assigné plus tard)
-                            let trackPoints = parsedPoints.enumerated().map { index, point in
-                                TrackPoint(
-                                    id: nil,
-                                    trailId: 0,
-                                    index: index,
-                                    latitude: point.latitude,
-                                    longitude: point.longitude,
-                                    elevation: point.elevation,
-                                    distance: point.distance
-                                )
-                            }
-
-                            // 4. Détecter les jalons (en mémoire)
-                            let detectedMilestones = MilestoneDetector.detect(
-                                from: trackPoints,
-                                trailId: 0
-                            )
-
-                            await send(.analysisCompleted(trail, trackPoints, detectedMilestones))
-                        } catch let error as GPXParser.ParseError {
-                            await send(.importFailed(error.localizedDescription))
-                        } catch {
-                            await send(.importFailed("Erreur lors de l'import: \(error.localizedDescription)"))
+                return .run { send in
+                    do {
+                        // 1. Parser le GPX
+                        let (parsedPoints, dPlus) = try await MainActor.run {
+                            try GPXParser.parse(url: url)
                         }
-                    }
-                )
+                        let trailName = GPXParser.trailName(from: url)
+                        let totalDistance = parsedPoints.last?.distance ?? 0
 
-            case let .premiumStatusLoaded(isPremium):
-                state.isPremium = isPremium
-                return .none
+                        // 2. Créer le trail (sans id, pas en DB)
+                        let trail = Trail(
+                            id: nil,
+                            name: trailName,
+                            createdAt: Date(),
+                            distance: totalDistance,
+                            dPlus: dPlus
+                        )
+
+                        // 3. Créer les track points (trailId sera assigné plus tard)
+                        let trackPoints = parsedPoints.enumerated().map { index, point in
+                            TrackPoint(
+                                id: nil,
+                                trailId: 0,
+                                index: index,
+                                latitude: point.latitude,
+                                longitude: point.longitude,
+                                elevation: point.elevation,
+                                distance: point.distance
+                            )
+                        }
+
+                        // 4. Détecter les jalons (en mémoire)
+                        let detectedMilestones = MilestoneDetector.detect(
+                            from: trackPoints,
+                            trailId: 0
+                        )
+
+                        await send(.analysisCompleted(trail, trackPoints, detectedMilestones))
+                    } catch let error as GPXParser.ParseError {
+                        await send(.importFailed(error.localizedDescription))
+                    } catch {
+                        await send(.importFailed("Erreur lors de l'import: \(error.localizedDescription)"))
+                    }
+                }
 
             // MARK: - Analysis Result
 
@@ -148,18 +132,8 @@ struct ImportFeature {
             // MARK: - Result Phase Actions
 
             case .unlockTapped:
-                // TODO: Remettre le paywall après les tests
-                // state.paywall = PaywallFeature.State()
-                // return .none
-
-                // TEMP: Skip paywall pour tester
-                guard let trail = state.parsedTrail else { return .none }
-                let pendingData = PendingTrailData(
-                    trail: trail,
-                    trackPoints: state.parsedTrackPoints,
-                    detectedMilestones: state.detectedMilestones
-                )
-                return .send(.importCompleted(pendingData))
+                state.paywall = PaywallFeature.State()
+                return .none
 
             case .continueWithMilestonesTapped:
                 // Premium: continuer avec les jalons détectés
@@ -196,7 +170,7 @@ struct ImportFeature {
                  .paywall(.presented(.restoreCompleted)):
                 // Achat réussi: continuer avec les jalons détectés
                 state.paywall = nil
-                state.isPremium = true
+                state.$isPremium.withLock { $0 = true }
 
                 guard let trail = state.parsedTrail else { return .none }
                 let pendingData = PendingTrailData(
