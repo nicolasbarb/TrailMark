@@ -105,6 +105,16 @@ struct EditorFeature {
         enum Alert: Sendable {
             case confirmDelete
         }
+
+        // MARK: - Internal actions (for testability)
+        case _loadTrailDetail
+        case _saveMilestones
+        case _removeMilestoneAt(Int)
+        case _removeSelectedMilestones
+        case _addMilestone(Milestone)
+        case _updateMilestone(Int64, MilestoneType, String, String?)
+        case _updateTrailName(String)
+        case _deleteTrail
     }
 
     @Dependency(\.database) var database
@@ -119,6 +129,9 @@ struct EditorFeature {
                 return .none
 
             case .onAppear:
+                return .send(._loadTrailDetail)
+
+            case ._loadTrailDetail:
                 return .run { [trailId = state.trailId] send in
                     if let detail = try await database.fetchTrailDetail(trailId) {
                         await send(.trailLoaded(detail))
@@ -179,12 +192,15 @@ struct EditorFeature {
                 return .none
 
             case let .deleteMilestone(index):
+                return .concatenate(
+                    .send(._removeMilestoneAt(index)),
+                    .send(._saveMilestones)
+                )
+
+            case let ._removeMilestoneAt(index):
                 guard index < state.milestones.count else { return .none }
                 state.milestones.remove(at: index)
-                return .run { [trailId = state.trailId, milestones = state.milestones] send in
-                    try await database.saveMilestones(trailId, milestones)
-                    await send(.savingCompleted)
-                }
+                return .none
 
             case .toggleSelectionMode:
                 state.isSelectingMilestones.toggle()
@@ -202,6 +218,12 @@ struct EditorFeature {
                 return .none
 
             case .deleteSelectedMilestones:
+                return .concatenate(
+                    .send(._removeSelectedMilestones),
+                    .send(._saveMilestones)
+                )
+
+            case ._removeSelectedMilestones:
                 let indicesToDelete = state.selectedMilestoneIndices.sorted(by: >)
                 for index in indicesToDelete {
                     if index < state.milestones.count {
@@ -210,12 +232,12 @@ struct EditorFeature {
                 }
                 state.selectedMilestoneIndices.removeAll()
                 state.isSelectingMilestones = false
-                return .run { [trailId = state.trailId, milestones = state.milestones] send in
-                    try await database.saveMilestones(trailId, milestones)
-                    await send(.savingCompleted)
-                }
+                return .none
 
             case .saveButtonTapped:
+                return .send(._saveMilestones)
+
+            case ._saveMilestones:
                 return .run { [trailId = state.trailId, milestones = state.milestones] send in
                     try await database.saveMilestones(trailId, milestones)
                     await send(.savingCompleted)
@@ -235,12 +257,15 @@ struct EditorFeature {
                 let message = sheet.message.isEmpty ? sheet.selectedType.label : sheet.message
                 let name: String? = sheet.name.isEmpty ? nil : sheet.name
 
+                state.milestoneSheet = nil
+
                 if let existingMilestone = sheet.editingMilestone,
-                   let index = state.milestones.firstIndex(where: { $0.id == existingMilestone.id }) {
+                   existingMilestone.id != nil {
                     // Update existing milestone
-                    state.milestones[index].type = sheet.selectedType.rawValue
-                    state.milestones[index].message = message
-                    state.milestones[index].name = name
+                    return .concatenate(
+                        .send(._updateMilestone(existingMilestone.id!, sheet.selectedType, message, name)),
+                        .send(._saveMilestones)
+                    )
                 } else {
                     // Create new milestone
                     let milestone = Milestone(
@@ -255,16 +280,25 @@ struct EditorFeature {
                         message: message,
                         name: name
                     )
-                    state.milestones.append(milestone)
-                    // Sort by distance
-                    state.milestones.sort { $0.distance < $1.distance }
+                    return .concatenate(
+                        .send(._addMilestone(milestone)),
+                        .send(._saveMilestones)
+                    )
                 }
 
-                state.milestoneSheet = nil
-                return .run { [trailId = state.trailId, milestones = state.milestones] send in
-                    try await database.saveMilestones(trailId, milestones)
-                    await send(.savingCompleted)
+            case let ._addMilestone(milestone):
+                state.milestones.append(milestone)
+                state.milestones.sort { $0.distance < $1.distance }
+                return .none
+
+            case let ._updateMilestone(id, type, message, name):
+                guard let index = state.milestones.firstIndex(where: { $0.id == id }) else {
+                    return .none
                 }
+                state.milestones[index].type = type.rawValue
+                state.milestones[index].message = message
+                state.milestones[index].name = name
+                return .none
 
             case .milestoneSheet(.presented(.dismissTapped)):
                 state.milestoneSheet = nil
@@ -305,6 +339,9 @@ struct EditorFeature {
                 state.isRenamingTrail = false
                 let newName = state.editedTrailName.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !newName.isEmpty else { return .none }
+                return .send(._updateTrailName(newName))
+
+            case let ._updateTrailName(newName):
                 return .run { [trailId = state.trailId] send in
                     try await database.updateTrailName(trailId, newName)
                     await send(.trailNameUpdated(newName))
@@ -319,6 +356,9 @@ struct EditorFeature {
                 return .none
 
             case .alert(.presented(.confirmDelete)):
+                return .send(._deleteTrail)
+
+            case ._deleteTrail:
                 return .run { [trailId = state.trailId] _ in
                     try await database.deleteTrail(trailId)
                     await dismiss()
