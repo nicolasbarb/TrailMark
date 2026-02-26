@@ -28,6 +28,12 @@ struct TrailListFeature {
         case renewTapped
         case destination(PresentationAction<Destination.Action>)
 
+        // MARK: - Internal actions (for testability)
+        case _incrementVisitCount
+        case _checkFirstVisitPaywall
+        case _loadTrails
+        case _startPremiumStream
+
         #if DEBUG
         // DEBUG: Simuler l'expiration
         case debugSimulateExpiration
@@ -47,27 +53,38 @@ struct TrailListFeature {
             switch action {
             case .onAppear:
                 state.isLoading = true
+                return .concatenate(
+                    .send(._incrementVisitCount),
+                    .send(._checkFirstVisitPaywall),
+                    .merge(
+                        .send(._loadTrails),
+                        .send(._startPremiumStream)
+                    )
+                )
 
-                // Incrémenter le compteur de visites
+            case ._incrementVisitCount:
                 state.$trailListVisitCount.withLock { $0 += 1 }
+                return .none
 
-                // Afficher le paywall à la première visite
+            case ._checkFirstVisitPaywall:
                 if state.trailListVisitCount == 1 {
                     state.destination = .paywall(PaywallFeature.State())
                 }
+                return .none
 
-                return .merge(
-                    .run { send in
-                        let trails = try await database.fetchAllTrails()
-                        await send(.trailsLoaded(trails))
-                    },
-                    .run { send in
-                        for await isPremium in subscription.premiumStatusStream() {
-                            await send(.premiumStatusChanged(isPremium))
-                        }
+            case ._loadTrails:
+                return .run { send in
+                    let trails = try await database.fetchAllTrails()
+                    await send(.trailsLoaded(trails))
+                }
+
+            case ._startPremiumStream:
+                return .run { send in
+                    for await isPremium in subscription.premiumStatusStream() {
+                        await send(.premiumStatusChanged(isPremium))
                     }
-                    .cancellable(id: TrailListCancelID.premiumStatus)
-                )
+                }
+                .cancellable(id: TrailListCancelID.premiumStatus)
 
             case let .trailsLoaded(trails):
                 state.isLoading = false
