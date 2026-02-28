@@ -5,15 +5,21 @@ import MapKit
 struct EditorView: View {
     @Bindable var store: StoreOf<EditorFeature>
 
+    /// Hauteur fixe du profil altimétrique
+    private let profileHeight: CGFloat = 180
+
     var body: some View {
         ZStack {
             TM.bgPrimary.ignoresSafeArea()
 
             if let detail = store.trailDetail {
-                VStack(spacing: 0) {
-                    tabPicker
-                    tabContent(detail: detail)
-                }
+                // Carte en plein écran derrière la sheet
+                TrailMapView(
+                    trackPoints: detail.trackPoints,
+                    milestones: store.milestones,
+                    cursorPointIndex: store.cursorPointIndex
+                )
+                .ignoresSafeArea(edges: .bottom)
             } else {
                 ProgressView()
                     .tint(TM.accent)
@@ -44,41 +50,6 @@ struct EditorView: View {
                 }
                 .tint(Color.red)
             }
-
-            // Bottom toolbar for milestones
-            if store.selectedTab == .milestones && !store.milestones.isEmpty {
-                if store.isSelectingMilestones {
-                    ToolbarItem(placement: .bottomBar) {
-                        Button(role: .destructive) {
-                            Haptic.warning.trigger()
-                            store.send(.deleteSelectedMilestones)
-                        } label: {
-                            Label("Supprimer (\(store.selectedMilestoneIndices.count))", systemImage: "trash")
-                        }
-                        .tint(.red)
-                        .disabled(store.selectedMilestoneIndices.isEmpty)
-                    }
-                    ToolbarSpacer(.flexible, placement: .bottomBar)
-                    ToolbarItem(placement: .bottomBar) {
-                        Button {
-                            Haptic.light.trigger()
-                            store.send(.toggleSelectionMode)
-                        } label: {
-                            Image(systemName: "xmark")
-                        }
-                    }
-                } else {
-                    ToolbarItemGroup(placement: .bottomBar) {
-                        Spacer()
-                        Button {
-                            Haptic.light.trigger()
-                            store.send(.toggleSelectionMode)
-                        } label: {
-                            Text("Sélectionner")
-                        }
-                    }
-                }
-            }
         }
         .toolbarRole(.editor)
         .alert($store.scope(state: \.alert, action: \.alert))
@@ -104,6 +75,58 @@ struct EditorView: View {
         .onAppear {
             store.send(.onAppear)
         }
+        .sheet(isPresented: .constant(true)) {
+            if let detail = store.trailDetail {
+                EditorBottomSheet(
+                    store: store,
+                    detail: detail,
+                    profileHeight: profileHeight
+                )
+                .presentationDetents([
+                    .height(profileHeight + 60), // Small: profil + padding top (32) + drag indicator
+                    .large
+                ])
+                .presentationDragIndicator(.visible)
+                .presentationBackgroundInteraction(.enabled)
+                .interactiveDismissDisabled()
+                .presentationBackground(TM.bgCard)
+            }
+        }
+    }
+}
+
+// MARK: - Editor Bottom Sheet
+
+private struct EditorBottomSheet: View {
+    @Bindable var store: StoreOf<EditorFeature>
+    let detail: TrailDetail
+    let profileHeight: CGFloat
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                // Profil altimétrique
+                ElevationProfileView(
+                    trackPoints: detail.trackPoints,
+                    milestones: store.milestones,
+                    cursorPointIndex: Binding(
+                        get: { store.cursorPointIndex },
+                        set: { store.send(.cursorMoved($0)) }
+                    ),
+                    onTap: { index in
+                        store.send(.profileTapped(index))
+                    }
+                )
+                .frame(height: profileHeight)
+
+                Divider()
+                    .background(TM.border)
+
+                // Liste des repères
+                milestonesContent
+            }
+            .padding(.top, 32)
+        }
         .sheet(
             item: $store.scope(state: \.milestoneSheet, action: \.milestoneSheet)
         ) { sheetStore in
@@ -113,85 +136,19 @@ struct EditorView: View {
         }
     }
 
-    // MARK: - Tab Picker
-
-    private var tabPicker: some View {
-        VStack(spacing: 0) {
-            Picker("Onglet", selection: Binding(
-                get: { store.selectedTab },
-                set: { store.send(.tabSelected($0)) }
-            )) {
-                Text("🗺 Carte")
-                    .tag(EditorTab.map)
-                Text("📍 Repères" + (store.milestones.isEmpty ? "" : " (\(store.milestones.count))"))
-                    .tag(EditorTab.milestones)
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .onChange(of: store.selectedTab) { _, _ in
-                Haptic.selection.trigger()
-            }
-
-            Rectangle()
-                .fill(TM.bgTertiary)
-                .frame(height: 1)
-        }
-    }
-
-    // MARK: - Tab Content
+    // MARK: - Milestones Content
 
     @ViewBuilder
-    private func tabContent(detail: TrailDetail) -> some View {
-        switch store.selectedTab {
-        case .map:
-            mapTab(detail: detail)
-        case .milestones:
-            milestonesTab
-        }
-    }
-
-    // MARK: - Map Tab
-
-    private func mapTab(detail: TrailDetail) -> some View {
-        VStack(spacing: 0) {
-            TrailMapView(
-                trackPoints: detail.trackPoints,
-                milestones: store.milestones,
-                cursorPointIndex: store.cursorPointIndex
-            )
-
-            ElevationProfileView(
-                trackPoints: detail.trackPoints,
-                milestones: store.milestones,
-                cursorPointIndex: Binding(
-                    get: { store.cursorPointIndex },
-                    set: { store.send(.cursorMoved($0)) }
-                ),
-                onTap: { index in
-                    store.send(.profileTapped(index))
-                }
-            )
-            .containerRelativeFrame(.vertical) { height, _ in height / 4 }
-        }
-    }
-
-    // MARK: - Milestones Tab
-
-    private var milestonesTab: some View {
-        Group {
-            if store.milestones.isEmpty {
-                milestonesEmptyState
-            } else {
-                milestonesList
-            }
+    private var milestonesContent: some View {
+        if store.milestones.isEmpty {
+            milestonesEmptyState
+        } else {
+            milestonesList
         }
     }
 
     private var milestonesEmptyState: some View {
         VStack(spacing: 12) {
-            Spacer()
-
             Text("📍")
                 .font(.system(size: 32))
 
@@ -199,42 +156,71 @@ struct EditorView: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(TM.textSecondary)
 
-            Text("Allez sur Carte et tapez\nle profil pour en ajouter")
+            Text("Tapez le profil altimétrique\npour ajouter un repère")
                 .font(.caption)
                 .foregroundStyle(TM.textMuted)
                 .multilineTextAlignment(.center)
-
-            Spacer()
         }
+        .padding(.vertical, 40)
     }
 
     private var milestonesList: some View {
-        List {
-            ForEach(Array(store.milestones.enumerated()), id: \.offset) { index, milestone in
-                milestoneRow(milestone: milestone, index: index)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        if !store.isSelectingMilestones {
-                            Button(role: .destructive) {
-                                Haptic.warning.trigger()
-                                store.send(.deleteMilestone(index))
-                            } label: {
-                                Label("Supprimer", systemImage: "trash")
-                            }
-                            Button {
-                                Haptic.light.trigger()
-                                store.send(.editMilestone(milestone))
-                            } label: {
-                                Label("Modifier", systemImage: "pencil")
-                            }
-                            .tint(.orange)
-                        }
-                    }
+        VStack(spacing: 0) {
+            // Header avec compteur et bouton sélection
+            milestonesHeader
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+
+            Divider()
+                .background(TM.border)
+
+            // Liste des repères
+            LazyVStack(spacing: 0) {
+                ForEach(Array(store.milestones.enumerated()), id: \.offset) { index, milestone in
+                    milestoneRow(milestone: milestone, index: index)
+                }
             }
-            .listRowInsets(EdgeInsets())
-            .listRowSeparator(.hidden)
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+    }
+
+    private var milestonesHeader: some View {
+        HStack {
+            Text("\(store.milestones.count) repère\(store.milestones.count > 1 ? "s" : "")")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(TM.textPrimary)
+
+            Spacer()
+
+            if store.isSelectingMilestones {
+                Button {
+                    Haptic.warning.trigger()
+                    store.send(.deleteSelectedMilestones)
+                } label: {
+                    Label("Supprimer (\(store.selectedMilestoneIndices.count))", systemImage: "trash")
+                        .font(.subheadline)
+                }
+                .tint(.red)
+                .disabled(store.selectedMilestoneIndices.isEmpty)
+
+                Button {
+                    Haptic.light.trigger()
+                    store.send(.toggleSelectionMode)
+                } label: {
+                    Text("OK")
+                        .font(.subheadline.weight(.medium))
+                }
+                .padding(.leading, 12)
+            } else {
+                Button {
+                    Haptic.light.trigger()
+                    store.send(.toggleSelectionMode)
+                } label: {
+                    Text("Sélectionner")
+                        .font(.subheadline)
+                        .foregroundStyle(TM.textSecondary)
+                }
+            }
+        }
     }
 
     private func milestoneRow(milestone: Milestone, index: Int) -> some View {
@@ -285,14 +271,23 @@ struct EditorView: View {
                 }
 
                 Spacer()
+
+                // Edit chevron (only when not selecting)
+                if !store.isSelectingMilestones {
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(TM.textMuted)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .contentShape(Rectangle())
             .onTapGesture {
                 if store.isSelectingMilestones {
+                    Haptic.selection.trigger()
                     store.send(.toggleMilestoneSelection(index))
                 } else {
+                    Haptic.light.trigger()
                     store.send(.editMilestone(milestone))
                 }
             }
@@ -302,6 +297,7 @@ struct EditorView: View {
                 .frame(height: 1)
         }
     }
+
 }
 
 // MARK: - Milestone Sheet View
@@ -551,7 +547,6 @@ private enum PreviewData {
 }
 
 private struct EditorPreviewWrapper: View {
-    let tab: EditorTab
     let milestones: [Milestone]
 
     var body: some View {
@@ -572,7 +567,6 @@ private struct EditorPreviewWrapper: View {
                                 )
                                 state.milestones = ms
                                 state.originalMilestones = ms
-                                state.selectedTab = tab
                                 return state
                             }()
                         ) {
@@ -584,16 +578,12 @@ private struct EditorPreviewWrapper: View {
     }
 }
 
-#Preview("Editor - Map Tab") {
-    EditorPreviewWrapper(tab: .map, milestones: PreviewData.milestones(from: PreviewData.trackPoints))
+#Preview("Editor - With Milestones") {
+    EditorPreviewWrapper(milestones: PreviewData.milestones(from: PreviewData.trackPoints))
 }
 
-#Preview("Editor - Milestones Tab") {
-    EditorPreviewWrapper(tab: .milestones, milestones: PreviewData.milestones(from: PreviewData.trackPoints))
-}
-
-#Preview("Editor - Empty Milestones") {
-    EditorPreviewWrapper(tab: .milestones, milestones: [])
+#Preview("Editor - Empty") {
+    EditorPreviewWrapper(milestones: [])
 }
 
 #Preview("Milestone Sheet") {
