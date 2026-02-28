@@ -57,7 +57,7 @@ struct ImportView: View {
                     .font(.system(.largeTitle, design: .monospaced, weight: .bold))
                     .foregroundStyle(TM.accent)
 
-                Text("ÉDITEUR DE JALONS GPS")
+                Text("ÉDITEUR DE REPÈRES GPS")
                     .font(.caption2)
                     .tracking(3)
                     .foregroundStyle(TM.textMuted)
@@ -152,7 +152,7 @@ struct ImportView: View {
                     .font(.headline)
                     .foregroundStyle(TM.textPrimary)
 
-                Text("Détection des jalons en cours...")
+                Text("Détection des repères en cours...")
                     .font(.caption)
                     .foregroundStyle(TM.textMuted)
             }
@@ -251,10 +251,10 @@ struct ImportView: View {
                 .foregroundStyle(TM.accent)
 
             if store.detectedMilestones.isEmpty {
-                Text("Aucun jalon détecté")
+                Text("Aucun repère détecté")
                     .foregroundStyle(TM.textMuted)
             } else {
-                Text("\(store.detectedMilestones.count) jalons détectés automatiquement")
+                Text("\(store.detectedMilestones.count) repères détectés automatiquement")
                     .foregroundStyle(TM.textPrimary)
             }
 
@@ -270,63 +270,55 @@ struct ImportView: View {
         if store.detectedMilestones.isEmpty {
             // No milestones detected - single button
             Button {
+                Haptic.medium.trigger()
                 store.send(.skipTapped)
             } label: {
                 Text("Continuer")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(TM.accent, in: RoundedRectangle(cornerRadius: 12))
-                    .foregroundStyle(.white)
             }
+            .primaryButton(size: .large, width: .flexible, shape: .capsule)
         } else if store.isPremium {
             // Premium user - show continue and ignore buttons
             VStack(spacing: 12) {
                 Button {
+                    Haptic.medium.trigger()
                     store.send(.continueWithMilestonesTapped)
                 } label: {
                     Text("Continuer")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(TM.accent, in: RoundedRectangle(cornerRadius: 12))
-                        .foregroundStyle(.white)
                 }
+                .primaryButton(size: .large, width: .flexible, shape: .capsule)
 
                 Button {
+                    Haptic.light.trigger()
                     store.send(.skipTapped)
                 } label: {
                     Text("Ignorer et placer manuellement")
-                        .font(.subheadline)
-                        .foregroundStyle(TM.textMuted)
                         .underline()
                 }
+                .tertiaryButton(size: .small, tint: .secondary)
             }
         } else {
             // Free user - show unlock and manual buttons
             VStack(spacing: 12) {
                 Button {
+                    Haptic.medium.trigger()
                     store.send(.unlockTapped)
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "sparkles")
+                    Label {
                         Text("Débloquer la détection auto")
+                    } icon: {
+                        Image(systemName: "sparkles")
                     }
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(TM.accent, in: RoundedRectangle(cornerRadius: 12))
-                    .foregroundStyle(.white)
                 }
+                .primaryButton(size: .large, width: .flexible, shape: .capsule)
 
                 Button {
+                    Haptic.light.trigger()
                     store.send(.skipTapped)
                 } label: {
-                    Text("Placer mes jalons manuellement")
-                        .font(.subheadline)
-                        .foregroundStyle(TM.textMuted)
+                    Text("Placer mes repères manuellement")
                         .underline()
                 }
+                .tertiaryButton(size: .small, tint: .secondary)
             }
         }
     }
