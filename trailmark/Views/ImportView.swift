@@ -40,6 +40,7 @@ struct ImportView: View {
 
                 // Back link
                 Button {
+                    Haptic.light.trigger()
                     store.send(.dismissTapped)
                 } label: {
                     Text("Retour à mes parcours")
@@ -75,6 +76,7 @@ struct ImportView: View {
 
     private var uploadZone: some View {
         Button {
+            Haptic.medium.trigger()
             store.send(.uploadZoneTapped)
         } label: {
             VStack(spacing: 16) {

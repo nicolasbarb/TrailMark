@@ -114,6 +114,7 @@ private struct IntroView: View {
             Spacer()
 
             Button {
+                Haptic.medium.trigger()
                 onContinue()
             } label: {
                 Text("Commencer")
