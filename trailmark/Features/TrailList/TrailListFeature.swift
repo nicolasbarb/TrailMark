@@ -7,7 +7,7 @@ struct TrailListFeature {
     struct State: Equatable {
         var trails: [TrailListItem] = []
         var isLoading = false
-        var isPremium = false
+        @Shared(.inMemory("isPremium")) var isPremium = false
         var showExpiredAlert = false
         @Shared(.appStorage("trailListVisitCount")) var trailListVisitCount = 0
         @Presents var destination: Destination.State?
@@ -23,7 +23,7 @@ struct TrailListFeature {
         case deleteTrailTapped(TrailListItem)
         case trailDeleted
         case navigateToEditor(Int64)
-        case openImport
+        case navigateToEditorWithPendingData(PendingTrailData)
         case dismissExpiredAlert
         case renewTapped
         case destination(PresentationAction<Destination.Action>)
@@ -94,7 +94,7 @@ struct TrailListFeature {
             case let .premiumStatusChanged(isPremium):
                 // Détecter l'expiration : était premium, ne l'est plus
                 let wasExpired = state.isPremium && !isPremium
-                state.isPremium = isPremium
+                state.$isPremium.withLock { $0 = isPremium }
                 if wasExpired {
                     state.showExpiredAlert = true
                 }
@@ -113,7 +113,7 @@ struct TrailListFeature {
             case .debugSimulateExpiration:
                 // Simule la transition premium → non-premium
                 if state.isPremium {
-                    state.isPremium = false
+                    state.$isPremium.withLock { $0 = false }
                     state.showExpiredAlert = true
                 }
                 return .none
@@ -155,37 +155,30 @@ struct TrailListFeature {
                 state.destination = .editor(EditorFeature.State(trailId: trailId))
                 return .none
 
-            case .openImport:
-                state.destination = .importGPX(ImportFeature.State())
+            case let .navigateToEditorWithPendingData(pendingData):
+                state.destination = .editor(EditorFeature.State(pendingData: pendingData))
                 return .none
 
-            case .destination(.presented(.importGPX(.importCompleted(let trail)))):
+            case .destination(.presented(.importGPX(.importCompleted(let pendingData)))):
                 state.destination = nil
-                guard let trailId = trail.id else { return .none }
-                // Navigate to editor after successful import
-                return .run { [trailId] send in
+                // Navigate to editor with pending data (will save in background)
+                return .run { send in
                     // Small delay to allow sheet dismissal
                     try await Task.sleep(for: .milliseconds(300))
-                    await send(.navigateToEditor(trailId))
+                    await send(.navigateToEditorWithPendingData(pendingData))
                 }
 
             case .destination(.presented(.paywall(.purchaseCompleted))):
-                // Purchase succeeded, dismiss paywall and open import
+                // Purchase succeeded, just dismiss paywall and let user tap again
                 state.destination = nil
-                state.isPremium = true
-                return .run { send in
-                    try await Task.sleep(for: .milliseconds(300))
-                    await send(.openImport)
-                }
+                state.$isPremium.withLock { $0 = true }
+                return .none
 
             case .destination(.presented(.paywall(.restoreCompleted))):
-                // Restore succeeded, dismiss paywall and open import
+                // Restore succeeded, just dismiss paywall and let user tap again
                 state.destination = nil
-                state.isPremium = true
-                return .run { send in
-                    try await Task.sleep(for: .milliseconds(300))
-                    await send(.openImport)
-                }
+                state.$isPremium.withLock { $0 = true }
+                return .none
 
             case .destination(.dismiss):
                 // Reload trails when returning from any destination
