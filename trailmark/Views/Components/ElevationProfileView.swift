@@ -8,6 +8,7 @@ struct ElevationProfileView: View {
 
     @State private var dragLocation: CGPoint?
     @State private var tooltipData: TooltipData?
+    @State private var lastHapticIndex: Int?
 
     struct TooltipData: Equatable {
         let x: CGFloat
@@ -288,6 +289,17 @@ struct ElevationProfileView: View {
         dragLocation = CGPoint(x: clampedX, y: location.y)
         cursorPointIndex = index
 
+        // Trigger haptic when cursor moves significantly (every ~20 points)
+        let hapticThreshold = max(trackPoints.count / 50, 5)
+        if let lastIndex = lastHapticIndex {
+            if abs(index - lastIndex) >= hapticThreshold {
+                Haptic.selection.trigger()
+                lastHapticIndex = index
+            }
+        } else {
+            lastHapticIndex = index
+        }
+
         if index < trackPoints.count {
             let point = trackPoints[index]
             tooltipData = TooltipData(x: clampedX, altitude: point.elevation, distance: point.distance)
@@ -301,6 +313,7 @@ struct ElevationProfileView: View {
         dragLocation = nil
         cursorPointIndex = nil
         tooltipData = nil
+        lastHapticIndex = nil
     }
 
     private func findClosestPointIndex(distance: Double) -> Int {

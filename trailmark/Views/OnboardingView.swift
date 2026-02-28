@@ -114,15 +114,14 @@ private struct IntroView: View {
             Spacer()
 
             Button {
+                Haptic.medium.trigger()
                 onContinue()
             } label: {
                 Text("Commencer")
                     .fontWeight(.medium)
                     .padding(.vertical, 6)
             }
-            .tint(.orange)
-            .buttonStyle(.glassProminent)
-            .buttonSizing(.flexible)
+            .primaryButton(width: .flexible)
         }
         .padding(16)
     }

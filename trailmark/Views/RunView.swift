@@ -76,6 +76,7 @@ struct RunView: View {
                     .foregroundStyle(TM.danger)
                 Spacer()
                 Button {
+                    Haptic.light.trigger()
                     store.send(.toggleDebugView)
                 } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -182,6 +183,7 @@ struct RunView: View {
 
     private var playButton: some View {
         Button {
+            Haptic.heavy.trigger()
             store.send(.startButtonTapped)
         } label: {
             ZStack {
@@ -269,6 +271,7 @@ struct RunView: View {
 
             // Stop button
             Button {
+                Haptic.warning.trigger()
                 store.send(.stopButtonTapped)
             } label: {
                 HStack(spacing: 8) {
