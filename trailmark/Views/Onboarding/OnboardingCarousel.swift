@@ -272,6 +272,7 @@ struct OnboardingCarousel: View {
             // Regular continue button + skip
             VStack(spacing: 12) {
                 Button {
+                    Haptic.medium.trigger()
                     if currentIndex == items.count - 1 {
                         onComplete()
                     }
@@ -292,17 +293,15 @@ struct OnboardingCarousel: View {
                         .contentTransition(.numericText())
                         .padding(.vertical, 6)
                 }
-                .tint(tint)
-                .buttonStyle(.glassProminent)
-                .buttonSizing(.flexible)
+                .primaryButton(width: .flexible)
 
                 Button {
+                    Haptic.light.trigger()
                     skipToLocationStep()
                 } label: {
                     Text("Passer")
-                        .foregroundStyle(currentTextColor)
                 }
-                .buttonStyle(.plain)
+                .tertiaryButton(tint: currentTextColor)
             }
         }
     }
@@ -324,6 +323,7 @@ struct OnboardingCarousel: View {
 
         if !isLocationSuccess && !isLocationDenied {
             Button {
+                Haptic.medium.trigger()
                 print("[Carousel] Location button tapped, isAuthorized: \(isAuthorized)")
                 if isAuthorized {
                     advanceFromLocationStep()
@@ -337,9 +337,7 @@ struct OnboardingCarousel: View {
                     .contentTransition(.numericText())
                     .padding(.vertical, 6)
             }
-            .tint(tint)
-            .buttonStyle(.glassProminent)
-            .buttonSizing(.flexible)
+            .primaryButton(width: .flexible)
             .animation(.snappy, value: locationStatus)
             .transition(.opacity.combined(with: .scale(scale: 0.9)))
         }
@@ -365,6 +363,7 @@ struct OnboardingCarousel: View {
     @ViewBuilder
     func BackButton() -> some View {
         Button {
+            Haptic.light.trigger()
             let currentItem = items[currentIndex]
             let prevIndex = max(currentIndex - 1, 0)
 

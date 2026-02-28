@@ -8,18 +8,40 @@ struct TrailListView: View {
         ZStack {
             TM.bgPrimary.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                // Header
-                header
+            if store.trails.isEmpty && !store.isLoading {
+                emptyState
+            } else {
+                trailList
+            }
+        }
+        .toolbar {
+            if store.isPremium {
+                ToolbarItem(placement: .primaryAction) {
+                    
+                    Text("PRO")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 3)
+                        .background(TM.accent, in: RoundedRectangle(cornerRadius: 4))
+                }
+                .sharedBackgroundVisibility(.hidden)
+            }
+            
+            ToolbarSpacer(.fixed, placement: .primaryAction)
 
-                if store.trails.isEmpty && !store.isLoading {
-                    emptyState
-                } else {
-                    trailList
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Haptic.medium.trigger()
+                    store.send(.addButtonTapped)
+                } label: {
+                    Image(systemName: "plus")
                 }
             }
         }
-        .navigationBarHidden(true)
+        .toolbarRole(.editor)
+        .navigationTitle(Text("TrailMark"))
+        .navigationBarTitleDisplayMode(.large)
         .onAppear {
             store.send(.onAppear)
         }
@@ -51,68 +73,16 @@ struct TrailListView: View {
             )
         ) {
             Button("Renouveler") {
+                Haptic.medium.trigger()
                 store.send(.renewTapped)
             }
             Button("Plus tard", role: .cancel) {
+                Haptic.light.trigger()
                 store.send(.dismissExpiredAlert)
             }
         } message: {
             Text("Votre abonnement Premium a expiré. Renouvelez pour continuer à créer des parcours illimités.")
         }
-    }
-
-    // MARK: - Header
-
-    private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text("TrailMark")
-                        .font(.system(.title2, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.accent)
-                    if store.isPremium {
-                        Text("PRO")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 3)
-                            .background(TM.accent, in: RoundedRectangle(cornerRadius: 4))
-                    }
-                }
-                Text("Mes parcours")
-                    .font(.caption)
-                    .foregroundStyle(TM.textMuted)
-            }
-
-            Spacer()
-
-            // TODO: Remettre pour tester l'expiration
-            // #if DEBUG
-            // if store.isPremium {
-            //     Button {
-            //         store.send(.debugSimulateExpiration)
-            //     } label: {
-            //         Image(systemName: "clock.badge.xmark")
-            //             .font(.system(size: 14))
-            //             .foregroundStyle(TM.textMuted)
-            //             .frame(width: 32, height: 32)
-            //     }
-            // }
-            // #endif
-
-            Button {
-                store.send(.addButtonTapped)
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 40, height: 40)
-                    .background(TM.accent, in: RoundedRectangle(cornerRadius: 12))
-                    .shadow(color: TM.accent.opacity(0.3), radius: 12, y: 4)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
     }
 
     // MARK: - Empty State
@@ -134,16 +104,12 @@ struct TrailListView: View {
                 .multilineTextAlignment(.center)
 
             Button {
+                Haptic.medium.trigger()
                 store.send(.addButtonTapped)
             } label: {
                 Text("Importer un GPX")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(TM.accent, in: RoundedRectangle(cornerRadius: 12))
             }
-            .padding(.top, 8)
+            .primaryButton(size: .large, width: .fitted, shape: .capsule)
 
             Spacer()
         }
@@ -163,13 +129,6 @@ struct TrailListView: View {
                         onStart: { store.send(.startTrailTapped(item)) },
                         onUnlock: { store.send(.addButtonTapped) }
                     )
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            store.send(.deleteTrailTapped(item))
-                        } label: {
-                            Label("Supprimer", systemImage: "trash")
-                        }
-                    }
                 }
             }
             .padding(.horizontal, 16)
@@ -191,108 +150,99 @@ private struct TrailCard: View {
     private var trail: Trail { item.trail }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            HStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 12) {
-                    // Name and date
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(trail.name)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(TM.textPrimary)
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 12) {
+                // Name and date
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(trail.name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(TM.textPrimary)
 
-                        Text(trail.createdAtDate.formatted(date: .abbreviated, time: .omitted))
-                            .font(.caption2)
-                            .foregroundStyle(TM.textMuted)
+                    Text(trail.createdAtDate.formatted(date: .abbreviated, time: .omitted))
+                        .font(.caption2)
+                        .foregroundStyle(TM.textMuted)
+                }
+
+                // Stats
+                HStack(spacing: 0) {
+                    statColumn(
+                        value: String(format: "%.1f", trail.distance / 1000),
+                        unit: "km",
+                        label: "Distance"
+                    )
+
+                    Divider()
+                        .frame(width: 1, height: 24)
+                        .background(TM.border)
+
+                    statColumn(
+                        value: "\(trail.dPlus)",
+                        unit: "m",
+                        label: "D+"
+                    )
+
+                    Divider()
+                        .frame(width: 1, height: 24)
+                        .background(TM.border)
+
+                    statColumn(
+                        value: "\(item.milestoneCount)",
+                        unit: nil,
+                        label: "Repères"
+                    )
+                }
+
+                // Action buttons
+                if isLocked {
+                    Button {
+                        Haptic.medium.trigger()
+                        onUnlock()
+                    } label: {
+                        Label {
+                            Text("Débloquer avec Pro")
+                                .font(.caption.weight(.medium))
+                        } icon: {
+                            Image(systemName: "lock.fill")
+                                .font(.caption2)
+                        }
                     }
-
-                    // Stats
-                    HStack(spacing: 0) {
-                        statColumn(
-                            value: String(format: "%.1f", trail.distance / 1000),
-                            unit: "km",
-                            label: "Distance"
-                        )
-
-                        Divider()
-                            .frame(width: 1, height: 24)
-                            .background(TM.border)
-
-                        statColumn(
-                            value: "\(trail.dPlus)",
-                            unit: "m",
-                            label: "D+"
-                        )
-
-                        Divider()
-                            .frame(width: 1, height: 24)
-                            .background(TM.border)
-
-                        statColumn(
-                            value: "\(item.milestoneCount)",
-                            unit: nil,
-                            label: "Repères"
-                        )
-                    }
-
-                    // Action buttons
-                    if isLocked {
-                        Button(action: onUnlock) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "lock.fill")
-                                    .font(.caption2)
-                                Text("Débloquer avec Pro")
+                    .primaryButton(size: .regular, width: .flexible, shape: .roundedRectangle(radius: 10))
+                } else {
+                    HStack(spacing: 8) {
+                        Button {
+                            Haptic.light.trigger()
+                            onEdit()
+                        } label: {
+                            Label {
+                                Text("Editer")
                                     .font(.caption.weight(.medium))
+                            } icon: {
+                                Image(systemName: "pencil")
+                                    .font(.caption2)
                             }
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 9)
-                            .background(TM.accentGradient, in: RoundedRectangle(cornerRadius: 10))
-                            .shadow(color: TM.accent.opacity(0.3), radius: 8, y: 4)
                         }
-                    } else {
-                        HStack(spacing: 8) {
-                            Button(action: onEdit) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "pencil")
-                                        .font(.caption2)
-                                    Text("Éditer")
-                                        .font(.caption.weight(.medium))
-                                }
-                                .foregroundStyle(TM.textSecondary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 9)
-                                .background(TM.bgTertiary, in: RoundedRectangle(cornerRadius: 10))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(TM.border, lineWidth: 1)
-                                )
-                            }
+                        .secondaryButton(size: .regular, width: .flexible, shape: .roundedRectangle(radius: 10))
 
-                            Button(action: onStart) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "play.fill")
-                                        .font(.caption2)
-                                    Text("Démarrer")
-                                        .font(.caption.weight(.medium))
-                                }
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 9)
-                                .background(TM.accentGradient, in: RoundedRectangle(cornerRadius: 10))
-                                .shadow(color: TM.accent.opacity(0.3), radius: 8, y: 4)
+                        Button {
+                            Haptic.heavy.trigger()
+                            onStart()
+                        } label: {
+                            Label {
+                                Text("Démarrer")
+                                    .font(.caption.weight(.medium))
+                            } icon: {
+                                Image(systemName: "play.fill")
+                                    .font(.caption2)
                             }
                         }
+                        .primaryButton(size: .regular, width: .flexible, shape: .roundedRectangle(radius: 10))
                     }
                 }
-                .padding(14)
-                .padding(.leading, 4)
             }
-            .background(TM.bgSecondary, in: RoundedRectangle(cornerRadius: 14))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(TM.bgTertiary, lineWidth: 1)
-            )
+            .padding(16)
         }
+        .background(TM.bgSecondary)
+        .containerShape(.rect(cornerRadius: 18, style: .continuous))
     }
 
     private func statColumn(value: String, unit: String?, label: String) -> some View {
@@ -316,62 +266,66 @@ private struct TrailCard: View {
 }
 
 #Preview("Liste vide") {
-    TrailListView(
-        store: Store(initialState: TrailListFeature.State()) {
-            TrailListFeature()
-        }
-    )
+    NavigationStack {
+        TrailListView(
+            store: Store(initialState: TrailListFeature.State()) {
+                TrailListFeature()
+            }
+        )
+    }
 }
 
 #Preview("Avec parcours") {
-    TrailListView(
-        store: Store(
-            initialState: TrailListFeature.State(
-                trails: [
-                    TrailListItem(
-                        trail: Trail(
-                            id: 1,
-                            name: "Tour du Mont Blanc",
-                            createdAt: Date().addingTimeInterval(-86400 * 7),
-                            distance: 42_500,
-                            dPlus: 2_850
+    NavigationStack {
+        TrailListView(
+            store: Store(
+                initialState: TrailListFeature.State(
+                    trails: [
+                        TrailListItem(
+                            trail: Trail(
+                                id: 1,
+                                name: "Tour du Mont Blanc",
+                                createdAt: Date().addingTimeInterval(-86400 * 7),
+                                distance: 42_500,
+                                dPlus: 2_850
+                            ),
+                            milestoneCount: 12
                         ),
-                        milestoneCount: 12
-                    ),
-                    TrailListItem(
-                        trail: Trail(
-                            id: 2,
-                            name: "Traversée des Bauges",
-                            createdAt: Date().addingTimeInterval(-86400 * 3),
-                            distance: 28_300,
-                            dPlus: 1_650
+                        TrailListItem(
+                            trail: Trail(
+                                id: 2,
+                                name: "Traversée des Bauges",
+                                createdAt: Date().addingTimeInterval(-86400 * 3),
+                                distance: 28_300,
+                                dPlus: 1_650
+                            ),
+                            milestoneCount: 8
                         ),
-                        milestoneCount: 8
-                    ),
-                    TrailListItem(
-                        trail: Trail(
-                            id: 3,
-                            name: "Boucle Col de la Croix",
-                            createdAt: Date().addingTimeInterval(-86400),
-                            distance: 15_800,
-                            dPlus: 890
+                        TrailListItem(
+                            trail: Trail(
+                                id: 3,
+                                name: "Boucle Col de la Croix",
+                                createdAt: Date().addingTimeInterval(-86400),
+                                distance: 15_800,
+                                dPlus: 890
+                            ),
+                            milestoneCount: 5
                         ),
-                        milestoneCount: 5
-                    ),
-                    TrailListItem(
-                        trail: Trail(
-                            id: 4,
-                            name: "UTMB CCC",
-                            createdAt: Date(),
-                            distance: 101_000,
-                            dPlus: 6_100
+                        TrailListItem(
+                            trail: Trail(
+                                id: 4,
+                                name: "UTMB CCC",
+                                createdAt: Date(),
+                                distance: 101_000,
+                                dPlus: 6_100
+                            ),
+                            milestoneCount: 24
                         ),
-                        milestoneCount: 24
-                    ),
-                ]
-            )
-        ) {
-            TrailListFeature()
-        }
-    )
+                    ]
+                )
+            ) {
+                TrailListFeature()
+            }
+        )
+    }
 }

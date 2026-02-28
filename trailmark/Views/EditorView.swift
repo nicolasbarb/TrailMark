@@ -32,12 +32,14 @@ struct EditorView: View {
             }
             ToolbarItem(placement: .primaryAction) {
                 Button("Renommer", systemImage: "square.and.pencil") {
+                    Haptic.light.trigger()
                     store.send(.renameButtonTapped)
                 }
             }
             ToolbarSpacer(.fixed, placement: .primaryAction)
             ToolbarItem(placement: .destructiveAction) {
                 Button("Supprimer", systemImage: "trash", role: .destructive) {
+                    Haptic.warning.trigger()
                     store.send(.deleteTrailButtonTapped)
                 }
                 .tint(Color.red)
@@ -48,6 +50,7 @@ struct EditorView: View {
                 if store.isSelectingMilestones {
                     ToolbarItem(placement: .bottomBar) {
                         Button(role: .destructive) {
+                            Haptic.warning.trigger()
                             store.send(.deleteSelectedMilestones)
                         } label: {
                             Label("Supprimer (\(store.selectedMilestoneIndices.count))", systemImage: "trash")
@@ -58,6 +61,7 @@ struct EditorView: View {
                     ToolbarSpacer(.flexible, placement: .bottomBar)
                     ToolbarItem(placement: .bottomBar) {
                         Button {
+                            Haptic.light.trigger()
                             store.send(.toggleSelectionMode)
                         } label: {
                             Image(systemName: "xmark")
@@ -67,6 +71,7 @@ struct EditorView: View {
                     ToolbarItemGroup(placement: .bottomBar) {
                         Spacer()
                         Button {
+                            Haptic.light.trigger()
                             store.send(.toggleSelectionMode)
                         } label: {
                             Text("Sélectionner")
@@ -86,9 +91,11 @@ struct EditorView: View {
         ) {
             TextField("Nom du parcours", text: $store.editedTrailName)
             Button("Annuler", role: .cancel) {
+                Haptic.light.trigger()
                 store.send(.renameCancelled)
             }
             Button("Renommer") {
+                Haptic.medium.trigger()
                 store.send(.renameConfirmed)
             }
             .keyboardShortcut(.defaultAction)
@@ -122,6 +129,9 @@ struct EditorView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .onChange(of: store.selectedTab) { _, _ in
+                Haptic.selection.trigger()
+            }
 
             Rectangle()
                 .fill(TM.bgTertiary)
@@ -205,11 +215,13 @@ struct EditorView: View {
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         if !store.isSelectingMilestones {
                             Button(role: .destructive) {
+                                Haptic.warning.trigger()
                                 store.send(.deleteMilestone(index))
                             } label: {
                                 Label("Supprimer", systemImage: "trash")
                             }
                             Button {
+                                Haptic.light.trigger()
                                 store.send(.editMilestone(milestone))
                             } label: {
                                 Label("Modifier", systemImage: "pencil")
@@ -233,6 +245,7 @@ struct EditorView: View {
                 // Selection button (only in selection mode)
                 if store.isSelectingMilestones {
                     Button {
+                        Haptic.selection.trigger()
                         store.send(.toggleMilestoneSelection(index))
                     } label: {
                         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
@@ -343,6 +356,7 @@ struct MilestoneSheetView: View {
 
                     // Save button
                     Button {
+                        Haptic.success.trigger()
                         store.send(.saveButtonTapped)
                     } label: {
                         Text(store.isEditing ? "Enregistrer" : "Ajouter")
@@ -359,6 +373,7 @@ struct MilestoneSheetView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fermer", systemImage: "xmark", role: .cancel) {
+                        Haptic.light.trigger()
                         store.send(.dismissTapped)
                     }
                 }
@@ -384,6 +399,7 @@ struct MilestoneSheetView: View {
         let isSelected = store.selectedType == type
 
         return Button {
+            Haptic.selection.trigger()
             store.send(.typeSelected(type))
         } label: {
             VStack(spacing: 4) {
