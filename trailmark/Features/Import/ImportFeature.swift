@@ -168,17 +168,11 @@ struct ImportFeature {
 
             case .paywall(.presented(.purchaseCompleted)),
                  .paywall(.presented(.restoreCompleted)):
-                // Achat réussi: continuer avec les jalons détectés
+                // Achat réussi: fermer le paywall et rester sur l'écran résultat
+                // L'utilisateur peut maintenant voir ses repères et appuyer sur "Continuer"
                 state.paywall = nil
                 state.$isPremium.withLock { $0 = true }
-
-                guard let trail = state.parsedTrail else { return .none }
-                let pendingData = PendingTrailData(
-                    trail: trail,
-                    trackPoints: state.parsedTrackPoints,
-                    detectedMilestones: state.detectedMilestones
-                )
-                return .send(.importCompleted(pendingData))
+                return .none
 
             case .paywall(.dismiss):
                 state.paywall = nil
