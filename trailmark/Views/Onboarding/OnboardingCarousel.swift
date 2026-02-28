@@ -292,17 +292,14 @@ struct OnboardingCarousel: View {
                         .contentTransition(.numericText())
                         .padding(.vertical, 6)
                 }
-                .tint(tint)
-                .buttonStyle(.glassProminent)
-                .buttonSizing(.flexible)
+                .primaryButton(width: .flexible)
 
                 Button {
                     skipToLocationStep()
                 } label: {
                     Text("Passer")
-                        .foregroundStyle(currentTextColor)
                 }
-                .buttonStyle(.plain)
+                .tertiaryButton(tint: currentTextColor)
             }
         }
     }
@@ -337,9 +334,7 @@ struct OnboardingCarousel: View {
                     .contentTransition(.numericText())
                     .padding(.vertical, 6)
             }
-            .tint(tint)
-            .buttonStyle(.glassProminent)
-            .buttonSizing(.flexible)
+            .primaryButton(width: .flexible)
             .animation(.snappy, value: locationStatus)
             .transition(.opacity.combined(with: .scale(scale: 0.9)))
         }
