@@ -1,4 +1,72 @@
 import SwiftUI
+import UIKit
+
+// MARK: - Horizontal Pan Gesture (UIKit)
+
+/// Geste de pan horizontal avec support des taps
+/// - Pan horizontal : capturé pour le curseur
+/// - Pan vertical : passé à la sheet parente
+/// - Tap : passé au callback onTap
+struct HorizontalPanGesture: UIGestureRecognizerRepresentable {
+    let onPan: (CGPoint, UIGestureRecognizer.State) -> Void
+    let onTap: (CGPoint) -> Void
+
+    func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
+        let recognizer = UIPanGestureRecognizer()
+        recognizer.delegate = context.coordinator
+        return recognizer
+    }
+
+    func handleUIGestureRecognizerAction(
+        _ recognizer: UIPanGestureRecognizer,
+        context: Context
+    ) {
+        guard let view = recognizer.view else { return }
+        let location = recognizer.location(in: view)
+        let translation = recognizer.translation(in: view)
+
+        // Détecter un tap : mouvement minimal à la fin du geste
+        if recognizer.state == .ended || recognizer.state == .cancelled {
+            let totalMovement = abs(translation.x) + abs(translation.y)
+            if totalMovement < 10 {
+                // C'est un tap, pas un drag
+                onTap(location)
+                return
+            }
+        }
+
+        onPan(location, recognizer.state)
+    }
+
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator {
+        Coordinator()
+    }
+
+    class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            // Toujours commencer le geste pour pouvoir détecter les taps
+            true
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            guard let pan = gestureRecognizer as? UIPanGestureRecognizer else {
+                return true
+            }
+
+            let velocity = pan.velocity(in: pan.view)
+            // Si le mouvement est vertical, laisser les autres gestes fonctionner
+            if abs(velocity.y) > abs(velocity.x) * 1.5 {
+                return true
+            }
+            return false
+        }
+    }
+}
+
+// MARK: - Elevation Profile View
 
 struct ElevationProfileView: View {
     let trackPoints: [TrackPoint]
@@ -9,6 +77,7 @@ struct ElevationProfileView: View {
     @State private var dragLocation: CGPoint?
     @State private var tooltipData: TooltipData?
     @State private var lastHapticIndex: Int?
+
 
     struct TooltipData: Equatable {
         let x: CGFloat
@@ -23,10 +92,6 @@ struct ElevationProfileView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Rectangle()
-                .fill(TM.bgTertiary)
-                .frame(height: 1)
-
             ZStack(alignment: .topLeading) {
                 // Background
                 TM.bgSecondary
@@ -59,14 +124,23 @@ struct ElevationProfileView: View {
                             Canvas { context, size in
                                 drawProfile(context: context, size: size)
                             }
+                            // Geste combiné: pan horizontal + tap
                             .gesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onChanged { value in
-                                        handleDrag(location: value.location, size: geometry.size)
+                                HorizontalPanGesture(
+                                    onPan: { location, state in
+                                        switch state {
+                                        case .changed:
+                                            handleDrag(location: location, size: geometry.size)
+                                        case .ended, .cancelled:
+                                            clearCursor()
+                                        default:
+                                            break
+                                        }
+                                    },
+                                    onTap: { location in
+                                        handleTap(location: location, size: geometry.size)
                                     }
-                                    .onEnded { value in
-                                        handleDragEnd(location: value.location, size: geometry.size)
-                                    }
+                                )
                             )
 
                             // Tooltip overlay
@@ -306,10 +380,25 @@ struct ElevationProfileView: View {
         }
     }
 
-    private func handleDragEnd(location: CGPoint, size: CGSize) {
-        if let index = cursorPointIndex {
-            onTap(index)
-        }
+    private func handleTap(location: CGPoint, size: CGSize) {
+        let plotRect = CGRect(
+            x: paddingLeft,
+            y: paddingTop,
+            width: size.width - paddingLeft - paddingRight,
+            height: size.height - paddingTop - paddingBottom
+        )
+
+        let clampedX = min(max(location.x, plotRect.minX), plotRect.maxX)
+        let progress = (clampedX - plotRect.minX) / plotRect.width
+        let maxDist = trackPoints.last?.distance ?? 1
+        let targetDist = Double(progress) * maxDist
+
+        let index = findClosestPointIndex(distance: targetDist)
+        Haptic.medium.trigger()
+        onTap(index)
+    }
+
+    private func clearCursor() {
         dragLocation = nil
         cursorPointIndex = nil
         tooltipData = nil
