@@ -6,6 +6,7 @@ struct ScrollableElevationProfileView: View {
     @Binding var scrolledPointIndex: Int
 
     private let pointSpacing: CGFloat = 4
+    @State private var scrollOffset: CGFloat = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -17,14 +18,18 @@ struct ScrollableElevationProfileView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     ZStack(alignment: .leading) {
-                        // Canvas for drawing
+                        // Main Canvas
                         Canvas { context, size in
-                            let cursorX = horizontalPadding + CGFloat(scrolledPointIndex) * pointSpacing
-                            drawProfile(context: context, size: size, horizontalPadding: horizontalPadding, cursorX: cursorX)
+                            drawProfile(
+                                context: context,
+                                size: size,
+                                horizontalPadding: horizontalPadding,
+                                cursorX: scrollOffset + horizontalPadding
+                            )
                         }
                         .frame(width: totalWidth, height: geometry.size.height)
 
-                        // Invisible position tracker
+                        // Scroll position tracker
                         GeometryReader { scrollGeometry in
                             Color.clear
                                 .preference(
@@ -37,7 +42,11 @@ struct ScrollableElevationProfileView: View {
                 }
                 .coordinateSpace(name: "scroll")
                 .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
-                    let index = Int((offset) / pointSpacing)
+                    // Update scroll offset for cursor drawing
+                    scrollOffset = offset
+
+                    // Update point index
+                    let index = Int(offset / pointSpacing)
                     let clampedIndex = max(0, min(index, trackPoints.count - 1))
                     if clampedIndex != scrolledPointIndex {
                         scrolledPointIndex = clampedIndex
@@ -45,7 +54,14 @@ struct ScrollableElevationProfileView: View {
                     }
                 }
 
-                CenterMarkerView()
+                // Triangle indicator only (line is in Canvas)
+                VStack {
+                    Image(systemName: "arrowtriangle.down.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(TM.accent)
+                    Spacer()
+                }
+                .allowsHitTesting(false)
             }
         }
     }
@@ -70,16 +86,16 @@ struct ScrollableElevationProfileView: View {
         let maxEle = elevations.max() ?? 0
         let eleRange = max(maxEle - minEle, 1)
 
-        // Draw fill
+        // 1. Draw fill
         drawFill(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
 
-        // Draw elevation line
+        // 2. Draw elevation line
         drawElevationLine(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
 
-        // Draw center cursor line (behind milestones)
-        drawCenterCursor(context: context, plotRect: plotRect, cursorX: cursorX)
+        // 3. Draw cursor (behind milestones)
+        drawCursor(context: context, plotRect: plotRect, cursorX: cursorX)
 
-        // Draw milestones (on top of cursor)
+        // 4. Draw milestones (on top)
         drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
     }
 
@@ -127,8 +143,7 @@ struct ScrollableElevationProfileView: View {
         context.stroke(linePath, with: .color(TM.trace), style: StrokeStyle(lineWidth: 2, lineJoin: .round))
     }
 
-    private func drawCenterCursor(context: GraphicsContext, plotRect: CGRect, cursorX: CGFloat) {
-        // Vertical line at cursor position
+    private func drawCursor(context: GraphicsContext, plotRect: CGRect, cursorX: CGFloat) {
         var linePath = Path()
         linePath.move(to: CGPoint(x: cursorX, y: plotRect.minY - 10))
         linePath.addLine(to: CGPoint(x: cursorX, y: plotRect.maxY))
@@ -148,7 +163,7 @@ struct ScrollableElevationProfileView: View {
             dashPath.addLine(to: CGPoint(x: x, y: plotRect.maxY))
             context.stroke(dashPath, with: .color(TM.accent.opacity(0.35)), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
 
-            // Circle background - 16x16 (larger than ElevationProfileView's 12x12)
+            // Circle background
             let circleRect = CGRect(x: x - 8, y: y - 8, width: 16, height: 16)
             context.fill(Path(ellipseIn: circleRect), with: .color(milestone.milestoneType.color))
 
@@ -170,19 +185,5 @@ private struct ScrollOffsetPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
-    }
-}
-
-// MARK: - Center Marker
-
-struct CenterMarkerView: View {
-    var body: some View {
-        VStack {
-            // Triangle pointing down (line is drawn in Canvas)
-            Image(systemName: "arrowtriangle.down.fill")
-                .font(.system(size: 10))
-                .foregroundStyle(TM.accent)
-            Spacer()
-        }
     }
 }
