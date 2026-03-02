@@ -41,6 +41,9 @@ struct ScrollableElevationProfileView: View {
                 ))
                 .scrollTargetBehavior(.viewAligned)
                 .defaultScrollAnchor(.center)
+                .onChange(of: scrolledPointIndex) { _, _ in
+                    Haptic.selection.trigger()
+                }
 
                 CenterMarkerView()
             }
