@@ -75,6 +75,7 @@ struct EditorFeature {
         var trailDetail: TrailDetail?
         var selectedTab: EditorTab = .map
         var cursorPointIndex: Int?
+        var scrolledPointIndex: Int = 0
         var milestones: [Milestone] = []
         var originalMilestones: [Milestone] = []
         var isRenamingTrail = false
@@ -108,6 +109,7 @@ struct EditorFeature {
         case trailLoaded(TrailDetail)
         case tabSelected(EditorTab)
         case cursorMoved(Int?)
+        case scrollPositionChanged(Int)
         case profileTapped(Int)
         case saveButtonTapped
         case savingCompleted
@@ -246,6 +248,10 @@ struct EditorFeature {
 
             case let .cursorMoved(index):
                 state.cursorPointIndex = index
+                return .none
+
+            case let .scrollPositionChanged(index):
+                state.scrolledPointIndex = index
                 return .none
 
             case let .profileTapped(pointIndex):
