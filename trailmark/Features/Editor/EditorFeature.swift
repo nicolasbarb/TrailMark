@@ -47,13 +47,6 @@ struct MilestoneSheetFeature {
     }
 }
 
-// MARK: - Editor Tab
-
-enum EditorTab: Equatable, Sendable {
-    case map
-    case milestones
-}
-
 // MARK: - Pending Trail Data (données non sauvegardées)
 
 struct PendingTrailData: Equatable, Sendable {
@@ -73,15 +66,15 @@ struct EditorFeature {
         var pendingData: PendingTrailData?
 
         var trailDetail: TrailDetail?
-        var selectedTab: EditorTab = .map
         var cursorPointIndex: Int?
         var scrolledPointIndex: Int = 0
         var milestones: [Milestone] = []
         var originalMilestones: [Milestone] = []
         var isRenamingTrail = false
         var editedTrailName = ""
-        var isSelectingMilestones = false
-        var selectedMilestoneIndices: Set<Int> = []
+        // TODO: Réactiver pour gestion batch des milestones
+        // var isSelectingMilestones = false
+        // var selectedMilestoneIndices: Set<Int> = []
         var isSavingInBackground = false
         @Presents var alert: AlertState<Action.Alert>?
         @Presents var milestoneSheet: MilestoneSheetFeature.State?
@@ -107,7 +100,6 @@ struct EditorFeature {
         case binding(BindingAction<State>)
         case onAppear
         case trailLoaded(TrailDetail)
-        case tabSelected(EditorTab)
         case cursorMoved(Int?)
         case scrollPositionChanged(Int)
         case profileTapped(Int)
@@ -116,9 +108,10 @@ struct EditorFeature {
         case milestoneSheet(PresentationAction<MilestoneSheetFeature.Action>)
         case deleteMilestone(Int)
         case editMilestone(Milestone)
-        case toggleSelectionMode
-        case toggleMilestoneSelection(Int)
-        case deleteSelectedMilestones
+        // TODO: Réactiver pour gestion batch des milestones
+        // case toggleSelectionMode
+        // case toggleMilestoneSelection(Int)
+        // case deleteSelectedMilestones
         case backTapped
         case deleteTrailButtonTapped
         case renameButtonTapped
@@ -141,7 +134,8 @@ struct EditorFeature {
         case _loadPendingData
         case _saveMilestones
         case _removeMilestoneAt(Int)
-        case _removeSelectedMilestones
+        // TODO: Réactiver pour gestion batch des milestones
+        // case _removeSelectedMilestones
         case _addMilestone(Milestone)
         case _updateMilestone(Int64, MilestoneType, String, String?)
         case _updateTrailName(String)
@@ -242,10 +236,6 @@ struct EditorFeature {
                 // TODO: Gérer l'erreur (afficher une alerte ?)
                 return .none
 
-            case let .tabSelected(tab):
-                state.selectedTab = tab
-                return .none
-
             case let .cursorMoved(index):
                 state.cursorPointIndex = index
                 return .none
@@ -304,37 +294,38 @@ struct EditorFeature {
                 state.milestones.remove(at: index)
                 return .none
 
-            case .toggleSelectionMode:
-                state.isSelectingMilestones.toggle()
-                if !state.isSelectingMilestones {
-                    state.selectedMilestoneIndices.removeAll()
-                }
-                return .none
+            // TODO: Réactiver pour gestion batch des milestones
+            // case .toggleSelectionMode:
+            //     state.isSelectingMilestones.toggle()
+            //     if !state.isSelectingMilestones {
+            //         state.selectedMilestoneIndices.removeAll()
+            //     }
+            //     return .none
 
-            case let .toggleMilestoneSelection(index):
-                if state.selectedMilestoneIndices.contains(index) {
-                    state.selectedMilestoneIndices.remove(index)
-                } else {
-                    state.selectedMilestoneIndices.insert(index)
-                }
-                return .none
+            // case let .toggleMilestoneSelection(index):
+            //     if state.selectedMilestoneIndices.contains(index) {
+            //         state.selectedMilestoneIndices.remove(index)
+            //     } else {
+            //         state.selectedMilestoneIndices.insert(index)
+            //     }
+            //     return .none
 
-            case .deleteSelectedMilestones:
-                return .concatenate(
-                    .send(._removeSelectedMilestones),
-                    .send(._saveMilestones)
-                )
+            // case .deleteSelectedMilestones:
+            //     return .concatenate(
+            //         .send(._removeSelectedMilestones),
+            //         .send(._saveMilestones)
+            //     )
 
-            case ._removeSelectedMilestones:
-                let indicesToDelete = state.selectedMilestoneIndices.sorted(by: >)
-                for index in indicesToDelete {
-                    if index < state.milestones.count {
-                        state.milestones.remove(at: index)
-                    }
-                }
-                state.selectedMilestoneIndices.removeAll()
-                state.isSelectingMilestones = false
-                return .none
+            // case ._removeSelectedMilestones:
+            //     let indicesToDelete = state.selectedMilestoneIndices.sorted(by: >)
+            //     for index in indicesToDelete {
+            //         if index < state.milestones.count {
+            //             state.milestones.remove(at: index)
+            //         }
+            //     }
+            //     state.selectedMilestoneIndices.removeAll()
+            //     state.isSelectingMilestones = false
+            //     return .none
 
             case .saveButtonTapped:
                 return .send(._saveMilestones)
