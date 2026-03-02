@@ -5,7 +5,7 @@ struct ScrollableElevationProfileView: View {
     let milestones: [Milestone]
     @Binding var scrolledPointIndex: Int
 
-    private let pointSpacing: CGFloat = 6
+    private let pointSpacing: CGFloat = 4
 
     var body: some View {
         GeometryReader { geometry in
@@ -23,26 +23,25 @@ struct ScrollableElevationProfileView: View {
                         }
                         .frame(width: totalWidth, height: geometry.size.height)
 
-                        // Invisible scroll anchors
-                        LazyHStack(spacing: 0) {
-                            ForEach(0..<trackPoints.count, id: \.self) { index in
-                                Color.clear
-                                    .frame(width: pointSpacing, height: 1)
-                                    .id(index)
-                            }
+                        // Invisible position tracker
+                        GeometryReader { scrollGeometry in
+                            Color.clear
+                                .preference(
+                                    key: ScrollOffsetPreferenceKey.self,
+                                    value: -scrollGeometry.frame(in: .named("scroll")).origin.x
+                                )
                         }
-                        .padding(.leading, horizontalPadding - pointSpacing / 2)
+                        .frame(width: totalWidth, height: 1)
                     }
-                    .scrollTargetLayout()
                 }
-                .scrollPosition(id: Binding(
-                    get: { scrolledPointIndex },
-                    set: { if let newValue = $0 { scrolledPointIndex = newValue } }
-                ))
-                .scrollTargetBehavior(.viewAligned)
-                .defaultScrollAnchor(.center)
-                .onChange(of: scrolledPointIndex) { _, _ in
-                    Haptic.selection.trigger()
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
+                    let index = Int((offset) / pointSpacing)
+                    let clampedIndex = max(0, min(index, trackPoints.count - 1))
+                    if clampedIndex != scrolledPointIndex {
+                        scrolledPointIndex = clampedIndex
+                        Haptic.selection.trigger()
+                    }
                 }
 
                 CenterMarkerView()
@@ -138,7 +137,6 @@ struct ScrollableElevationProfileView: View {
             context.stroke(dashPath, with: .color(TM.accent.opacity(0.35)), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
 
             // Circle background - 16x16 (larger than ElevationProfileView's 12x12)
-            // to improve visibility in the scrollable profile which has more vertical space
             let circleRect = CGRect(x: x - 8, y: y - 8, width: 16, height: 16)
             context.fill(Path(ellipseIn: circleRect), with: .color(milestone.milestoneType.color))
 
@@ -151,6 +149,15 @@ struct ScrollableElevationProfileView: View {
                 .foregroundStyle(.white)
             context.draw(text, at: CGPoint(x: x, y: y), anchor: .center)
         }
+    }
+}
+
+// MARK: - Scroll Offset Preference Key
+
+private struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
