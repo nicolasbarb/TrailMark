@@ -6,7 +6,6 @@ struct ScrollableElevationProfileView: View {
     @Binding var scrolledPointIndex: Int
 
     private let pointSpacing: CGFloat = 6
-    private let profileHeight: CGFloat = 200
 
     var body: some View {
         GeometryReader { geometry in
@@ -126,7 +125,8 @@ struct ScrollableElevationProfileView: View {
             dashPath.addLine(to: CGPoint(x: x, y: plotRect.maxY))
             context.stroke(dashPath, with: .color(TM.accent.opacity(0.35)), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
 
-            // Circle background
+            // Circle background - 16x16 (larger than ElevationProfileView's 12x12)
+            // to improve visibility in the scrollable profile which has more vertical space
             let circleRect = CGRect(x: x - 8, y: y - 8, width: 16, height: 16)
             context.fill(Path(ellipseIn: circleRect), with: .color(milestone.milestoneType.color))
 
