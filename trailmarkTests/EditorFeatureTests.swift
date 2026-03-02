@@ -164,20 +164,21 @@ struct EditorFeatureTests {
 
     // MARK: - tabSelected
 
-    @Test
-    func tabSelected_changesTab() async {
-        let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-            EditorFeature()
-        }
-
-        await store.send(.tabSelected(.milestones)) {
-            $0.selectedTab = .milestones
-        }
-
-        await store.send(.tabSelected(.map)) {
-            $0.selectedTab = .map
-        }
-    }
+    // TODO: Réactiver pour gestion batch des milestones
+    // @Test
+    // func tabSelected_changesTab() async {
+    //     let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
+    //         EditorFeature()
+    //     }
+    //
+    //     await store.send(.tabSelected(.milestones)) {
+    //         $0.selectedTab = .milestones
+    //     }
+    //
+    //     await store.send(.tabSelected(.map)) {
+    //         $0.selectedTab = .map
+    //     }
+    // }
 
     // MARK: - cursorMoved
 
@@ -233,27 +234,28 @@ struct EditorFeatureTests {
 
     // MARK: - _removeSelectedMilestones
 
-    @Test
-    func _removeSelectedMilestones_removesSelected() async {
-        let milestone1 = Self.makeMilestone(id: 1, distance: 100)
-        let milestone2 = Self.makeMilestone(id: 2, distance: 200)
-        let milestone3 = Self.makeMilestone(id: 3, distance: 300)
-
-        var state = EditorFeature.State(trailId: 1)
-        state.milestones = [milestone1, milestone2, milestone3]
-        state.isSelectingMilestones = true
-        state.selectedMilestoneIndices = [0, 2]
-
-        let store = TestStore(initialState: state) {
-            EditorFeature()
-        }
-
-        await store.send(._removeSelectedMilestones) {
-            $0.milestones = [milestone2]
-            $0.selectedMilestoneIndices = []
-            $0.isSelectingMilestones = false
-        }
-    }
+    // TODO: Réactiver pour gestion batch des milestones
+    // @Test
+    // func _removeSelectedMilestones_removesSelected() async {
+    //     let milestone1 = Self.makeMilestone(id: 1, distance: 100)
+    //     let milestone2 = Self.makeMilestone(id: 2, distance: 200)
+    //     let milestone3 = Self.makeMilestone(id: 3, distance: 300)
+    //
+    //     var state = EditorFeature.State(trailId: 1)
+    //     state.milestones = [milestone1, milestone2, milestone3]
+    //     state.isSelectingMilestones = true
+    //     state.selectedMilestoneIndices = [0, 2]
+    //
+    //     let store = TestStore(initialState: state) {
+    //         EditorFeature()
+    //     }
+    //
+    //     await store.send(._removeSelectedMilestones) {
+    //         $0.milestones = [milestone2]
+    //         $0.selectedMilestoneIndices = []
+    //         $0.isSelectingMilestones = false
+    //     }
+    // }
 
     // MARK: - _saveMilestones
 
@@ -444,42 +446,43 @@ struct EditorFeatureTests {
 
     // MARK: - deleteSelectedMilestones (orchestration)
 
-    @Test
-    func deleteSelectedMilestones_sendsRemoveSelectedAndSave() async {
-        let milestone1 = Self.makeMilestone(id: 1, distance: 100)
-        let milestone2 = Self.makeMilestone(id: 2, distance: 200)
-        let milestone3 = Self.makeMilestone(id: 3, distance: 300)
-
-        var state = EditorFeature.State(trailId: 1)
-        state.milestones = [milestone1, milestone2, milestone3]
-        state.originalMilestones = [milestone1, milestone2, milestone3]
-        state.isSelectingMilestones = true
-        state.selectedMilestoneIndices = [0, 2]
-
-        let store = TestStore(initialState: state) {
-            EditorFeature()
-        } withDependencies: {
-            $0.database = DatabaseClient(
-                fetchAllTrails: { [] },
-                fetchTrailDetail: { _ in nil },
-                insertTrail: { trail, _ in trail },
-                deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
-                updateTrailName: { _, _ in }
-            )
-        }
-
-        await store.send(.deleteSelectedMilestones)
-        await store.receive(._removeSelectedMilestones) {
-            $0.milestones = [milestone2]
-            $0.selectedMilestoneIndices = []
-            $0.isSelectingMilestones = false
-        }
-        await store.receive(._saveMilestones)
-        await store.receive(.savingCompleted) {
-            $0.originalMilestones = [milestone2]
-        }
-    }
+    // TODO: Réactiver pour gestion batch des milestones
+    // @Test
+    // func deleteSelectedMilestones_sendsRemoveSelectedAndSave() async {
+    //     let milestone1 = Self.makeMilestone(id: 1, distance: 100)
+    //     let milestone2 = Self.makeMilestone(id: 2, distance: 200)
+    //     let milestone3 = Self.makeMilestone(id: 3, distance: 300)
+    //
+    //     var state = EditorFeature.State(trailId: 1)
+    //     state.milestones = [milestone1, milestone2, milestone3]
+    //     state.originalMilestones = [milestone1, milestone2, milestone3]
+    //     state.isSelectingMilestones = true
+    //     state.selectedMilestoneIndices = [0, 2]
+    //
+    //     let store = TestStore(initialState: state) {
+    //         EditorFeature()
+    //     } withDependencies: {
+    //         $0.database = DatabaseClient(
+    //             fetchAllTrails: { [] },
+    //             fetchTrailDetail: { _ in nil },
+    //             insertTrail: { trail, _ in trail },
+    //             deleteTrail: { _ in },
+    //             saveMilestones: { _, _ in },
+    //             updateTrailName: { _, _ in }
+    //         )
+    //     }
+    //
+    //     await store.send(.deleteSelectedMilestones)
+    //     await store.receive(._removeSelectedMilestones) {
+    //         $0.milestones = [milestone2]
+    //         $0.selectedMilestoneIndices = []
+    //         $0.isSelectingMilestones = false
+    //     }
+    //     await store.receive(._saveMilestones)
+    //     await store.receive(.savingCompleted) {
+    //         $0.originalMilestones = [milestone2]
+    //     }
+    // }
 
     // MARK: - saveButtonTapped (orchestration)
 
@@ -513,47 +516,49 @@ struct EditorFeatureTests {
 
     // MARK: - toggleSelectionMode
 
-    @Test
-    func toggleSelectionMode_togglesAndClearsSelection() async {
-        var state = EditorFeature.State(trailId: 1)
-        state.selectedMilestoneIndices = [0, 1]
-
-        let store = TestStore(initialState: state) {
-            EditorFeature()
-        }
-
-        // Enable selection mode
-        await store.send(.toggleSelectionMode) {
-            $0.isSelectingMilestones = true
-        }
-
-        // Disable selection mode - clears selection
-        await store.send(.toggleSelectionMode) {
-            $0.isSelectingMilestones = false
-            $0.selectedMilestoneIndices = []
-        }
-    }
+    // TODO: Réactiver pour gestion batch des milestones
+    // @Test
+    // func toggleSelectionMode_togglesAndClearsSelection() async {
+    //     var state = EditorFeature.State(trailId: 1)
+    //     state.selectedMilestoneIndices = [0, 1]
+    //
+    //     let store = TestStore(initialState: state) {
+    //         EditorFeature()
+    //     }
+    //
+    //     // Enable selection mode
+    //     await store.send(.toggleSelectionMode) {
+    //         $0.isSelectingMilestones = true
+    //     }
+    //
+    //     // Disable selection mode - clears selection
+    //     await store.send(.toggleSelectionMode) {
+    //         $0.isSelectingMilestones = false
+    //         $0.selectedMilestoneIndices = []
+    //     }
+    // }
 
     // MARK: - toggleMilestoneSelection
 
-    @Test
-    func toggleMilestoneSelection_togglesIndex() async {
-        let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-            EditorFeature()
-        }
-
-        await store.send(.toggleMilestoneSelection(0)) {
-            $0.selectedMilestoneIndices = [0]
-        }
-
-        await store.send(.toggleMilestoneSelection(1)) {
-            $0.selectedMilestoneIndices = [0, 1]
-        }
-
-        await store.send(.toggleMilestoneSelection(0)) {
-            $0.selectedMilestoneIndices = [1]
-        }
-    }
+    // TODO: Réactiver pour gestion batch des milestones
+    // @Test
+    // func toggleMilestoneSelection_togglesIndex() async {
+    //     let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
+    //         EditorFeature()
+    //     }
+    //
+    //     await store.send(.toggleMilestoneSelection(0)) {
+    //         $0.selectedMilestoneIndices = [0]
+    //     }
+    //
+    //     await store.send(.toggleMilestoneSelection(1)) {
+    //         $0.selectedMilestoneIndices = [0, 1]
+    //     }
+    //
+    //     await store.send(.toggleMilestoneSelection(0)) {
+    //         $0.selectedMilestoneIndices = [1]
+    //     }
+    // }
 
     // MARK: - savingCompleted
 

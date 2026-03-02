@@ -263,118 +263,78 @@ struct MilestoneSheetView: View {
 
 // MARK: - Preview Helpers
 
+@MainActor
 private enum PreviewData {
-    /// Génère des TrackPoints simulant un parcours de trail réaliste
-    static func generateTrackPoints(count: Int = 200) -> [TrackPoint] {
-        // Point de départ : Col du Galibier (Alpes françaises)
-        let startLat = 45.0641
-        let startLon = 6.4078
-        var points: [TrackPoint] = []
-        var cumulativeDistance: Double = 0
-
-        for i in 0..<count {
-            let progress = Double(i) / Double(count - 1)
-
-            // Simuler un parcours en boucle
-            let angle = progress * 2 * .pi
-            let radius = 0.015 // ~1.5km de rayon
-
-            let lat = startLat + sin(angle) * radius
-            let lon = startLon + cos(angle) * radius * 1.3
-
-            // Profil d'élévation réaliste : montée puis descente
-            let elevation: Double
-            if progress < 0.4 {
-                // Montée
-                elevation = 2100 + (progress / 0.4) * 400
-            } else if progress < 0.6 {
-                // Plateau sommital
-                elevation = 2500 + sin(progress * 20) * 30
-            } else {
-                // Descente
-                elevation = 2500 - ((progress - 0.6) / 0.4) * 400
+    /// Charge les points depuis le GPX bundlé (preview-trail.gpx)
+    static var trackPoints: [TrackPoint] {
+        do {
+            let (parsedPoints, _) = try GPXParser.parseFromBundle(resource: "gpx_preview")
+            return parsedPoints.enumerated().map { index, point in
+                TrackPoint(
+                    id: Int64(index + 1),
+                    trailId: 1,
+                    index: index,
+                    latitude: point.latitude,
+                    longitude: point.longitude,
+                    elevation: point.elevation,
+                    distance: point.distance
+                )
             }
-
-            // Distance cumulative (~15km total)
-            if i > 0 {
-                cumulativeDistance += 15000 / Double(count - 1)
-            }
-
-            points.append(TrackPoint(
-                id: Int64(i + 1),
-                trailId: 1,
-                index: i,
-                latitude: lat,
-                longitude: lon,
-                elevation: elevation,
-                distance: cumulativeDistance
-            ))
+        } catch {
+            print("Preview GPX load failed: \(error)")
+            return []
         }
-        return points
     }
 
-    static let trail = Trail(
-        id: 1,
-        name: "Col du Galibier",
-        createdAt: Date(),
-        distance: 15000,
-        dPlus: 450
-    )
+    static var trail: Trail {
+        let points = trackPoints
+        let distance = points.last?.distance ?? 0
+        let dPlus = calculateDPlus(points: points)
+        return Trail(
+            id: 1,
+            name: "Thou Verdun",
+            createdAt: Date(),
+            distance: distance,
+            dPlus: dPlus
+        )
+    }
 
-    static var trackPoints: [TrackPoint] {
-        generateTrackPoints()
+    private static func calculateDPlus(points: [TrackPoint]) -> Int {
+        var dPlus = 0.0
+        for i in 1..<points.count {
+            let delta = points[i].elevation - points[i-1].elevation
+            if delta > 0 { dPlus += delta }
+        }
+        return Int(dPlus)
     }
 
     static func milestones(from points: [TrackPoint]) -> [Milestone] {
-        [
+        guard points.count > 500 else { return [] }
+        return [
             Milestone(
                 id: 1,
                 trailId: 1,
-                pointIndex: 20,
-                latitude: points[20].latitude,
-                longitude: points[20].longitude,
-                elevation: points[20].elevation,
-                distance: points[20].distance,
+                pointIndex: 200,
+                latitude: points[200].latitude,
+                longitude: points[200].longitude,
+                elevation: points[200].elevation,
+                distance: points[200].distance,
                 type: .montee,
-                message: "Début de la montée, gardez un rythme régulier",
-                name: "Départ montée"
+                message: "Début de la montée vers le Mont Thou",
+                name: "Montée Thou"
             ),
             Milestone(
                 id: 2,
                 trailId: 1,
-                pointIndex: 80,
-                latitude: points[80].latitude,
-                longitude: points[80].longitude,
-                elevation: points[80].elevation,
-                distance: points[80].distance,
-                type: .ravito,
-                message: "Ravitaillement dans 200 mètres, eau et barres",
-                name: "Ravito Col"
+                pointIndex: 500,
+                latitude: points[500].latitude,
+                longitude: points[500].longitude,
+                elevation: points[500].elevation,
+                distance: points[500].distance,
+                type: .info,
+                message: "Sommet du Mont Thou, belle vue !",
+                name: "Mont Thou"
             ),
-            Milestone(
-                id: 3,
-                trailId: 1,
-                pointIndex: 110,
-                latitude: points[110].latitude,
-                longitude: points[110].longitude,
-                elevation: points[110].elevation,
-                distance: points[110].distance,
-                type: .danger,
-                message: "Attention, passage technique avec pierrier",
-                name: nil
-            ),
-            Milestone(
-                id: 4,
-                trailId: 1,
-                pointIndex: 140,
-                latitude: points[140].latitude,
-                longitude: points[140].longitude,
-                elevation: points[140].elevation,
-                distance: points[140].distance,
-                type: .descente,
-                message: "Descente rapide, attention aux genoux",
-                name: "Descente finale"
-            )
         ]
     }
 
