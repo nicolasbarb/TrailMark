@@ -19,7 +19,8 @@ struct ScrollableElevationProfileView: View {
                     ZStack(alignment: .leading) {
                         // Canvas for drawing
                         Canvas { context, size in
-                            drawProfile(context: context, size: size, horizontalPadding: horizontalPadding)
+                            let cursorX = horizontalPadding + CGFloat(scrolledPointIndex) * pointSpacing
+                            drawProfile(context: context, size: size, horizontalPadding: horizontalPadding, cursorX: cursorX)
                         }
                         .frame(width: totalWidth, height: geometry.size.height)
 
@@ -51,7 +52,7 @@ struct ScrollableElevationProfileView: View {
 
     // MARK: - Drawing
 
-    private func drawProfile(context: GraphicsContext, size: CGSize, horizontalPadding: CGFloat) {
+    private func drawProfile(context: GraphicsContext, size: CGSize, horizontalPadding: CGFloat, cursorX: CGFloat) {
         guard trackPoints.count >= 2 else { return }
 
         let paddingTop: CGFloat = 20
@@ -75,7 +76,10 @@ struct ScrollableElevationProfileView: View {
         // Draw elevation line
         drawElevationLine(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
 
-        // Draw milestones
+        // Draw center cursor line (behind milestones)
+        drawCenterCursor(context: context, plotRect: plotRect, cursorX: cursorX)
+
+        // Draw milestones (on top of cursor)
         drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
     }
 
@@ -123,6 +127,14 @@ struct ScrollableElevationProfileView: View {
         context.stroke(linePath, with: .color(TM.trace), style: StrokeStyle(lineWidth: 2, lineJoin: .round))
     }
 
+    private func drawCenterCursor(context: GraphicsContext, plotRect: CGRect, cursorX: CGFloat) {
+        // Vertical line at cursor position
+        var linePath = Path()
+        linePath.move(to: CGPoint(x: cursorX, y: plotRect.minY - 10))
+        linePath.addLine(to: CGPoint(x: cursorX, y: plotRect.maxY))
+        context.stroke(linePath, with: .color(TM.accent.opacity(0.8)), style: StrokeStyle(lineWidth: 2))
+    }
+
     private func drawMilestones(context: GraphicsContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
         for (index, milestone) in milestones.enumerated() {
             guard milestone.pointIndex < trackPoints.count else { continue }
@@ -165,17 +177,12 @@ private struct ScrollOffsetPreferenceKey: PreferenceKey {
 
 struct CenterMarkerView: View {
     var body: some View {
-        VStack(spacing: 0) {
-            // Triangle pointing down
+        VStack {
+            // Triangle pointing down (line is drawn in Canvas)
             Image(systemName: "arrowtriangle.down.fill")
                 .font(.system(size: 10))
                 .foregroundStyle(TM.accent)
-
-            // Vertical line
-            Rectangle()
-                .fill(TM.accent.opacity(0.8))
-                .frame(width: 2)
+            Spacer()
         }
-        .frame(maxHeight: .infinity)
     }
 }
