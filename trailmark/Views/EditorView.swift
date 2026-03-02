@@ -10,7 +10,18 @@ struct EditorView: View {
 
             if let detail = store.trailDetail {
                 VStack(spacing: 0) {
-                    // Scrollable profile (50% height)
+                    // Mini profile overview
+                    MiniProfileView(
+                        trackPoints: detail.trackPoints,
+                        milestones: store.milestones,
+                        currentIndex: store.scrolledPointIndex
+                    )
+
+                    Rectangle()
+                        .fill(TM.bgTertiary)
+                        .frame(height: 1)
+
+                    // Scrollable profile (main)
                     ScrollableElevationProfileView(
                         trackPoints: detail.trackPoints,
                         milestones: store.milestones,
@@ -19,7 +30,7 @@ struct EditorView: View {
                             set: { store.send(.scrollPositionChanged($0)) }
                         )
                     )
-                    .containerRelativeFrame(.vertical) { height, _ in height / 2 }
+                    .containerRelativeFrame(.vertical) { height, _ in height * 0.4 }
 
                     Divider()
                         .background(TM.bgTertiary)
