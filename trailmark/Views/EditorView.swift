@@ -2,24 +2,114 @@ import SwiftUI
 import ComposableArchitecture
 import MapKit
 
+// MARK: - Custom Detent
+
+/// Detent pour la position mini (profil compact)
+struct MiniProfileDetent: CustomPresentationDetent {
+    static func height(in context: Context) -> CGFloat? {
+        // Header(60) + Picker(50) + MiniProfil(80) + padding(20)
+        210
+    }
+}
+
 struct EditorView: View {
     @Bindable var store: StoreOf<EditorFeature>
 
-    /// Hauteur fixe du profil altimétrique
-    private let profileHeight: CGFloat = 180
+    private let profilHeight: PresentationDetent = .height(300)
+    @State private var selectedDetent: PresentationDetent = .height(80)
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             TM.bgPrimary.ignoresSafeArea()
 
             if let detail = store.trailDetail {
-                // Carte en plein écran derrière la sheet
+                // Carte en plein écran
                 TrailMapView(
                     trackPoints: detail.trackPoints,
                     milestones: store.milestones,
                     cursorPointIndex: store.cursorPointIndex
                 )
-                .ignoresSafeArea(edges: .bottom)
+                .ignoresSafeArea()
+                .sheet(isPresented: .constant(true)) {
+                    VStack(spacing: 0) {
+                        // Header toolbar (toujours visible)
+                        HStack {
+                            Button {
+                                Haptic.light.trigger()
+                                selectedDetent = .large
+                            } label: {
+                                Text("Repères")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(selectedDetent == .large ? TM.accent : TM.textPrimary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(TM.bgPrimary, in: Capsule())
+                            }
+
+                            Spacer()
+
+                            VStack(spacing: 2) {
+                                Text(detail.trail.name)
+                                    .font(.headline)
+                                    .foregroundStyle(TM.textPrimary)
+
+                                TrailStatsView(distanceKm: detail.distKm, dPlus: detail.trail.dPlus)
+                            }
+
+                            Spacer()
+
+                            Button {
+                                Haptic.light.trigger()
+                                selectedDetent = profilHeight
+                            } label: {
+                                Text("Profil")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(selectedDetent == profilHeight ? TM.accent : TM.textPrimary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(TM.bgPrimary, in: Capsule())
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(height: 60)
+
+                        // Contenu dynamique
+                        if selectedDetent == .large {
+                            ReperesContentView(store: store)
+                        } else if selectedDetent == profilHeight {
+                            ElevationProfileView(
+                                trackPoints: detail.trackPoints,
+                                milestones: store.milestones,
+                                cursorPointIndex: Binding(
+                                    get: { store.cursorPointIndex },
+                                    set: { store.send(.cursorMoved($0)) }
+                                ),
+                                onTap: { index in
+                                    store.send(.profileTapped(index))
+                                }
+                            )
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .presentationDetents([.height(80), profilHeight, .large], selection: $selectedDetent)
+                    .presentationBackgroundInteraction(.enabled(upThrough: profilHeight))
+                    .presentationBackground(TM.bgSecondary)
+                    .interactiveDismissDisabled()
+                    .sheet(
+                        item: $store.scope(state: \.milestoneSheet, action: \.milestoneSheet)
+                    ) { sheetStore in
+                        MilestoneSheetView(store: sheetStore)
+                            .presentationDetents([.large])
+                            .presentationBackground(TM.bgCard)
+                    }
+                }
+
+                // Panel custom en bas (commenté)
+//                 EditorBottomPanel(
+//                     store: store,
+//                     detail: detail,
+//                     profileHeight: profileHeight
+//                 )
             } else {
                 ProgressView()
                     .tint(TM.accent)
@@ -75,64 +165,312 @@ struct EditorView: View {
         .onAppear {
             store.send(.onAppear)
         }
-        .sheet(isPresented: .constant(true)) {
-            if let detail = store.trailDetail {
-                EditorBottomSheet(
-                    store: store,
-                    detail: detail,
-                    profileHeight: profileHeight
-                )
-                .presentationDetents([
-                    .height(profileHeight + 60), // Small: profil + padding top (32) + drag indicator
-                    .large
-                ])
-                .presentationDragIndicator(.visible)
-                .presentationBackgroundInteraction(.enabled)
-                .interactiveDismissDisabled()
-                .presentationBackground(TM.bgCard)
+    }
+}
+
+// MARK: - Repères Content View
+
+private struct ReperesContentView: View {
+    @Bindable var store: StoreOf<EditorFeature>
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header avec bouton sélection
+            if !store.milestones.isEmpty {
+                HStack {
+                    Spacer()
+                    if store.isSelectingMilestones {
+                        Button {
+                            Haptic.warning.trigger()
+                            store.send(.deleteSelectedMilestones)
+                        } label: {
+                            Label("Supprimer (\(store.selectedMilestoneIndices.count))", systemImage: "trash")
+                                .font(.subheadline)
+                        }
+                        .tint(.red)
+                        .disabled(store.selectedMilestoneIndices.isEmpty)
+
+                        Button {
+                            Haptic.light.trigger()
+                            store.send(.toggleSelectionMode)
+                        } label: {
+                            Text("OK")
+                                .font(.subheadline.weight(.medium))
+                        }
+                        .padding(.leading, 12)
+                    } else {
+                        Button {
+                            Haptic.light.trigger()
+                            store.send(.toggleSelectionMode)
+                        } label: {
+                            Text("Sélectionner")
+                                .font(.subheadline)
+                                .foregroundStyle(TM.textSecondary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+
+                Divider()
+                    .background(TM.border)
             }
+
+            ScrollView {
+                if store.milestones.isEmpty {
+                    emptyState
+                } else {
+                    milestonesList
+                }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            Text("📍")
+                .font(.system(size: 32))
+
+            Text("Aucun repère")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(TM.textSecondary)
+
+            Text("Tapez le profil altimétrique\npour ajouter un repère")
+                .font(.caption)
+                .foregroundStyle(TM.textMuted)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 80)
+    }
+
+    private var milestonesList: some View {
+        LazyVStack(spacing: 0) {
+            ForEach(Array(store.milestones.enumerated()), id: \.offset) { index, milestone in
+                milestoneRow(milestone: milestone, index: index)
+            }
+        }
+    }
+
+    private func milestoneRow(milestone: Milestone, index: Int) -> some View {
+        let isSelected = store.selectedMilestoneIndices.contains(index)
+
+        return VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 10) {
+                if store.isSelectingMilestones {
+                    Button {
+                        Haptic.selection.trigger()
+                        store.send(.toggleMilestoneSelection(index))
+                    } label: {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .font(.title2)
+                            .foregroundStyle(isSelected ? .red : TM.textMuted)
+                    }
+                }
+
+                Text("\(index + 1)")
+                    .font(.system(.caption2, design: .monospaced, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 24, height: 24)
+                    .background(milestone.milestoneType.color, in: Circle())
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 4) {
+                        Text("\(milestone.milestoneType.icon) \(milestone.milestoneType.label.uppercased())")
+                            .font(.caption2.weight(.bold))
+                            .tracking(0.5)
+                            .foregroundStyle(milestone.milestoneType.color)
+
+                        if let name = milestone.name {
+                            Text("— \(name)")
+                                .font(.caption2)
+                                .foregroundStyle(TM.textSecondary)
+                        }
+                    }
+
+                    Text(milestone.message)
+                        .font(.subheadline)
+                        .foregroundStyle(TM.textPrimary)
+                        .lineLimit(2)
+
+                    PointStatsView(distanceMeters: milestone.distance, altitudeMeters: milestone.elevation)
+                }
+
+                Spacer()
+
+                if !store.isSelectingMilestones {
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(TM.textMuted)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if store.isSelectingMilestones {
+                    Haptic.selection.trigger()
+                    store.send(.toggleMilestoneSelection(index))
+                } else {
+                    Haptic.light.trigger()
+                    store.send(.editMilestone(milestone))
+                }
+            }
+
+            Rectangle()
+                .fill(TM.border)
+                .frame(height: 1)
         }
     }
 }
 
-// MARK: - Editor Bottom Sheet
+// MARK: - Editor Bottom Panel (Apple Maps style)
 
-private struct EditorBottomSheet: View {
+private struct EditorBottomPanel: View {
     @Bindable var store: StoreOf<EditorFeature>
     let detail: TrailDetail
     let profileHeight: CGFloat
 
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Profil altimétrique
-                ElevationProfileView(
-                    trackPoints: detail.trackPoints,
-                    milestones: store.milestones,
-                    cursorPointIndex: Binding(
-                        get: { store.cursorPointIndex },
-                        set: { store.send(.cursorMoved($0)) }
-                    ),
-                    onTap: { index in
-                        store.send(.profileTapped(index))
-                    }
-                )
-                .frame(height: profileHeight)
+    @State private var isExpanded: Bool = false
 
+    /// Hauteur collapsed : header + boutons + profil + paddings
+    private var collapsedHeight: CGFloat { profileHeight + 140 }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header style Apple Maps
+            panelHeader
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
+
+            // Boutons d'action
+            actionButtons
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
+
+            // Profil altimétrique
+            ElevationProfileView(
+                trackPoints: detail.trackPoints,
+                milestones: store.milestones,
+                cursorPointIndex: Binding(
+                    get: { store.cursorPointIndex },
+                    set: { store.send(.cursorMoved($0)) }
+                ),
+                onTap: { index in
+                    store.send(.profileTapped(index))
+                }
+            )
+            .frame(height: profileHeight)
+
+            // Liste des repères (visible uniquement en mode expanded)
+            if isExpanded {
                 Divider()
                     .background(TM.border)
 
-                // Liste des repères
-                milestonesContent
+                ScrollView {
+                    milestonesContent
+                }
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .padding(.top, 32)
         }
+        .frame(maxHeight: isExpanded ? .infinity : collapsedHeight, alignment: .top)
+        .background(.ultraThinMaterial)
+        .background(Color.black.opacity(0.3))
+        .clipShape(UnevenRoundedRectangle(topLeadingRadius: 16, topTrailingRadius: 16))
+        .animation(.snappy(duration: 0.3), value: isExpanded)
         .sheet(
             item: $store.scope(state: \.milestoneSheet, action: \.milestoneSheet)
         ) { sheetStore in
             MilestoneSheetView(store: sheetStore)
                 .presentationDetents([.large])
                 .presentationBackground(TM.bgCard)
+        }
+    }
+
+    // MARK: - Panel Header
+
+    private var panelHeader: some View {
+        HStack {
+            // Bouton options (gauche)
+            Button {
+                Haptic.light.trigger()
+                // TODO: Menu options
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(Color.white.opacity(0.15), in: Circle())
+            }
+
+            Spacer()
+
+            // Titre et sous-titre (centre)
+            VStack(spacing: 2) {
+                Text(detail.trail.name)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+
+                TrailStatsView(distanceKm: detail.distKm, dPlus: detail.trail.dPlus)
+            }
+
+            Spacer()
+
+            // Placeholder pour équilibrer le layout
+            Color.clear
+                .frame(width: 44, height: 44)
+        }
+    }
+
+    // MARK: - Action Buttons
+
+    private var actionButtons: some View {
+        HStack(spacing: 8) {
+            // Bouton Profil
+            actionButton(
+                icon: "chart.xyaxis.line",
+                label: "Profil",
+                isSelected: !isExpanded
+            ) {
+                isExpanded = false
+            }
+
+            // Bouton Repères
+            actionButton(
+                icon: "mappin.and.ellipse",
+                label: "\(store.milestones.count)",
+                isSelected: isExpanded
+            ) {
+                isExpanded = true
+            }
+        }
+    }
+
+    private func actionButton(
+        icon: String,
+        label: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            Haptic.light.trigger()
+            action()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                Text(label)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .foregroundStyle(isSelected ? .black : .white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 40)
+            .background(
+                isSelected ? Color.white : Color.white.opacity(0.15),
+                in: RoundedRectangle(cornerRadius: 10)
+            )
         }
     }
 
@@ -185,10 +523,6 @@ private struct EditorBottomSheet: View {
 
     private var milestonesHeader: some View {
         HStack {
-            Text("\(store.milestones.count) repère\(store.milestones.count > 1 ? "s" : "")")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(TM.textPrimary)
-
             Spacer()
 
             if store.isSelectingMilestones {
