@@ -7,6 +7,7 @@ struct ScrollableElevationProfileView: View {
 
     private let pointSpacing: CGFloat = 4
     @State private var scrollOffset: CGFloat = 0
+    @State private var lastHapticIndex: Int = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -48,9 +49,27 @@ struct ScrollableElevationProfileView: View {
                     // Update point index
                     let index = Int(offset / pointSpacing)
                     let clampedIndex = max(0, min(index, trackPoints.count - 1))
+
                     if clampedIndex != scrolledPointIndex {
+                        let oldIndex = scrolledPointIndex
                         scrolledPointIndex = clampedIndex
-                        Haptic.selection.trigger()
+
+                        // Check if we crossed a milestone
+                        let crossedMilestone = milestones.contains { milestone in
+                            let mi = milestone.pointIndex
+                            let minIdx = min(oldIndex, clampedIndex)
+                            let maxIdx = max(oldIndex, clampedIndex)
+                            return mi >= minIdx && mi <= maxIdx
+                        }
+
+                        if crossedMilestone {
+                            // Strong haptic for milestone
+                            Haptic.medium.trigger()
+                        } else if abs(clampedIndex - lastHapticIndex) >= 20 {
+                            // Light haptic every ~20 points
+                            Haptic.light.trigger()
+                            lastHapticIndex = clampedIndex
+                        }
                     }
                 }
 
