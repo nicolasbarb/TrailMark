@@ -32,11 +32,11 @@ struct MiniProfileView: View {
             // Draw line
             drawLine(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
 
-            // Draw milestones (small dots)
-            drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
-
-            // Draw cursor
+            // Draw cursor (behind milestones)
             drawCursor(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+
+            // Draw milestones (small dots, on top)
+            drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
         }
         .frame(height: height)
         .background(TM.bgSecondary)
