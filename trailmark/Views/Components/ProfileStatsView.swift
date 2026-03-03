@@ -68,6 +68,7 @@ struct ProfileStatsView: View {
     }
 
     private var cumulativeDPlus: Int {
+        guard currentIndex > 0 else { return 0 }
         var dPlus: Double = 0
         for i in 1...currentIndex {
             let delta = trackPoints[i].elevation - trackPoints[i - 1].elevation
@@ -79,6 +80,7 @@ struct ProfileStatsView: View {
     }
 
     private var cumulativeDMinus: Int {
+        guard currentIndex > 0 else { return 0 }
         var dMinus: Double = 0
         for i in 1...currentIndex {
             let delta = trackPoints[i].elevation - trackPoints[i - 1].elevation
