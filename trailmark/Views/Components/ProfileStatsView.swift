@@ -123,7 +123,7 @@ final class ProfileStatsData {
     }
 }
 
-// MARK: - Profile Stats View
+// MARK: - Profile Stats View (iOS 26 Liquid Glass Design)
 
 struct ProfileStatsView: View {
     let statsData: ProfileStatsData
@@ -159,104 +159,273 @@ struct ProfileStatsView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Row 1: Main stats (Altitude, Distance, Slope)
-            HStack(spacing: 0) {
-                statItem(label: "ALTITUDE", value: "\(Int(currentPoint.elevation))", unit: "m")
-                Divider().frame(height: 30)
-                statItem(label: "DISTANCE", value: String(format: "%.2f", currentPoint.distance / 1000), unit: "km")
-                Divider().frame(height: 30)
-                statItem(
-                    label: "PENTE",
-                    value: "\(slopePercent > 0 ? "+" : "")\(slopePercent)",
-                    unit: "%",
-                    color: terrainType.color
-                )
-            }
-
-            // Row 2: D+ / D- cumulated
-            HStack(spacing: 0) {
-                statItem(label: "D+ FAIT", value: "\(cumulativeDPlus)", unit: "m", color: MilestoneType.montee.color)
-                Divider().frame(height: 30)
-                statItem(label: "D- FAIT", value: "\(cumulativeDMinus)", unit: "m", color: MilestoneType.descente.color)
-            }
-
-            // Row 3: Current segment info
+        VStack(spacing: 16) {
+            // HERO: Terrain Segment Card (Important: Slope, Distance in segment, Terrain type)
             if let segment = currentSegment {
-                segmentInfoView(segment: segment)
+                terrainSegmentCard(segment: segment)
             }
+
+            // SECONDARY: Distance from start
+            distanceCard
+
+            // TERTIARY: Altitude, D+, D- grid
+            secondaryStatsGrid
         }
-        .padding(.vertical, 12)
         .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
 
-    // MARK: - Stat Item
+    // MARK: - Hero: Terrain Segment Card
 
-    private func statItem(label: String, value: String, unit: String, color: Color = TM.textPrimary) -> some View {
-        VStack(spacing: 2) {
-            Text(label)
-                .font(.system(.caption2, design: .monospaced, weight: .semibold))
-                .foregroundStyle(TM.textMuted)
-            HStack(alignment: .lastTextBaseline, spacing: 2) {
-                Text(value)
-                    .font(.system(.title3, design: .monospaced, weight: .bold))
-                    .foregroundStyle(color)
-                Text(unit)
-                    .font(.system(.caption, design: .monospaced, weight: .medium))
+    private func terrainSegmentCard(segment: ProfileStatsData.SegmentData) -> some View {
+        let startPoint = statsData.trackPoints[segment.startIndex]
+        let progressDistance = currentPoint.distance - startPoint.distance
+        let progressPercent = segment.distance > 0 ? progressDistance / segment.distance : 0
+
+        return VStack(spacing: 0) {
+            // Top row: Terrain type + Slope
+            HStack(alignment: .top) {
+                // Terrain indicator
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(segment.type.icon)
+                        .font(.system(size: 28))
+
+                    Text(segment.type.label.uppercased())
+                        .font(.system(.caption2, design: .monospaced, weight: .bold))
+                        .foregroundStyle(segment.type.color)
+                }
+
+                Spacer()
+
+                // Large slope display
+                VStack(alignment: .trailing, spacing: 0) {
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
+                        Text("\(slopePercent > 0 ? "+" : "")\(slopePercent)")
+                            .font(.system(size: 44, weight: .bold, design: .monospaced))
+                            .foregroundStyle(segment.type.color)
+                        Text("%")
+                            .font(.system(.title3, design: .monospaced, weight: .medium))
+                            .foregroundStyle(segment.type.color.opacity(0.7))
+                    }
+                    Text("PENTE")
+                        .font(.system(.caption2, design: .monospaced, weight: .semibold))
+                        .foregroundStyle(TM.textMuted)
+                }
+            }
+
+            Spacer().frame(height: 16)
+
+            // Segment stats row
+            HStack(spacing: 16) {
+                // Segment distance
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("SEGMENT")
+                        .font(.system(.caption2, design: .monospaced, weight: .semibold))
+                        .foregroundStyle(TM.textMuted)
+                    Text(formatSegmentDistance(segment.distance))
+                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                        .foregroundStyle(TM.textPrimary)
+                }
+
+                // Elevation change
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("D\(segment.type == .descente ? "-" : "+")")
+                        .font(.system(.caption2, design: .monospaced, weight: .semibold))
+                        .foregroundStyle(TM.textMuted)
+                    Text("\(segment.elevationChange)m")
+                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                        .foregroundStyle(TM.textPrimary)
+                }
+
+                // Average slope
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("MOY")
+                        .font(.system(.caption2, design: .monospaced, weight: .semibold))
+                        .foregroundStyle(TM.textMuted)
+                    Text("\(segment.avgSlopePercent)%")
+                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                        .foregroundStyle(TM.textPrimary)
+                }
+
+                Spacer()
+            }
+
+            Spacer().frame(height: 12)
+
+            // Progress bar
+            VStack(alignment: .leading, spacing: 6) {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        // Track
+                        Capsule()
+                            .fill(TM.bgTertiary)
+
+                        // Fill
+                        Capsule()
+                            .fill(segment.type.color)
+                            .frame(width: geo.size.width * progressPercent)
+                    }
+                }
+                .frame(height: 6)
+
+                // Progress label
+                HStack {
+                    Text("\(Int(progressPercent * 100))%")
+                        .font(.system(.caption, design: .monospaced, weight: .bold))
+                        .foregroundStyle(segment.type.color)
+
+                    Spacer()
+
+                    Text(formatRemainingDistance(segment.distance - progressDistance))
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(TM.textMuted)
+                }
+            }
+        }
+        .padding(16)
+        .background {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(segment.type.color.opacity(0.08))
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 16)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    segment.type.color.opacity(0.4),
+                                    segment.type.color.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                }
+        }
+    }
+
+    // MARK: - Secondary: Distance Card
+
+    private var distanceCard: some View {
+        HStack {
+            Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                .font(.system(size: 20))
+                .foregroundStyle(TM.accent)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("DISTANCE PARCOURUE")
+                    .font(.system(.caption2, design: .monospaced, weight: .semibold))
+                    .foregroundStyle(TM.textMuted)
+
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(String(format: "%.2f", currentPoint.distance / 1000))
+                        .font(.system(.title2, design: .monospaced, weight: .bold))
+                        .foregroundStyle(TM.textPrimary)
+                    Text("km")
+                        .font(.system(.subheadline, design: .monospaced, weight: .medium))
+                        .foregroundStyle(TM.textMuted)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(TM.border.opacity(0.5), lineWidth: 0.5)
+                }
+        }
+    }
+
+    // MARK: - Tertiary: Secondary Stats Grid
+
+    private var secondaryStatsGrid: some View {
+        HStack(spacing: 10) {
+            // Altitude
+            compactStatCard(
+                icon: "mountain.2",
+                label: "ALTITUDE",
+                value: "\(Int(currentPoint.elevation))",
+                unit: "m",
+                color: TM.textPrimary
+            )
+
+            // D+ done
+            compactStatCard(
+                icon: "arrow.up.right",
+                label: "D+ FAIT",
+                value: "\(cumulativeDPlus)",
+                unit: "m",
+                color: MilestoneType.montee.color
+            )
+
+            // D- done
+            compactStatCard(
+                icon: "arrow.down.right",
+                label: "D- FAIT",
+                value: "\(cumulativeDMinus)",
+                unit: "m",
+                color: MilestoneType.descente.color
+            )
+        }
+    }
+
+    private func compactStatCard(icon: String, label: String, value: String, unit: String, color: Color) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(color.opacity(0.8))
+
+            VStack(spacing: 2) {
+                HStack(alignment: .firstTextBaseline, spacing: 1) {
+                    Text(value)
+                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                        .foregroundStyle(color)
+                    Text(unit)
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundStyle(TM.textMuted)
+                }
+
+                Text(label)
+                    .font(.system(size: 9, weight: .semibold, design: .monospaced))
                     .foregroundStyle(TM.textMuted)
             }
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(TM.border.opacity(0.3), lineWidth: 0.5)
+                }
+        }
     }
 
-    // MARK: - Segment Info View
+    // MARK: - Helpers
 
-    private func segmentInfoView(segment: ProfileStatsData.SegmentData) -> some View {
-        let startPoint = statsData.trackPoints[segment.startIndex]
-        let progressDistance = currentPoint.distance - startPoint.distance
-        let progressPercent = segment.distance > 0 ? Int((progressDistance / segment.distance) * 100) : 0
-
-        let description: String
-        let distanceKm = segment.distance / 1000
-        if distanceKm >= 1 {
-            description = "\(segment.elevationChange)m sur \(String(format: "%.1f", distanceKm))km • \(segment.avgSlopePercent)% moy"
+    private func formatSegmentDistance(_ distance: Double) -> String {
+        if distance >= 1000 {
+            return String(format: "%.1f km", distance / 1000)
         } else {
-            description = "\(segment.elevationChange)m sur \(Int(segment.distance))m • \(segment.avgSlopePercent)% moy"
+            return "\(Int(distance)) m"
         }
+    }
 
-        return HStack(spacing: 8) {
-            // Terrain type indicator
-            Text(segment.type.icon)
-                .font(.title3)
-
-            // Segment description
-            VStack(alignment: .leading, spacing: 2) {
-                Text(segment.type.label.uppercased())
-                    .font(.system(.caption2, design: .monospaced, weight: .bold))
-                    .foregroundStyle(segment.type.color)
-
-                Text(description)
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(TM.textSecondary)
-            }
-
-            Spacer()
-
-            // Progress in segment
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("PROGRESSION")
-                    .font(.system(.caption2, design: .monospaced, weight: .semibold))
-                    .foregroundStyle(TM.textMuted)
-                Text("\(progressPercent)%")
-                    .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                    .foregroundStyle(segment.type.color)
-            }
+    private func formatRemainingDistance(_ distance: Double) -> String {
+        if distance >= 1000 {
+            return String(format: "%.1f km restants", distance / 1000)
+        } else if distance > 0 {
+            return "\(Int(distance)) m restants"
+        } else {
+            return "Fin du segment"
         }
-        .padding(12)
-        .background(segment.type.color.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(segment.type.color.opacity(0.3), lineWidth: 1)
-        )
     }
 }

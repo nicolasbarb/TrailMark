@@ -42,18 +42,37 @@ struct EditorView: View {
                         .background(TM.bgTertiary)
 
                     // Stats for current point (O(1) lookups from pre-computed data)
-                    if let statsData = profileStatsData,
-                       store.scrolledPointIndex < statsData.trackPoints.count {
-                        ProfileStatsView(
-                            statsData: statsData,
-                            currentIndex: store.scrolledPointIndex
-                        )
+                    ScrollView {
+                        if let statsData = profileStatsData,
+                           store.scrolledPointIndex < statsData.trackPoints.count {
+                            ProfileStatsView(
+                                statsData: statsData,
+                                currentIndex: store.scrolledPointIndex
+                            )
+                            .padding(.bottom, 90) // Space for floating button
+                        }
                     }
+                    .scrollBounceBehavior(.basedOnSize)
+                }
 
-                    // Add milestone button
-                    addMilestoneButton
-
+                // Floating CTA button with gradient backdrop
+                VStack(spacing: 0) {
                     Spacer()
+
+                    // Gradient fade for visual separation
+                    LinearGradient(
+                        colors: [TM.bgPrimary.opacity(0), TM.bgPrimary],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 40)
+                    .allowsHitTesting(false)
+
+                    // Button container
+                    addMilestoneButton
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 16)
+                        .background(TM.bgPrimary)
                 }
             } else {
                 ProgressView()
@@ -132,21 +151,29 @@ struct EditorView: View {
     }
 
 
-    // MARK: - Add Milestone Button
+    // MARK: - Add Milestone Button (Primary CTA)
 
     private var addMilestoneButton: some View {
         Button {
             Haptic.medium.trigger()
             store.send(.profileTapped(store.scrolledPointIndex))
         } label: {
-            Label("Ajouter un repère", systemImage: "plus.circle.fill")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(TM.accent, in: RoundedRectangle(cornerRadius: 12))
+            HStack(spacing: 10) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 22, weight: .semibold))
+
+                Text("Ajouter un repère")
+                    .font(.headline.weight(.semibold))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(TM.accent)
+                    .shadow(color: TM.accent.opacity(0.4), radius: 12, x: 0, y: 6)
+            }
         }
-        .padding(.horizontal, 20)
     }
 }
 
