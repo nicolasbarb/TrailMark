@@ -178,11 +178,7 @@ struct ProfileStatsView: View {
     // MARK: - Hero: Terrain Segment Card
 
     private func terrainSegmentCard(segment: ProfileStatsData.SegmentData) -> some View {
-        let startPoint = statsData.trackPoints[segment.startIndex]
-        let progressDistance = currentPoint.distance - startPoint.distance
-        let progressPercent = segment.distance > 0 ? progressDistance / segment.distance : 0
-
-        return VStack(spacing: 0) {
+        VStack(spacing: 0) {
             // Top row: Terrain type + Slope
             HStack(alignment: .top) {
                 // Terrain indicator
@@ -216,7 +212,7 @@ struct ProfileStatsView: View {
             Spacer().frame(height: 16)
 
             // Segment stats row
-            HStack(spacing: 16) {
+            HStack(spacing: 0) {
                 // Segment distance
                 VStack(alignment: .leading, spacing: 2) {
                     Text("SEGMENT")
@@ -227,8 +223,10 @@ struct ProfileStatsView: View {
                         .foregroundStyle(TM.textPrimary)
                 }
 
+                Spacer()
+
                 // Elevation change
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .center, spacing: 2) {
                     Text("D\(segment.type == .descente ? "-" : "+")")
                         .font(.system(.caption2, design: .monospaced, weight: .semibold))
                         .foregroundStyle(TM.textMuted)
@@ -237,48 +235,16 @@ struct ProfileStatsView: View {
                         .foregroundStyle(TM.textPrimary)
                 }
 
+                Spacer()
+
                 // Average slope
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .trailing, spacing: 2) {
                     Text("MOY")
                         .font(.system(.caption2, design: .monospaced, weight: .semibold))
                         .foregroundStyle(TM.textMuted)
                     Text("\(segment.avgSlopePercent)%")
                         .font(.system(.subheadline, design: .monospaced, weight: .bold))
                         .foregroundStyle(TM.textPrimary)
-                }
-
-                Spacer()
-            }
-
-            Spacer().frame(height: 12)
-
-            // Progress bar
-            VStack(alignment: .leading, spacing: 6) {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        // Track
-                        Capsule()
-                            .fill(TM.bgTertiary)
-
-                        // Fill
-                        Capsule()
-                            .fill(segment.type.color)
-                            .frame(width: geo.size.width * progressPercent)
-                    }
-                }
-                .frame(height: 6)
-
-                // Progress label
-                HStack {
-                    Text("\(Int(progressPercent * 100))%")
-                        .font(.system(.caption, design: .monospaced, weight: .bold))
-                        .foregroundStyle(segment.type.color)
-
-                    Spacer()
-
-                    Text(formatRemainingDistance(segment.distance - progressDistance))
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(TM.textMuted)
                 }
             }
         }
@@ -416,16 +382,6 @@ struct ProfileStatsView: View {
             return String(format: "%.1f km", distance / 1000)
         } else {
             return "\(Int(distance)) m"
-        }
-    }
-
-    private func formatRemainingDistance(_ distance: Double) -> String {
-        if distance >= 1000 {
-            return String(format: "%.1f km restants", distance / 1000)
-        } else if distance > 0 {
-            return "\(Int(distance)) m restants"
-        } else {
-            return "Fin du segment"
         }
     }
 }
