@@ -30,6 +30,7 @@ struct EditorView: View {
                     ScrollableElevationProfileView(
                         trackPoints: detail.trackPoints,
                         milestones: store.milestones,
+                        statsData: profileStatsData,
                         scrolledPointIndex: Binding(
                             get: { store.scrolledPointIndex },
                             set: { store.send(.scrollPositionChanged($0)) }
