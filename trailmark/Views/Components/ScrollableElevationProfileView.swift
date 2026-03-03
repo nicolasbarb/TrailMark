@@ -58,7 +58,6 @@ private struct ProfileImageRenderer {
     let horizontalPadding: CGFloat
     let height: CGFloat
     let maxRenderPoints: Int
-    let verticalExaggeration: CGFloat
 
     private let paddingTop: CGFloat = 20
     private let paddingBottom: CGFloat = 30
@@ -123,17 +122,9 @@ private struct ProfileImageRenderer {
         var isFirst = true
         var lastX: CGFloat = plotRect.minX
 
-        // Calculate elevation center for exaggeration around the middle
-        let eleMid = minEle + eleRange / 2
-
         for (originalIndex, point) in subsampledPoints {
             let x = plotRect.minX + CGFloat(originalIndex) * pointSpacing
-
-            // Apply vertical exaggeration from center
-            let normalizedEle = (point.elevation - eleMid) / (eleRange / 2)  // -1 to +1
-            let exaggeratedNormalized = normalizedEle * verticalExaggeration
-            let clampedNormalized = max(-1, min(1, exaggeratedNormalized))  // Clamp to avoid overflow
-            let y = plotRect.midY - CGFloat(clampedNormalized) * (plotRect.height / 2)
+            let y = plotRect.maxY - CGFloat((point.elevation - minEle) / eleRange) * plotRect.height
 
             if isFirst {
                 fillPath.move(to: CGPoint(x: x, y: plotRect.maxY))
@@ -162,18 +153,11 @@ private struct ProfileImageRenderer {
     }
 
     private func drawMilestones(context: CGContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
-        let eleMid = minEle + eleRange / 2
-
         for (index, milestone) in milestones.enumerated() {
             guard milestone.pointIndex < trackPoints.count else { continue }
 
             let x = plotRect.minX + CGFloat(milestone.pointIndex) * pointSpacing
-
-            // Apply vertical exaggeration from center (same as profile)
-            let normalizedEle = (milestone.elevation - eleMid) / (eleRange / 2)
-            let exaggeratedNormalized = normalizedEle * verticalExaggeration
-            let clampedNormalized = max(-1, min(1, exaggeratedNormalized))
-            let y = plotRect.midY - CGFloat(clampedNormalized) * (plotRect.height / 2)
+            let y = plotRect.maxY - CGFloat((milestone.elevation - minEle) / eleRange) * plotRect.height
 
             context.setStrokeColor(UIColor(TM.accent).withAlphaComponent(0.35).cgColor)
             context.setLineWidth(1)
@@ -216,11 +200,10 @@ struct ScrollableElevationProfileView: View {
     @Binding var scrolledPointIndex: Int
     @Binding var scrollToIndex: Int?
 
-    private let pointSpacing: CGFloat = 4
+    private let pointSpacing: CGFloat = 0.5
     private let maxRenderPoints: Int = 2000
     private let paddingTop: CGFloat = 20
     private let paddingBottom: CGFloat = 30
-    private let verticalExaggeration: CGFloat = 1.8  // Amplifie le dénivelé visuellement
 
     @State private var scrollPosition = ScrollPosition(edge: .leading)
     @State private var profileImage: UIImage?
@@ -231,6 +214,7 @@ struct ScrollableElevationProfileView: View {
     private static var _pendingIndex: Int = 0
     private static var _lastHapticIndex: Int = 0
     private static var _lastHapticMilestoneId: Int64? = nil
+    private static var _lastSyncedIndex: Int = 0
 
     #if DEBUG
     @State private var fpsCounter = FPSCounter()
@@ -268,6 +252,12 @@ struct ScrollableElevationProfileView: View {
 
                     // Haptic feedback
                     triggerHapticIfNeeded(newIndex: clampedIndex)
+
+                    // Sync to mini profile every 50 points (throttled for performance)
+                    if abs(clampedIndex - Self._lastSyncedIndex) >= 50 {
+                        scrolledPointIndex = clampedIndex
+                        Self._lastSyncedIndex = clampedIndex
+                    }
                 }
                 // Detect scroll phase to know when scrolling stops
                 .onScrollPhaseChange { oldPhase, newPhase in
@@ -295,8 +285,7 @@ struct ScrollableElevationProfileView: View {
                         height: geometry.size.height,
                         paddingTop: paddingTop,
                         paddingBottom: paddingBottom,
-                        trackPoints: trackPoints,
-                        verticalExaggeration: verticalExaggeration
+                        trackPoints: trackPoints
                     )
                 }
 
@@ -390,8 +379,7 @@ struct ScrollableElevationProfileView: View {
             pointSpacing: pointSpacing,
             horizontalPadding: horizontalPadding,
             height: height,
-            maxRenderPoints: maxRenderPoints,
-            verticalExaggeration: verticalExaggeration
+            maxRenderPoints: maxRenderPoints
         )
         profileImage = renderer.render()
     }
@@ -445,7 +433,6 @@ private struct ActiveMilestoneHighlight: View {
     let paddingTop: CGFloat
     let paddingBottom: CGFloat
     let trackPoints: [TrackPoint]
-    let verticalExaggeration: CGFloat
 
     private var yPosition: CGFloat {
         let plotHeight = height - paddingTop - paddingBottom
@@ -458,13 +445,7 @@ private struct ActiveMilestoneHighlight: View {
         }
         let eleRange = max(maxEle - minEle, 1)
 
-        // Apply vertical exaggeration from center (same as profile)
-        let eleMid = minEle + eleRange / 2
-        let normalizedEle = (milestone.elevation - eleMid) / (eleRange / 2)
-        let exaggeratedNormalized = normalizedEle * verticalExaggeration
-        let clampedNormalized = max(-1, min(1, exaggeratedNormalized))
-
-        return paddingTop + plotHeight / 2 - CGFloat(clampedNormalized) * (plotHeight / 2)
+        return paddingTop + plotHeight - CGFloat((milestone.elevation - minEle) / eleRange) * plotHeight
     }
 
     private var xOffsetFromCenter: CGFloat {
