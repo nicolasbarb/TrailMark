@@ -115,41 +115,76 @@ private struct ProfileImageRenderer {
         }
     }
 
-    private func drawProfile(context: CGContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
-        let fillPath = CGMutablePath()
-        let linePath = CGMutablePath()
+    // Slope threshold for terrain classification (5%)
+    private let slopeThreshold: Double = 0.05
 
-        var isFirst = true
-        var lastX: CGFloat = plotRect.minX
+    private enum TerrainType {
+        case climbing, descending, flat
 
-        for (originalIndex, point) in subsampledPoints {
-            let x = plotRect.minX + CGFloat(originalIndex) * pointSpacing
-            let y = plotRect.maxY - CGFloat((point.elevation - minEle) / eleRange) * plotRect.height
-
-            if isFirst {
-                fillPath.move(to: CGPoint(x: x, y: plotRect.maxY))
-                fillPath.addLine(to: CGPoint(x: x, y: y))
-                linePath.move(to: CGPoint(x: x, y: y))
-                isFirst = false
-            } else {
-                fillPath.addLine(to: CGPoint(x: x, y: y))
-                linePath.addLine(to: CGPoint(x: x, y: y))
+        var color: UIColor {
+            switch self {
+            case .climbing: return UIColor(MilestoneType.montee.color)
+            case .descending: return UIColor(MilestoneType.descente.color)
+            case .flat: return UIColor(MilestoneType.plat.color)
             }
-            lastX = x
         }
+    }
 
-        fillPath.addLine(to: CGPoint(x: lastX, y: plotRect.maxY))
-        fillPath.closeSubpath()
+    private func terrainType(from prevPoint: TrackPoint, to currPoint: TrackPoint) -> TerrainType {
+        let distanceDelta = currPoint.distance - prevPoint.distance
+        guard distanceDelta > 0 else { return .flat }
 
-        context.addPath(fillPath)
-        context.setFillColor(UIColor(TM.trace).withAlphaComponent(0.12).cgColor)
-        context.fillPath()
+        let slope = (currPoint.elevation - prevPoint.elevation) / distanceDelta
+        if slope > slopeThreshold {
+            return .climbing
+        } else if slope < -slopeThreshold {
+            return .descending
+        } else {
+            return .flat
+        }
+    }
 
-        context.addPath(linePath)
-        context.setStrokeColor(UIColor(TM.trace).cgColor)
-        context.setLineWidth(2)
-        context.setLineJoin(.round)
-        context.strokePath()
+    private func drawProfile(context: CGContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
+        let points = subsampledPoints
+        guard points.count >= 2 else { return }
+
+        // Draw colored segments
+        for i in 1..<points.count {
+            let (prevIndex, prevPoint) = points[i - 1]
+            let (currIndex, currPoint) = points[i]
+
+            let terrain = terrainType(from: prevPoint, to: currPoint)
+            let color = terrain.color
+
+            let x1 = plotRect.minX + CGFloat(prevIndex) * pointSpacing
+            let y1 = plotRect.maxY - CGFloat((prevPoint.elevation - minEle) / eleRange) * plotRect.height
+            let x2 = plotRect.minX + CGFloat(currIndex) * pointSpacing
+            let y2 = plotRect.maxY - CGFloat((currPoint.elevation - minEle) / eleRange) * plotRect.height
+
+            // Draw fill for this segment
+            let fillPath = CGMutablePath()
+            fillPath.move(to: CGPoint(x: x1, y: plotRect.maxY))
+            fillPath.addLine(to: CGPoint(x: x1, y: y1))
+            fillPath.addLine(to: CGPoint(x: x2, y: y2))
+            fillPath.addLine(to: CGPoint(x: x2, y: plotRect.maxY))
+            fillPath.closeSubpath()
+
+            context.addPath(fillPath)
+            context.setFillColor(color.withAlphaComponent(0.15).cgColor)
+            context.fillPath()
+
+            // Draw line for this segment
+            let linePath = CGMutablePath()
+            linePath.move(to: CGPoint(x: x1, y: y1))
+            linePath.addLine(to: CGPoint(x: x2, y: y2))
+
+            context.addPath(linePath)
+            context.setStrokeColor(color.cgColor)
+            context.setLineWidth(2)
+            context.setLineCap(.round)
+            context.setLineJoin(.round)
+            context.strokePath()
+        }
     }
 
     private func drawMilestones(context: CGContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
