@@ -113,6 +113,68 @@ enum ElevationProfileAnalyzer {
         return terrainTypes
     }
 
+    // MARK: - Segment Extraction
+
+    /// A continuous segment of the same terrain type
+    struct Segment {
+        let startIndex: Int
+        let endIndex: Int
+        let type: TerrainType
+        let startDistance: Double
+        let endDistance: Double
+        let startElevation: Double
+        let endElevation: Double
+
+        var distance: Double { endDistance - startDistance }
+        var elevationChange: Double { endElevation - startElevation }
+        var elevationGain: Double { max(0, elevationChange) }
+        var elevationLoss: Double { abs(min(0, elevationChange)) }
+        var averageSlope: Double {
+            guard distance > 0 else { return 0 }
+            return elevationChange / distance
+        }
+    }
+
+    /// Extracts terrain segments from track points
+    /// - Parameter trackPoints: Array of track points to analyze
+    /// - Returns: Array of segments with terrain type and elevation data
+    static func segments(from trackPoints: [TrackPoint]) -> [Segment] {
+        let terrainTypes = classify(trackPoints: trackPoints)
+        guard !terrainTypes.isEmpty else { return [] }
+
+        var segments: [Segment] = []
+        var i = 0
+
+        while i < trackPoints.count {
+            let segmentStart = i
+            let segmentType = terrainTypes[i]
+
+            // Find end of segment
+            var segmentEnd = i
+            while segmentEnd < trackPoints.count - 1 && terrainTypes[segmentEnd + 1] == segmentType {
+                segmentEnd += 1
+            }
+
+            let startPoint = trackPoints[segmentStart]
+            let endPoint = trackPoints[segmentEnd]
+
+            let segment = Segment(
+                startIndex: segmentStart,
+                endIndex: segmentEnd,
+                type: segmentType,
+                startDistance: startPoint.distance,
+                endDistance: endPoint.distance,
+                startElevation: startPoint.elevation,
+                endElevation: endPoint.elevation
+            )
+            segments.append(segment)
+
+            i = segmentEnd + 1
+        }
+
+        return segments
+    }
+
     /// Computes instantaneous slope at a given index using a smaller window
     /// - Parameters:
     ///   - index: The track point index
