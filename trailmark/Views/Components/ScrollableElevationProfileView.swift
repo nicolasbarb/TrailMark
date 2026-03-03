@@ -117,6 +117,10 @@ private struct ProfileImageRenderer {
 
     // Slope threshold for terrain classification (5%)
     private let slopeThreshold: Double = 0.05
+    // Window size for slope calculation (meters) - smooths out micro-variations
+    private let slopeWindowSize: Double = 500
+    // Minimum segment length to display (meters) - removes tiny segments
+    private let minSegmentLength: Double = 200
 
     private enum TerrainType {
         case climbing, descending, flat
@@ -130,30 +134,102 @@ private struct ProfileImageRenderer {
         }
     }
 
-    private func terrainType(from prevPoint: TrackPoint, to currPoint: TrackPoint) -> TerrainType {
-        let distanceDelta = currPoint.distance - prevPoint.distance
-        guard distanceDelta > 0 else { return .flat }
+    /// Pre-compute terrain types for all points using a sliding window for smoothing
+    private func computeTerrainTypes() -> [TerrainType] {
+        guard trackPoints.count >= 2 else { return [] }
 
-        let slope = (currPoint.elevation - prevPoint.elevation) / distanceDelta
-        if slope > slopeThreshold {
-            return .climbing
-        } else if slope < -slopeThreshold {
-            return .descending
-        } else {
-            return .flat
+        var terrainTypes = [TerrainType](repeating: .flat, count: trackPoints.count)
+        let halfWindow = slopeWindowSize / 2
+
+        // First pass: compute raw terrain types
+        for i in 0..<trackPoints.count {
+            let currentPoint = trackPoints[i]
+            let currentDistance = currentPoint.distance
+
+            // Find points at window boundaries
+            var startIdx = i
+            var endIdx = i
+
+            // Find start of window
+            for j in (0..<i).reversed() {
+                if currentDistance - trackPoints[j].distance <= halfWindow {
+                    startIdx = j
+                } else {
+                    break
+                }
+            }
+
+            // Find end of window
+            for j in (i + 1)..<trackPoints.count {
+                if trackPoints[j].distance - currentDistance <= halfWindow {
+                    endIdx = j
+                } else {
+                    break
+                }
+            }
+
+            let startPoint = trackPoints[startIdx]
+            let endPoint = trackPoints[endIdx]
+
+            let distanceDelta = endPoint.distance - startPoint.distance
+            guard distanceDelta > 0 else {
+                terrainTypes[i] = .flat
+                continue
+            }
+
+            let slope = (endPoint.elevation - startPoint.elevation) / distanceDelta
+
+            if slope > slopeThreshold {
+                terrainTypes[i] = .climbing
+            } else if slope < -slopeThreshold {
+                terrainTypes[i] = .descending
+            } else {
+                terrainTypes[i] = .flat
+            }
         }
+
+        // Second pass: remove small segments by merging with neighbors
+        var i = 0
+        while i < trackPoints.count {
+            let segmentStart = i
+            let segmentType = terrainTypes[i]
+
+            // Find end of this segment
+            var segmentEnd = i
+            while segmentEnd < trackPoints.count && terrainTypes[segmentEnd] == segmentType {
+                segmentEnd += 1
+            }
+
+            let segmentLength = trackPoints[min(segmentEnd, trackPoints.count - 1)].distance - trackPoints[segmentStart].distance
+
+            // If segment is too short, replace with previous segment's type
+            if segmentLength < minSegmentLength && segmentStart > 0 {
+                let prevType = terrainTypes[segmentStart - 1]
+                for j in segmentStart..<segmentEnd {
+                    terrainTypes[j] = prevType
+                }
+            }
+
+            i = segmentEnd
+        }
+
+        return terrainTypes
     }
 
     private func drawProfile(context: CGContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
         let points = subsampledPoints
         guard points.count >= 2 else { return }
 
+        // Pre-compute terrain types with smoothing
+        let terrainTypes = computeTerrainTypes()
+
         // Draw colored segments
         for i in 1..<points.count {
             let (prevIndex, prevPoint) = points[i - 1]
             let (currIndex, currPoint) = points[i]
 
-            let terrain = terrainType(from: prevPoint, to: currPoint)
+            // Use terrain type of current point (already smoothed)
+            let terrain = terrainTypes[currIndex]
             let color = terrain.color
 
             let x1 = plotRect.minX + CGFloat(prevIndex) * pointSpacing
