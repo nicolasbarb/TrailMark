@@ -3,6 +3,7 @@ import ComposableArchitecture
 
 struct EditorView: View {
     @Bindable var store: StoreOf<EditorFeature>
+    @State private var scrollToIndex: Int?
 
     var body: some View {
         ZStack {
@@ -14,7 +15,10 @@ struct EditorView: View {
                     MiniProfileView(
                         trackPoints: detail.trackPoints,
                         milestones: store.milestones,
-                        currentIndex: store.scrolledPointIndex
+                        currentIndex: store.scrolledPointIndex,
+                        onIndexSelected: { index in
+                            scrollToIndex = index
+                        }
                     )
 
                     Rectangle()
@@ -28,7 +32,8 @@ struct EditorView: View {
                         scrolledPointIndex: Binding(
                             get: { store.scrolledPointIndex },
                             set: { store.send(.scrollPositionChanged($0)) }
-                        )
+                        ),
+                        scrollToIndex: $scrollToIndex
                     )
                     .containerRelativeFrame(.vertical) { height, _ in height * 0.4 }
 

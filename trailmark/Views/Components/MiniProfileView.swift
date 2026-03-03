@@ -4,42 +4,62 @@ struct MiniProfileView: View {
     let trackPoints: [TrackPoint]
     let milestones: [Milestone]
     let currentIndex: Int
+    let onIndexSelected: (Int) -> Void
 
     private let height: CGFloat = 50
+    private let paddingH: CGFloat = 16
 
     var body: some View {
-        Canvas { context, size in
-            guard trackPoints.count >= 2 else { return }
+        GeometryReader { geometry in
+            Canvas { context, size in
+                guard trackPoints.count >= 2 else { return }
 
-            let paddingH: CGFloat = 16
-            let paddingV: CGFloat = 8
+                let paddingV: CGFloat = 8
 
-            let plotRect = CGRect(
-                x: paddingH,
-                y: paddingV,
-                width: size.width - paddingH * 2,
-                height: size.height - paddingV * 2
+                let plotRect = CGRect(
+                    x: paddingH,
+                    y: paddingV,
+                    width: size.width - paddingH * 2,
+                    height: size.height - paddingV * 2
+                )
+
+                let elevations = trackPoints.map(\.elevation)
+                let minEle = elevations.min() ?? 0
+                let maxEle = elevations.max() ?? 0
+                let eleRange = max(maxEle - minEle, 1)
+
+                // Draw fill
+                drawFill(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+
+                // Draw line
+                drawLine(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+
+                // Draw cursor (behind milestones)
+                drawCursor(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+
+                // Draw milestones (small dots, on top)
+                drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+            }
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let index = indexFromLocation(value.location.x, width: geometry.size.width)
+                        onIndexSelected(index)
+                    }
             )
-
-            let elevations = trackPoints.map(\.elevation)
-            let minEle = elevations.min() ?? 0
-            let maxEle = elevations.max() ?? 0
-            let eleRange = max(maxEle - minEle, 1)
-
-            // Draw fill
-            drawFill(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
-
-            // Draw line
-            drawLine(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
-
-            // Draw cursor (behind milestones)
-            drawCursor(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
-
-            // Draw milestones (small dots, on top)
-            drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
         }
         .frame(height: height)
         .background(TM.bgSecondary)
+    }
+
+    // MARK: - Touch to Index
+
+    private func indexFromLocation(_ x: CGFloat, width: CGFloat) -> Int {
+        let plotWidth = width - paddingH * 2
+        let clampedX = max(paddingH, min(x, width - paddingH))
+        let progress = (clampedX - paddingH) / plotWidth
+        let index = Int(progress * CGFloat(trackPoints.count - 1))
+        return max(0, min(index, trackPoints.count - 1))
     }
 
     // MARK: - Drawing

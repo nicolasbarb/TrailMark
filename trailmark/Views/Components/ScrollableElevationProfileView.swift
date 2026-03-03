@@ -1,79 +1,289 @@
 import SwiftUI
+import UIKit
+
+// MARK: - FPS Counter (DEBUG only)
+
+#if DEBUG
+import QuartzCore
+
+@Observable
+final class FPSCounter {
+    private(set) var fps: Int = 0
+    private var displayLink: CADisplayLink?
+    private var lastTimestamp: CFTimeInterval = 0
+    private var frameCount: Int = 0
+
+    init() {
+        start()
+    }
+
+    func start() {
+        displayLink = CADisplayLink(target: self, selector: #selector(tick))
+        displayLink?.add(to: .main, forMode: .common)
+    }
+
+    func stop() {
+        displayLink?.invalidate()
+        displayLink = nil
+    }
+
+    @objc private func tick(_ link: CADisplayLink) {
+        if lastTimestamp == 0 {
+            lastTimestamp = link.timestamp
+            return
+        }
+
+        frameCount += 1
+        let elapsed = link.timestamp - lastTimestamp
+
+        if elapsed >= 1.0 {
+            fps = Int(Double(frameCount) / elapsed)
+            frameCount = 0
+            lastTimestamp = link.timestamp
+        }
+    }
+
+    deinit {
+        stop()
+    }
+}
+#endif
+
+// MARK: - Profile Image Renderer (with milestones)
+
+private struct ProfileImageRenderer {
+    let trackPoints: [TrackPoint]
+    let milestones: [Milestone]
+    let pointSpacing: CGFloat
+    let horizontalPadding: CGFloat
+    let height: CGFloat
+    let maxRenderPoints: Int
+
+    private let paddingTop: CGFloat = 20
+    private let paddingBottom: CGFloat = 30
+
+    private var subsampleStep: Int {
+        max(1, trackPoints.count / maxRenderPoints)
+    }
+
+    private var subsampledPoints: [(originalIndex: Int, point: TrackPoint)] {
+        guard subsampleStep > 1 else {
+            return trackPoints.enumerated().map { ($0.offset, $0.element) }
+        }
+
+        var result: [(Int, TrackPoint)] = []
+        result.reserveCapacity(maxRenderPoints + 1)
+
+        for i in stride(from: 0, to: trackPoints.count, by: subsampleStep) {
+            result.append((i, trackPoints[i]))
+        }
+
+        if let last = trackPoints.last, result.last?.0 != trackPoints.count - 1 {
+            result.append((trackPoints.count - 1, last))
+        }
+
+        return result
+    }
+
+    func render() -> UIImage? {
+        guard trackPoints.count >= 2 else { return nil }
+
+        let totalWidth = horizontalPadding * 2 + CGFloat(trackPoints.count) * pointSpacing
+        let size = CGSize(width: totalWidth, height: height)
+
+        let plotRect = CGRect(
+            x: horizontalPadding,
+            y: paddingTop,
+            width: CGFloat(trackPoints.count) * pointSpacing,
+            height: height - paddingTop - paddingBottom
+        )
+
+        // Compute elevation range
+        var minEle = Double.infinity
+        var maxEle = -Double.infinity
+        for (_, point) in subsampledPoints {
+            minEle = min(minEle, point.elevation)
+            maxEle = max(maxEle, point.elevation)
+        }
+        let eleRange = max(maxEle - minEle, 1)
+
+        let renderer = UIGraphicsImageRenderer(size: size)
+
+        return renderer.image { ctx in
+            let context = ctx.cgContext
+
+            // Draw profile (fill + line)
+            drawProfile(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+
+            // Draw milestones (static, in image)
+            drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+        }
+    }
+
+    private func drawProfile(context: CGContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
+        let fillPath = CGMutablePath()
+        let linePath = CGMutablePath()
+
+        var isFirst = true
+        var lastX: CGFloat = plotRect.minX
+
+        for (originalIndex, point) in subsampledPoints {
+            let x = plotRect.minX + CGFloat(originalIndex) * pointSpacing
+            let y = plotRect.maxY - CGFloat((point.elevation - minEle) / eleRange) * plotRect.height
+
+            if isFirst {
+                fillPath.move(to: CGPoint(x: x, y: plotRect.maxY))
+                fillPath.addLine(to: CGPoint(x: x, y: y))
+                linePath.move(to: CGPoint(x: x, y: y))
+                isFirst = false
+            } else {
+                fillPath.addLine(to: CGPoint(x: x, y: y))
+                linePath.addLine(to: CGPoint(x: x, y: y))
+            }
+            lastX = x
+        }
+
+        fillPath.addLine(to: CGPoint(x: lastX, y: plotRect.maxY))
+        fillPath.closeSubpath()
+
+        // Draw fill
+        context.addPath(fillPath)
+        context.setFillColor(UIColor(TM.trace).withAlphaComponent(0.12).cgColor)
+        context.fillPath()
+
+        // Draw line
+        context.addPath(linePath)
+        context.setStrokeColor(UIColor(TM.trace).cgColor)
+        context.setLineWidth(2)
+        context.setLineJoin(.round)
+        context.strokePath()
+    }
+
+    private func drawMilestones(context: CGContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
+        for (index, milestone) in milestones.enumerated() {
+            guard milestone.pointIndex < trackPoints.count else { continue }
+
+            let x = plotRect.minX + CGFloat(milestone.pointIndex) * pointSpacing
+            let y = plotRect.maxY - CGFloat((milestone.elevation - minEle) / eleRange) * plotRect.height
+
+            // Dashed vertical line
+            context.setStrokeColor(UIColor(TM.accent).withAlphaComponent(0.35).cgColor)
+            context.setLineWidth(1)
+            context.setLineDash(phase: 0, lengths: [3, 2])
+            context.move(to: CGPoint(x: x, y: y))
+            context.addLine(to: CGPoint(x: x, y: plotRect.maxY))
+            context.strokePath()
+            context.setLineDash(phase: 0, lengths: [])
+
+            // Circle fill
+            let circleRect = CGRect(x: x - 8, y: y - 8, width: 16, height: 16)
+            context.setFillColor(UIColor(milestone.milestoneType.color).cgColor)
+            context.fillEllipse(in: circleRect)
+
+            // Circle border
+            context.setStrokeColor(UIColor(TM.bgPrimary).cgColor)
+            context.setLineWidth(2)
+            context.strokeEllipse(in: circleRect)
+
+            // Number text
+            let text = "\(index + 1)"
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.monospacedSystemFont(ofSize: 9, weight: .bold),
+                .foregroundColor: UIColor.white
+            ]
+            let textSize = text.size(withAttributes: attributes)
+            let textRect = CGRect(
+                x: x - textSize.width / 2,
+                y: y - textSize.height / 2,
+                width: textSize.width,
+                height: textSize.height
+            )
+            text.draw(in: textRect, withAttributes: attributes)
+        }
+    }
+}
+
+// MARK: - Scrollable Elevation Profile View
 
 struct ScrollableElevationProfileView: View {
     let trackPoints: [TrackPoint]
     let milestones: [Milestone]
     @Binding var scrolledPointIndex: Int
+    @Binding var scrollToIndex: Int?
 
     private let pointSpacing: CGFloat = 4
-    @State private var scrollOffset: CGFloat = 0
+    private let maxRenderPoints: Int = 2000
+    private let paddingTop: CGFloat = 20
+    private let paddingBottom: CGFloat = 30
+
+    @State private var scrollPosition = ScrollPosition(edge: .leading)
     @State private var lastHapticIndex: Int = 0
+    @State private var profileImage: UIImage?
+    @State private var activeMilestoneIndex: Int? = nil
+
+    #if DEBUG
+    @State private var fpsCounter = FPSCounter()
+    #endif
+
+    private var milestoneIndices: Set<Int> {
+        Set(milestones.map(\.pointIndex))
+    }
+
+    /// Find which milestone (if any) is under the cursor
+    private var currentMilestoneUnderCursor: (index: Int, milestone: Milestone)? {
+        for (index, milestone) in milestones.enumerated() {
+            if abs(milestone.pointIndex - scrolledPointIndex) <= 3 {
+                return (index, milestone)
+            }
+        }
+        return nil
+    }
 
     var body: some View {
         GeometryReader { geometry in
             let horizontalPadding = geometry.size.width / 2
-            let totalWidth = horizontalPadding * 2 + CGFloat(trackPoints.count) * pointSpacing
 
             ZStack {
                 TM.bgSecondary
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    ZStack(alignment: .leading) {
-                        // Main Canvas
-                        Canvas { context, size in
-                            drawProfile(
-                                context: context,
-                                size: size,
-                                horizontalPadding: horizontalPadding,
-                                cursorX: scrollOffset + horizontalPadding
-                            )
-                        }
-                        .frame(width: totalWidth, height: geometry.size.height)
-
-                        // Scroll position tracker
-                        GeometryReader { scrollGeometry in
-                            Color.clear
-                                .preference(
-                                    key: ScrollOffsetPreferenceKey.self,
-                                    value: -scrollGeometry.frame(in: .named("scroll")).origin.x
-                                )
-                        }
-                        .frame(width: totalWidth, height: 1)
+                    // Pre-rendered profile image with milestones (static)
+                    if let image = profileImage {
+                        Image(uiImage: image)
+                            .interpolation(.none)
                     }
                 }
-                .coordinateSpace(name: "scroll")
-                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
-                    // Update scroll offset for cursor drawing
-                    scrollOffset = offset
-
-                    // Update point index
+                .scrollPosition($scrollPosition)
+                .onScrollGeometryChange(for: Int.self) { geo in
+                    let offset = geo.contentOffset.x
                     let index = Int(offset / pointSpacing)
-                    let clampedIndex = max(0, min(index, trackPoints.count - 1))
-
-                    if clampedIndex != scrolledPointIndex {
-                        let oldIndex = scrolledPointIndex
-                        scrolledPointIndex = clampedIndex
-
-                        // Check if we crossed a milestone
-                        let crossedMilestone = milestones.contains { milestone in
-                            let mi = milestone.pointIndex
-                            let minIdx = min(oldIndex, clampedIndex)
-                            let maxIdx = max(oldIndex, clampedIndex)
-                            return mi >= minIdx && mi <= maxIdx
-                        }
-
-                        if crossedMilestone {
-                            // Strong haptic for milestone
-                            Haptic.medium.trigger()
-                        } else if abs(clampedIndex - lastHapticIndex) >= 20 {
-                            // Light haptic every ~20 points
-                            Haptic.light.trigger()
-                            lastHapticIndex = clampedIndex
-                        }
-                    }
+                    return max(0, min(index, trackPoints.count - 1))
+                } action: { oldIndex, newIndex in
+                    handleIndexChange(oldIndex: oldIndex, newIndex: newIndex)
+                }
+                .onChange(of: scrollToIndex) { _, newIndex in
+                    handleProgrammaticScroll(targetIndex: newIndex)
                 }
 
-                // Triangle indicator only (line is in Canvas)
+                // Active milestone highlight (only ONE view, only when cursor is on a milestone)
+                if let active = currentMilestoneUnderCursor {
+                    ActiveMilestoneHighlight(
+                        milestone: active.milestone,
+                        index: active.index,
+                        scrollOffset: CGFloat(scrolledPointIndex) * pointSpacing,
+                        horizontalPadding: horizontalPadding,
+                        pointSpacing: pointSpacing,
+                        height: geometry.size.height,
+                        paddingTop: paddingTop,
+                        paddingBottom: paddingBottom,
+                        trackPoints: trackPoints
+                    )
+                }
+
+                // Cursor overlay
+                cursorOverlay(height: geometry.size.height)
+
+                // Triangle indicator
                 VStack {
                     Image(systemName: "arrowtriangle.down.fill")
                         .font(.system(size: 10))
@@ -81,128 +291,180 @@ struct ScrollableElevationProfileView: View {
                     Spacer()
                 }
                 .allowsHitTesting(false)
+
+                #if DEBUG
+                VStack {
+                    Spacer()
+                    HStack {
+                        Text("\(fpsCounter.fps) FPS")
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            .foregroundStyle(fpsCounter.fps >= 55 ? .green : fpsCounter.fps >= 30 ? .yellow : .red)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 6))
+                        Spacer()
+                    }
+                    .padding(8)
+                }
+                .allowsHitTesting(false)
+                #endif
+            }
+            .onAppear {
+                renderProfileImage(horizontalPadding: horizontalPadding, height: geometry.size.height)
+            }
+            .onChange(of: trackPoints.count) { _, _ in
+                renderProfileImage(horizontalPadding: horizontalPadding, height: geometry.size.height)
+            }
+            .onChange(of: milestones.count) { _, _ in
+                renderProfileImage(horizontalPadding: horizontalPadding, height: geometry.size.height)
             }
         }
     }
 
-    // MARK: - Drawing
+    // MARK: - Profile Image Rendering
 
-    private func drawProfile(context: GraphicsContext, size: CGSize, horizontalPadding: CGFloat, cursorX: CGFloat) {
-        guard trackPoints.count >= 2 else { return }
-
-        let paddingTop: CGFloat = 20
-        let paddingBottom: CGFloat = 30
-
-        let plotRect = CGRect(
-            x: horizontalPadding,
-            y: paddingTop,
-            width: CGFloat(trackPoints.count) * pointSpacing,
-            height: size.height - paddingTop - paddingBottom
+    private func renderProfileImage(horizontalPadding: CGFloat, height: CGFloat) {
+        let renderer = ProfileImageRenderer(
+            trackPoints: trackPoints,
+            milestones: milestones,
+            pointSpacing: pointSpacing,
+            horizontalPadding: horizontalPadding,
+            height: height,
+            maxRenderPoints: maxRenderPoints
         )
-
-        let elevations = trackPoints.map(\.elevation)
-        let minEle = elevations.min() ?? 0
-        let maxEle = elevations.max() ?? 0
-        let eleRange = max(maxEle - minEle, 1)
-
-        // 1. Draw fill
-        drawFill(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
-
-        // 2. Draw elevation line
-        drawElevationLine(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
-
-        // 3. Draw cursor (behind milestones)
-        drawCursor(context: context, plotRect: plotRect, cursorX: cursorX)
-
-        // 4. Draw milestones (on top)
-        drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+        profileImage = renderer.render()
     }
 
-    private func drawFill(context: GraphicsContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
-        var fillPath = Path()
+    // MARK: - Cursor Overlay
 
-        for (index, point) in trackPoints.enumerated() {
-            let x = plotRect.minX + CGFloat(index) * pointSpacing
-            let y = plotRect.maxY - CGFloat((point.elevation - minEle) / eleRange) * plotRect.height
+    private func cursorOverlay(height: CGFloat) -> some View {
+        GeometryReader { geometry in
+            let centerX = geometry.size.width / 2
 
-            if index == 0 {
-                fillPath.move(to: CGPoint(x: x, y: plotRect.maxY))
-                fillPath.addLine(to: CGPoint(x: x, y: y))
-            } else {
-                fillPath.addLine(to: CGPoint(x: x, y: y))
+            Path { path in
+                path.move(to: CGPoint(x: centerX, y: paddingTop - 10))
+                path.addLine(to: CGPoint(x: centerX, y: height - paddingBottom))
             }
+            .stroke(TM.accent.opacity(0.8), lineWidth: 2)
+        }
+        .allowsHitTesting(false)
+    }
+
+    // MARK: - Index Change Handling
+
+    private func handleIndexChange(oldIndex: Int, newIndex: Int) {
+        guard newIndex != scrolledPointIndex else { return }
+
+        let previousIndex = scrolledPointIndex
+        scrolledPointIndex = newIndex
+
+        triggerHapticIfNeeded(oldIndex: previousIndex, newIndex: newIndex)
+    }
+
+    private func triggerHapticIfNeeded(oldIndex: Int, newIndex: Int) {
+        let minIdx = min(oldIndex, newIndex)
+        let maxIdx = max(oldIndex, newIndex)
+
+        let crossedMilestone = milestoneIndices.contains { idx in
+            idx >= minIdx && idx <= maxIdx
         }
 
-        let lastX = plotRect.minX + CGFloat(trackPoints.count - 1) * pointSpacing
-        fillPath.addLine(to: CGPoint(x: lastX, y: plotRect.maxY))
-        fillPath.closeSubpath()
-
-        let gradient = Gradient(colors: [TM.trace.opacity(0.2), TM.trace.opacity(0.02)])
-        context.fill(fillPath, with: .linearGradient(
-            gradient,
-            startPoint: CGPoint(x: 0, y: plotRect.minY),
-            endPoint: CGPoint(x: 0, y: plotRect.maxY)
-        ))
+        if crossedMilestone {
+            Haptic.medium.trigger()
+            lastHapticIndex = newIndex
+        } else if abs(newIndex - lastHapticIndex) >= 20 {
+            Haptic.light.trigger()
+            lastHapticIndex = newIndex
+        }
     }
 
-    private func drawElevationLine(context: GraphicsContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
-        var linePath = Path()
+    private func handleProgrammaticScroll(targetIndex: Int?) {
+        guard let targetIndex else { return }
 
-        for (index, point) in trackPoints.enumerated() {
-            let x = plotRect.minX + CGFloat(index) * pointSpacing
-            let y = plotRect.maxY - CGFloat((point.elevation - minEle) / eleRange) * plotRect.height
+        let targetOffset = CGFloat(targetIndex) * pointSpacing
 
-            if index == 0 {
-                linePath.move(to: CGPoint(x: x, y: y))
-            } else {
-                linePath.addLine(to: CGPoint(x: x, y: y))
-            }
+        withAnimation(.easeOut(duration: 0.25)) {
+            scrollPosition.scrollTo(x: targetOffset)
         }
 
-        context.stroke(linePath, with: .color(TM.trace), style: StrokeStyle(lineWidth: 2, lineJoin: .round))
-    }
-
-    private func drawCursor(context: GraphicsContext, plotRect: CGRect, cursorX: CGFloat) {
-        var linePath = Path()
-        linePath.move(to: CGPoint(x: cursorX, y: plotRect.minY - 10))
-        linePath.addLine(to: CGPoint(x: cursorX, y: plotRect.maxY))
-        context.stroke(linePath, with: .color(TM.accent.opacity(0.8)), style: StrokeStyle(lineWidth: 2))
-    }
-
-    private func drawMilestones(context: GraphicsContext, plotRect: CGRect, minEle: Double, eleRange: Double) {
-        for (index, milestone) in milestones.enumerated() {
-            guard milestone.pointIndex < trackPoints.count else { continue }
-
-            let x = plotRect.minX + CGFloat(milestone.pointIndex) * pointSpacing
-            let y = plotRect.maxY - CGFloat((milestone.elevation - minEle) / eleRange) * plotRect.height
-
-            // Dashed line down
-            var dashPath = Path()
-            dashPath.move(to: CGPoint(x: x, y: y))
-            dashPath.addLine(to: CGPoint(x: x, y: plotRect.maxY))
-            context.stroke(dashPath, with: .color(TM.accent.opacity(0.35)), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
-
-            // Circle background
-            let circleRect = CGRect(x: x - 8, y: y - 8, width: 16, height: 16)
-            context.fill(Path(ellipseIn: circleRect), with: .color(milestone.milestoneType.color))
-
-            // Circle border
-            context.stroke(Path(ellipseIn: circleRect), with: .color(TM.bgPrimary), lineWidth: 2)
-
-            // Number
-            let text = Text("\(index + 1)")
-                .font(.system(size: 9, weight: .bold, design: .monospaced))
-                .foregroundStyle(.white)
-            context.draw(text, at: CGPoint(x: x, y: y), anchor: .center)
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(50))
+            scrollToIndex = nil
         }
     }
 }
 
-// MARK: - Scroll Offset Preference Key
+// MARK: - Active Milestone Highlight
 
-private struct ScrollOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
+private struct ActiveMilestoneHighlight: View {
+    let milestone: Milestone
+    let index: Int
+    let scrollOffset: CGFloat
+    let horizontalPadding: CGFloat
+    let pointSpacing: CGFloat
+    let height: CGFloat
+    let paddingTop: CGFloat
+    let paddingBottom: CGFloat
+    let trackPoints: [TrackPoint]
+
+    @State private var isAppearing = false
+
+    private var yPosition: CGFloat {
+        let plotHeight = height - paddingTop - paddingBottom
+
+        var minEle = Double.infinity
+        var maxEle = -Double.infinity
+        for point in trackPoints {
+            minEle = min(minEle, point.elevation)
+            maxEle = max(maxEle, point.elevation)
+        }
+        let eleRange = max(maxEle - minEle, 1)
+
+        return paddingTop + plotHeight - CGFloat((milestone.elevation - minEle) / eleRange) * plotHeight
+    }
+
+    /// X position relative to screen center (where cursor is)
+    private var xOffsetFromCenter: CGFloat {
+        let milestoneX = CGFloat(milestone.pointIndex) * pointSpacing
+        let cursorX = scrollOffset
+        return milestoneX - cursorX
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let centerX = geometry.size.width / 2
+
+            ZStack {
+                // Glow effect
+                Circle()
+                    .fill(milestone.milestoneType.color.opacity(0.3))
+                    .frame(width: 32, height: 32)
+                    .blur(radius: 4)
+
+                // Main circle
+                Circle()
+                    .fill(milestone.milestoneType.color)
+                    .frame(width: 24, height: 24)
+
+                // Border
+                Circle()
+                    .stroke(TM.bgPrimary, lineWidth: 3)
+                    .frame(width: 24, height: 24)
+
+                // Number
+                Text("\(index + 1)")
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundStyle(.white)
+            }
+            .scaleEffect(isAppearing ? 1.0 : 0.5)
+            .opacity(isAppearing ? 1.0 : 0.0)
+            .position(x: centerX + xOffsetFromCenter, y: yPosition)
+            .onAppear {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                    isAppearing = true
+                }
+            }
+        }
+        .allowsHitTesting(false)
     }
 }
