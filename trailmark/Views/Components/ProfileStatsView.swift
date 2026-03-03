@@ -142,14 +142,6 @@ struct ProfileStatsView: View {
         statsData.terrainTypes[currentIndex]
     }
 
-    private var cumulativeDPlus: Int {
-        statsData.cumulativeDPlus[currentIndex]
-    }
-
-    private var cumulativeDMinus: Int {
-        statsData.cumulativeDMinus[currentIndex]
-    }
-
     private var currentSegment: ProfileStatsData.SegmentData? {
         let segmentIdx = statsData.segmentIndices[currentIndex]
         guard segmentIdx < statsData.segments.count else { return nil }
@@ -167,9 +159,6 @@ struct ProfileStatsView: View {
 
             // SECONDARY: Distance from start
             distanceCard
-
-            // TERTIARY: Altitude, D+, D- grid
-            secondaryStatsGrid
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -305,72 +294,6 @@ struct ProfileStatsView: View {
                 .overlay {
                     RoundedRectangle(cornerRadius: 12)
                         .strokeBorder(TM.border.opacity(0.5), lineWidth: 0.5)
-                }
-        }
-    }
-
-    // MARK: - Tertiary: Secondary Stats Grid
-
-    private var secondaryStatsGrid: some View {
-        HStack(spacing: 10) {
-            // Altitude
-            compactStatCard(
-                icon: "mountain.2",
-                label: "ALTITUDE",
-                value: "\(Int(currentPoint.elevation))",
-                unit: "m",
-                color: TM.textPrimary
-            )
-
-            // D+ done
-            compactStatCard(
-                icon: "arrow.up.right",
-                label: "D+ FAIT",
-                value: "\(cumulativeDPlus)",
-                unit: "m",
-                color: MilestoneType.montee.color
-            )
-
-            // D- done
-            compactStatCard(
-                icon: "arrow.down.right",
-                label: "D- FAIT",
-                value: "\(cumulativeDMinus)",
-                unit: "m",
-                color: MilestoneType.descente.color
-            )
-        }
-    }
-
-    private func compactStatCard(icon: String, label: String, value: String, unit: String, color: Color) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundStyle(color.opacity(0.8))
-
-            VStack(spacing: 2) {
-                HStack(alignment: .firstTextBaseline, spacing: 1) {
-                    Text(value)
-                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                        .foregroundStyle(color)
-                    Text(unit)
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(TM.textMuted)
-                }
-
-                Text(label)
-                    .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(TM.textMuted)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .background {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(TM.border.opacity(0.3), lineWidth: 0.5)
                 }
         }
     }

@@ -59,8 +59,8 @@ private struct ProfileImageRenderer {
     let height: CGFloat
     let maxRenderPoints: Int
 
-    private let paddingTop: CGFloat = 20
-    private let paddingBottom: CGFloat = 30
+    private let paddingTop: CGFloat = 16
+    private let paddingBottom: CGFloat = 16
 
     private var subsampleStep: Int {
         max(1, trackPoints.count / maxRenderPoints)
@@ -208,13 +208,14 @@ private struct ProfileImageRenderer {
 struct ScrollableElevationProfileView: View {
     let trackPoints: [TrackPoint]
     let milestones: [Milestone]
+    let statsData: ProfileStatsData?
     @Binding var scrolledPointIndex: Int
     @Binding var scrollToIndex: Int?
 
     private let pointSpacing: CGFloat = 0.5
     private let maxRenderPoints: Int = 2000
-    private let paddingTop: CGFloat = 20
-    private let paddingBottom: CGFloat = 30
+    private let paddingTop: CGFloat = 16
+    private let paddingBottom: CGFloat = 16
 
     @State private var scrollPosition = ScrollPosition(edge: .leading)
     @State private var profileImage: UIImage?
@@ -313,6 +314,19 @@ struct ScrollableElevationProfileView: View {
                     Spacer()
                 }
                 .allowsHitTesting(false)
+
+                // Stats overlay (top-left)
+                if let stats = statsData, scrolledPointIndex < stats.trackPoints.count {
+                    ElevationStatsOverlay(
+                        altitude: Int(stats.trackPoints[scrolledPointIndex].elevation),
+                        dPlus: stats.cumulativeDPlus[scrolledPointIndex],
+                        dMinus: stats.cumulativeDMinus[scrolledPointIndex]
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.top, 8)
+                    .padding(.leading, 12)
+                    .allowsHitTesting(false)
+                }
 
                 #if DEBUG
                 VStack {
@@ -494,5 +508,51 @@ private struct ActiveMilestoneHighlight: View {
             .position(x: centerX + xOffsetFromCenter, y: yPosition)
         }
         .allowsHitTesting(false)
+    }
+}
+
+// MARK: - Elevation Stats Overlay (Glassmorphic)
+
+private struct ElevationStatsOverlay: View {
+    let altitude: Int
+    let dPlus: Int
+    let dMinus: Int
+
+    var body: some View {
+        HStack(spacing: 8) {
+            // Altitude
+            statItem(value: "\(altitude)", unit: "m", isPrimary: true)
+
+            divider
+
+            // D+
+            statItem(value: "+\(dPlus)", unit: "m", color: MilestoneType.montee.color)
+
+            divider
+
+            // D-
+            statItem(value: "-\(dMinus)", unit: "m", color: MilestoneType.descente.color)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .glassEffect(.regular.interactive(), in: .capsule)
+    }
+
+    private func statItem(value: String, unit: String, isPrimary: Bool = false, color: Color? = nil) -> some View {
+        HStack(spacing: 1) {
+            Text(value)
+                .font(.system(size: isPrimary ? 12 : 11, weight: isPrimary ? .semibold : .medium, design: .monospaced))
+                .foregroundStyle(color ?? TM.textPrimary)
+
+            Text(unit)
+                .font(.system(size: 9, weight: .regular, design: .monospaced))
+                .foregroundStyle(TM.textTertiary)
+        }
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.08))
+            .frame(width: 0.5, height: 16)
     }
 }
