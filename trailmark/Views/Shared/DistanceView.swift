@@ -13,6 +13,9 @@ struct DistanceView: View {
 
     var body: some View {
         HStack(spacing: 4) {
+            Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(TM.textTertiary)
             Text(kilometers)
                 .font(.system(.caption2, design: .monospaced, weight: .bold))
                 .foregroundStyle(TM.textSecondary)
