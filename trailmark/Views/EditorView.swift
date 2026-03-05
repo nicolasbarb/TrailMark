@@ -1,10 +1,18 @@
 import SwiftUI
 import ComposableArchitecture
 
+// @Observable so wrapper views can react, but EditorView body NEVER reads .index
+@Observable
+final class ScrollIndexHolder {
+    var index: Int = 0
+}
+
 struct EditorView: View {
     @Bindable var store: StoreOf<EditorFeature>
-    @State private var scrollToIndex: Int?
+    @State private var scrollTarget: ScrollTarget?
     @State private var profileStatsData: ProfileStatsData?
+    @State private var scrollIndexHolder = ScrollIndexHolder()
+    @State private var highlightedMilestoneId: Int64?
 
     var body: some View {
         ZStack {
@@ -12,13 +20,13 @@ struct EditorView: View {
 
             if let detail = store.trailDetail {
                 VStack(spacing: 0) {
-                    // Mini profile overview
-                    MiniProfileView(
+                    // Mini profile overview (isolated wrapper observes scrollIndexHolder)
+                    MiniProfileWrapper(
                         trackPoints: detail.trackPoints,
                         milestones: store.milestones,
-                        currentIndex: store.scrolledPointIndex,
+                        scrollIndexHolder: scrollIndexHolder,
                         onIndexSelected: { index in
-                            scrollToIndex = index
+                            scrollTarget = ScrollTarget(index: index, animated: false)
                         }
                     )
 
@@ -26,32 +34,50 @@ struct EditorView: View {
                         .fill(TM.bgTertiary)
                         .frame(height: 1)
 
-                    // Scrollable profile (main)
-                    ScrollableElevationProfileView(
-                        trackPoints: detail.trackPoints,
-                        milestones: store.milestones,
-                        statsData: profileStatsData,
-                        scrolledPointIndex: Binding(
-                            get: { store.scrolledPointIndex },
-                            set: { store.send(.scrollPositionChanged($0)) }
-                        ),
-                        scrollToIndex: $scrollToIndex
-                    )
+                    // Scrollable profile (main) with stats overlay
+                    ZStack(alignment: .topLeading) {
+                        ScrollableElevationProfileView(
+                            trackPoints: detail.trackPoints,
+                            milestones: store.milestones,
+                            editingMilestoneId: highlightedMilestoneId,
+                            scrollTarget: $scrollTarget,
+                            onScrollIndexChanged: { [scrollIndexHolder] index in
+                                scrollIndexHolder.index = index
+                            },
+                            onMilestoneTapped: { milestone in
+                                // 1. Scroll to milestone
+                                scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
+
+                                Task { @MainActor in
+                                    // 2. After scroll, show highlight
+                                    try? await Task.sleep(for: .milliseconds(350))
+                                    highlightedMilestoneId = milestone.id
+
+                                    // 3. After highlight, open sheet
+                                    try? await Task.sleep(for: .milliseconds(300))
+                                    store.send(.editMilestone(milestone))
+                                }
+                            }
+                        )
+
+                        // Stats overlay (isolated — only this wrapper re-renders on scroll)
+                        StatsOverlayWrapper(
+                            scrollIndexHolder: scrollIndexHolder,
+                            statsData: profileStatsData
+                        )
+                    }
                     .containerRelativeFrame(.vertical) { height, _ in height * 0.4 }
 
                     Divider()
                         .background(TM.bgTertiary)
 
-                    // Stats for current point (O(1) lookups from pre-computed data)
+                    // Stats for current point (isolated wrapper)
                     ScrollView {
-                        if let statsData = profileStatsData,
-                           store.scrolledPointIndex < statsData.trackPoints.count {
-                            ProfileStatsView(
-                                statsData: statsData,
-                                currentIndex: store.scrolledPointIndex
-                            )
-                            .padding(.bottom, 90) // Space for floating button
-                        }
+                        ProfileStatsWrapper(
+                            scrollIndexHolder: scrollIndexHolder,
+                            statsData: profileStatsData
+                        )
+                        Spacer().frame(height: 90) // Space for floating button
                     }
                     .scrollBounceBehavior(.basedOnSize)
                 }
@@ -146,8 +172,11 @@ struct EditorView: View {
             item: $store.scope(state: \.milestoneSheet, action: \.milestoneSheet)
         ) { sheetStore in
             MilestoneSheetView(store: sheetStore)
-                .presentationDetents([.large])
+                .presentationDetents([.fraction(0.5), .large])
                 .presentationBackground(TM.bgCard)
+                .onDisappear {
+                    highlightedMilestoneId = nil
+                }
         }
     }
 
@@ -157,7 +186,7 @@ struct EditorView: View {
     private var addMilestoneButton: some View {
         Button {
             Haptic.medium.trigger()
-            store.send(.profileTapped(store.scrolledPointIndex))
+            store.send(.profileTapped(scrollIndexHolder.index))
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "plus.circle.fill")
@@ -228,34 +257,47 @@ struct MilestoneSheetView: View {
                         )
                         .padding(.top, 8)
 
-                    // Save button
-                    Button {
-                        Haptic.success.trigger()
-                        store.send(.saveButtonTapped)
-                    } label: {
-                        Text(store.isEditing ? "Enregistrer" : "Ajouter")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(TM.accent, in: RoundedRectangle(cornerRadius: 12))
-                    }
-                    .padding(.top, 16)
                 }
                 .padding(20)
             }
             .toolbar {
+                // Cancel button (always present)
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fermer", systemImage: "xmark", role: .cancel) {
                         Haptic.light.trigger()
                         store.send(.dismissTapped)
                     }
                 }
-                ToolbarItem(placement: .title) {
-                    Text(store.isEditing ? "Modifier" : "Nouveau repère")
+
+                // Title
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 2) {
+                        Text(store.isEditing ? "Modifier" : "Nouveau repère")
+                            .font(.headline)
+                        PointStatsView(distanceMeters: store.distance, altitudeMeters: store.elevation)
+                    }
                 }
-                ToolbarItem(placement: .subtitle) {
-                    PointStatsView(distanceMeters: store.distance, altitudeMeters: store.elevation)
+
+                // Delete button (edit mode only)
+                if store.isEditing {
+                    ToolbarItem(placement: .destructiveAction) {
+                        Button("Supprimer", systemImage: "trash", role: .destructive) {
+                            Haptic.warning.trigger()
+                            store.send(.deleteButtonTapped)
+                        }
+                        .tint(TM.danger)
+                    }
+
+                    ToolbarSpacer(.fixed, placement: .confirmationAction)
+                }
+
+                // Confirm action
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Valider", systemImage: "checkmark") {
+                        Haptic.success.trigger()
+                        store.send(.saveButtonTapped)
+                    }
+                    .fontWeight(.semibold)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -418,6 +460,62 @@ private struct EditorPreviewWrapper: View {
 
 #Preview("Editor - With Milestones") {
     EditorPreviewWrapper(milestones: PreviewData.milestones(from: PreviewData.trackPoints))
+}
+
+// MARK: - Isolated Wrapper Views (observe ScrollIndexHolder, NOT EditorView)
+
+/// Only this view re-renders when scrollIndexHolder.index changes.
+private struct MiniProfileWrapper: View {
+    let trackPoints: [TrackPoint]
+    let milestones: [Milestone]
+    let scrollIndexHolder: ScrollIndexHolder
+    let onIndexSelected: (Int) -> Void
+
+    var body: some View {
+        MiniProfileView(
+            trackPoints: trackPoints,
+            milestones: milestones,
+            currentIndex: scrollIndexHolder.index,
+            onIndexSelected: onIndexSelected
+        )
+    }
+}
+
+/// Only this view re-renders when scrollIndexHolder.index changes.
+/// EditorView body is NOT re-evaluated.
+private struct StatsOverlayWrapper: View {
+    let scrollIndexHolder: ScrollIndexHolder
+    let statsData: ProfileStatsData?
+
+    var body: some View {
+        if let stats = statsData,
+           scrollIndexHolder.index < stats.trackPoints.count {
+            ElevationStatsOverlay(
+                altitude: Int(stats.trackPoints[scrollIndexHolder.index].elevation),
+                dPlus: stats.cumulativeDPlus[scrollIndexHolder.index],
+                dMinus: stats.cumulativeDMinus[scrollIndexHolder.index]
+            )
+            .padding(.top, 8)
+            .padding(.leading, 12)
+            .allowsHitTesting(false)
+        }
+    }
+}
+
+/// Only this view re-renders when scrollIndexHolder.index changes.
+private struct ProfileStatsWrapper: View {
+    let scrollIndexHolder: ScrollIndexHolder
+    let statsData: ProfileStatsData?
+
+    var body: some View {
+        if let stats = statsData,
+           scrollIndexHolder.index < stats.trackPoints.count {
+            ProfileStatsView(
+                statsData: stats,
+                currentIndex: scrollIndexHolder.index
+            )
+        }
+    }
 }
 
 #Preview("Editor - Empty Milestones") {

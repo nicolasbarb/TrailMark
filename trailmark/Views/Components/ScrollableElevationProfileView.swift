@@ -85,34 +85,45 @@ private struct ProfileImageRenderer {
         return result
     }
 
-    func render() -> UIImage? {
-        guard trackPoints.count >= 2 else { return nil }
-
+    private var imageSize: CGSize {
         let totalWidth = horizontalPadding * 2 + CGFloat(trackPoints.count) * pointSpacing
-        let size = CGSize(width: totalWidth, height: height)
+        return CGSize(width: totalWidth, height: height)
+    }
 
-        let plotRect = CGRect(
+    private var plotRect: CGRect {
+        CGRect(
             x: horizontalPadding,
             y: paddingTop,
             width: CGFloat(trackPoints.count) * pointSpacing,
             height: height - paddingTop - paddingBottom
         )
+    }
 
-        // Compute min/max from ALL points (not subsampled) to avoid missing extremes
+    private var elevationBounds: (min: Double, range: Double) {
         var minEle = Double.infinity
         var maxEle = -Double.infinity
         for point in trackPoints {
             minEle = min(minEle, point.elevation)
             maxEle = max(maxEle, point.elevation)
         }
-        let eleRange = max(maxEle - minEle, 1)
+        return (minEle, max(maxEle - minEle, 1))
+    }
 
-        let renderer = UIGraphicsImageRenderer(size: size)
-
+    func renderProfile() -> UIImage? {
+        guard trackPoints.count >= 2 else { return nil }
+        let (minEle, eleRange) = elevationBounds
+        let renderer = UIGraphicsImageRenderer(size: imageSize)
         return renderer.image { ctx in
-            let context = ctx.cgContext
-            drawProfile(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
-            drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+            drawProfile(context: ctx.cgContext, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
+        }
+    }
+
+    func renderMilestones() -> UIImage? {
+        guard trackPoints.count >= 2, !milestones.isEmpty else { return nil }
+        let (minEle, eleRange) = elevationBounds
+        let renderer = UIGraphicsImageRenderer(size: imageSize)
+        return renderer.image { ctx in
+            drawMilestones(context: ctx.cgContext, plotRect: plotRect, minEle: minEle, eleRange: eleRange)
         }
     }
 
@@ -203,14 +214,53 @@ private struct ProfileImageRenderer {
     }
 }
 
+// MARK: - Scroll Cursor Line (inside scroll content, tracks viewport center)
+
+private struct ScrollCursorLine: View {
+    let paddingTop: CGFloat
+    let paddingBottom: CGFloat
+    let height: CGFloat
+
+    var body: some View {
+        GeometryReader { proxy in
+            let frame = proxy.frame(in: .scrollView)
+            let viewportWidth = proxy.bounds(of: .scrollView)?.width ?? 0
+            let cursorX = -frame.minX + viewportWidth / 2
+
+            Path { path in
+                path.move(to: CGPoint(x: cursorX, y: paddingTop - 10))
+                path.addLine(to: CGPoint(x: cursorX, y: height - paddingBottom))
+            }
+            .stroke(Color.secondary, lineWidth: 1.5)
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+// MARK: - Scroll Sync State (instance-level, avoids static var issues)
+
+private final class ScrollSyncState {
+    var currentOffset: CGFloat = 0
+    var pendingIndex: Int = 0
+    var lastSyncedIndex: Int = 0
+}
+
+// MARK: - Scroll Target
+
+struct ScrollTarget: Equatable {
+    let index: Int
+    let animated: Bool
+}
+
 // MARK: - Scrollable Elevation Profile View (120 FPS optimized)
 
 struct ScrollableElevationProfileView: View {
     let trackPoints: [TrackPoint]
     let milestones: [Milestone]
-    let statsData: ProfileStatsData?
-    @Binding var scrolledPointIndex: Int
-    @Binding var scrollToIndex: Int?
+    let editingMilestoneId: Int64?
+    @Binding var scrollTarget: ScrollTarget?
+    var onScrollIndexChanged: ((Int) -> Void)?
+    var onMilestoneTapped: ((Milestone) -> Void)?
 
     private let pointSpacing: CGFloat = 0.5
     private let maxRenderPoints: Int = 2000
@@ -219,21 +269,16 @@ struct ScrollableElevationProfileView: View {
 
     @State private var scrollPosition = ScrollPosition(edge: .leading)
     @State private var profileImage: UIImage?
+    @State private var milestonesImage: UIImage?
     @State private var isScrolling = false
+    @State private var localScrollIndex: Int = 0
 
-    // Non-state tracking (doesn't trigger SwiftUI updates)
-    private static var _currentOffset: CGFloat = 0
-    private static var _pendingIndex: Int = 0
-    private static var _lastHapticMilestoneId: Int64? = nil
-    private static var _lastSyncedIndex: Int = 0
+    // Instance-level tracking (avoids static variable sharing issues)
+    @State private var syncState = ScrollSyncState()
 
     #if DEBUG
     @State private var fpsCounter = FPSCounter()
     #endif
-
-    private var milestoneIndices: Set<Int> {
-        Set(milestones.map(\.pointIndex))
-    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -244,88 +289,79 @@ struct ScrollableElevationProfileView: View {
 
                 // Pure scroll - NO state updates during scroll
                 ScrollView(.horizontal, showsIndicators: false) {
-                    if let image = profileImage {
-                        Image(uiImage: image)
-                            .interpolation(.none)
-                            .resizable()
-                            .frame(height: geometry.size.height)
-                    }
+                    // Profile image as base, with cursor + milestones layered via overlay
+                    profileImageContent(height: geometry.size.height)
                 }
                 .scrollPosition($scrollPosition)
-                // Track scroll offset (no SwiftUI state updates during scroll)
-                .onScrollGeometryChange(for: CGFloat.self) { geo in
-                    geo.contentOffset.x
-                } action: { _, newOffset in
-                    // Store in static vars (no SwiftUI rebuild)
-                    Self._currentOffset = newOffset
+                // Track scroll offset - NO @State updates during scroll
+                .onScrollGeometryChange(for: Int.self) { geo in
+                    let index = Int(geo.contentOffset.x / 0.5)
+                    return max(0, index)
+                } action: { oldIndex, newIndex in
+                    syncState.currentOffset = CGFloat(newIndex) * 0.5
+                    syncState.pendingIndex = newIndex
 
-                    let index = Int(newOffset / pointSpacing)
-                    let clampedIndex = max(0, min(index, trackPoints.count - 1))
-                    Self._pendingIndex = clampedIndex
+                    // Callback to parent
+                    onScrollIndexChanged?(newIndex)
 
-                    // Sync stats + haptic every 20 points (now cheap thanks to pre-computed data)
-                    if abs(clampedIndex - Self._lastSyncedIndex) >= 20 {
-                        scrolledPointIndex = clampedIndex
-                        Self._lastSyncedIndex = clampedIndex
+                    // Light haptic every 20 points
+                    if abs(newIndex - syncState.lastSyncedIndex) >= 20 {
+                        syncState.lastSyncedIndex = newIndex
                         Haptic.light.trigger()
                     }
 
-                    // Medium haptic on milestone crossing
-                    triggerMilestoneHaptic(newIndex: clampedIndex)
                 }
-                // Detect scroll phase to know when scrolling stops
+                // Detect scroll phase
                 .onScrollPhaseChange { oldPhase, newPhase in
-                    let wasScrolling = oldPhase != .idle
-                    let nowIdle = newPhase == .idle
-
-                    isScrolling = !nowIdle
-
-                    // Commit position only when scroll stops
-                    if wasScrolling && nowIdle {
-                        commitScrollPosition()
+                    isScrolling = newPhase != .idle
+                    // Commit position when scroll stops (for milestone tap overlay)
+                    if oldPhase != .idle && newPhase == .idle {
+                        localScrollIndex = syncState.pendingIndex
                     }
                 }
-                .onChange(of: scrollToIndex) { _, newIndex in
-                    handleProgrammaticScroll(targetIndex: newIndex)
+                .onChange(of: scrollTarget) { _, newTarget in
+                    handleProgrammaticScroll(target: newTarget)
                 }
 
-                // Active milestone highlight (only when NOT scrolling)
-                if !isScrolling, let active = currentMilestoneUnderCursor {
-                    ActiveMilestoneHighlight(
-                        milestone: active.milestone,
-                        index: active.index,
-                        scrollOffset: CGFloat(scrolledPointIndex) * pointSpacing,
+                // Triangle indicator
+                VStack {
+                    Image(systemName: "arrowtriangle.down.fill")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.secondary)
+                    Spacer()
+                }
+                .allowsHitTesting(false)
+
+                // Tappable milestone zones
+                MilestoneTapOverlay(
+                    milestones: milestones,
+                    trackPoints: trackPoints,
+                    scrollOffset: CGFloat(localScrollIndex) * pointSpacing,
+                    pointSpacing: pointSpacing,
+                    viewWidth: geometry.size.width,
+                    height: geometry.size.height,
+                    paddingTop: paddingTop,
+                    paddingBottom: paddingBottom,
+                    onTap: { milestone in
+                        Haptic.medium.trigger()
+                        onMilestoneTapped?(milestone)
+                    }
+                )
+
+                // Editing milestone highlight (scaled up)
+                if let editingId = editingMilestoneId,
+                   let editingMilestone = milestones.first(where: { $0.id == editingId }),
+                   let index = milestones.firstIndex(where: { $0.id == editingId }) {
+                    EditingMilestoneHighlight(
+                        milestone: editingMilestone,
+                        index: index,
+                        scrollOffset: CGFloat(localScrollIndex) * pointSpacing,
                         pointSpacing: pointSpacing,
                         height: geometry.size.height,
                         paddingTop: paddingTop,
                         paddingBottom: paddingBottom,
                         trackPoints: trackPoints
                     )
-                }
-
-                // Cursor overlay (static, always visible)
-                cursorOverlay(height: geometry.size.height)
-
-                // Triangle indicator
-                VStack {
-                    Image(systemName: "arrowtriangle.down.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(TM.accent)
-                    Spacer()
-                }
-                .allowsHitTesting(false)
-
-                // Stats overlay (top-left)
-                if let stats = statsData, scrolledPointIndex < stats.trackPoints.count {
-                    ElevationStatsOverlay(
-                        altitude: Int(stats.trackPoints[scrolledPointIndex].elevation),
-                        dPlus: stats.cumulativeDPlus[scrolledPointIndex],
-                        dMinus: stats.cumulativeDMinus[scrolledPointIndex]
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(.top, 8)
-                    .padding(.leading, 12)
-                    .allowsHitTesting(false)
                 }
 
                 #if DEBUG
@@ -368,34 +404,29 @@ struct ScrollableElevationProfileView: View {
         }
     }
 
-    // MARK: - Commit scroll position (only when scroll stops)
+    // MARK: - Scroll Content (profile → cursor → milestones)
 
-    private func commitScrollPosition() {
-        if Self._pendingIndex != scrolledPointIndex {
-            scrolledPointIndex = Self._pendingIndex
-        }
-    }
-
-    // MARK: - Milestone under cursor
-
-    private var currentMilestoneUnderCursor: (index: Int, milestone: Milestone)? {
-        for (index, milestone) in milestones.enumerated() {
-            if abs(milestone.pointIndex - scrolledPointIndex) <= 3 {
-                return (index, milestone)
-            }
-        }
-        return nil
-    }
-
-    // MARK: - Milestone haptic feedback
-
-    private func triggerMilestoneHaptic(newIndex: Int) {
-        for milestone in milestones {
-            let distance = abs(milestone.pointIndex - newIndex)
-            if distance <= 1 && milestone.id != Self._lastHapticMilestoneId {
-                Haptic.medium.trigger()
-                Self._lastHapticMilestoneId = milestone.id
-                return
+    private func profileImageContent(height: CGFloat) -> some View {
+        Group {
+            if let image = profileImage {
+                Image(uiImage: image)
+                    .interpolation(.none)
+                    .resizable()
+                    .frame(height: height)
+                    .overlay {
+                        // Layer 2: Cursor line (tracks viewport center)
+                        ScrollCursorLine(paddingTop: paddingTop, paddingBottom: paddingBottom, height: height)
+                    }
+                    .overlay {
+                        // Layer 3: Milestones on top of cursor
+                        if let msImage = milestonesImage {
+                            Image(uiImage: msImage)
+                                .interpolation(.none)
+                                .resizable()
+                                .frame(height: height)
+                                .allowsHitTesting(false)
+                        }
+                    }
             }
         }
     }
@@ -411,50 +442,44 @@ struct ScrollableElevationProfileView: View {
             height: height,
             maxRenderPoints: maxRenderPoints
         )
-        profileImage = renderer.render()
-    }
-
-    // MARK: - Cursor Overlay
-
-    private func cursorOverlay(height: CGFloat) -> some View {
-        GeometryReader { geometry in
-            let centerX = geometry.size.width / 2
-
-            Path { path in
-                path.move(to: CGPoint(x: centerX, y: paddingTop - 10))
-                path.addLine(to: CGPoint(x: centerX, y: height - paddingBottom))
-            }
-            .stroke(TM.accent.opacity(0.8), lineWidth: 2)
-        }
-        .allowsHitTesting(false)
+        profileImage = renderer.renderProfile()
+        milestonesImage = renderer.renderMilestones()
     }
 
     // MARK: - Programmatic Scroll
 
-    private func handleProgrammaticScroll(targetIndex: Int?) {
-        guard let targetIndex else { return }
+    private func handleProgrammaticScroll(target: ScrollTarget?) {
+        guard let target else { return }
 
-        // Update position immediately for mini profile feedback
-        scrolledPointIndex = targetIndex
-        Self._pendingIndex = targetIndex
-        Self._currentOffset = CGFloat(targetIndex) * pointSpacing
+        let targetIndex = target.index
+
+        // Update position immediately
+        localScrollIndex = targetIndex
+        onScrollIndexChanged?(targetIndex)
+        syncState.pendingIndex = targetIndex
+        syncState.lastSyncedIndex = targetIndex
+        syncState.currentOffset = CGFloat(targetIndex) * pointSpacing
 
         let targetOffset = CGFloat(targetIndex) * pointSpacing
 
-        withAnimation(.easeOut(duration: 0.25)) {
+        if target.animated {
+            withAnimation(.easeInOut(duration: 0.35)) {
+                scrollPosition.scrollTo(x: targetOffset)
+            }
+        } else {
             scrollPosition.scrollTo(x: targetOffset)
         }
 
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(50))
-            scrollToIndex = nil
+            scrollTarget = nil
         }
     }
 }
 
-// MARK: - Active Milestone Highlight
+// MARK: - Editing Milestone Highlight (Scaled up)
 
-private struct ActiveMilestoneHighlight: View {
+private struct EditingMilestoneHighlight: View {
     let milestone: Milestone
     let index: Int
     let scrollOffset: CGFloat
@@ -487,33 +512,110 @@ private struct ActiveMilestoneHighlight: View {
         GeometryReader { geometry in
             let centerX = geometry.size.width / 2
 
-            ZStack {
-                Circle()
-                    .fill(milestone.milestoneType.color.opacity(0.4))
-                    .frame(width: 36, height: 36)
-                    .blur(radius: 6)
-
-                Circle()
-                    .fill(milestone.milestoneType.color)
-                    .frame(width: 26, height: 26)
-
-                Circle()
-                    .stroke(TM.bgPrimary, lineWidth: 3)
-                    .frame(width: 26, height: 26)
-
-                Text("\(index + 1)")
-                    .font(.system(size: 13, weight: .bold, design: .monospaced))
-                    .foregroundStyle(.white)
-            }
-            .position(x: centerX + xOffsetFromCenter, y: yPosition)
+            HighlightBubble(milestone: milestone, index: index)
+                .position(x: centerX + xOffsetFromCenter, y: yPosition)
         }
         .allowsHitTesting(false)
     }
 }
 
+private struct HighlightBubble: View {
+    let milestone: Milestone
+    let index: Int
+    @State private var appeared = false
+
+    var body: some View {
+        ZStack {
+            // Outer glow
+            Circle()
+                .fill(milestone.milestoneType.color.opacity(0.3))
+                .frame(width: 50, height: 50)
+                .blur(radius: 10)
+
+            // Inner glow
+            Circle()
+                .fill(milestone.milestoneType.color.opacity(0.5))
+                .frame(width: 40, height: 40)
+                .blur(radius: 6)
+
+            // Main circle
+            Circle()
+                .fill(milestone.milestoneType.color)
+                .frame(width: 32, height: 32)
+
+            // Border
+            Circle()
+                .stroke(TM.bgPrimary, lineWidth: 3)
+                .frame(width: 32, height: 32)
+
+            // Number
+            Text("\(index + 1)")
+                .font(.system(size: 15, weight: .bold, design: .monospaced))
+                .foregroundStyle(.white)
+        }
+        .scaleEffect(appeared ? 1 : 0.01)
+        .opacity(appeared ? 1 : 0)
+        .onAppear {
+            withAnimation(.spring(duration: 0.35, bounce: 0.3)) {
+                appeared = true
+            }
+        }
+    }
+}
+
+// MARK: - Milestone Tap Overlay
+
+private struct MilestoneTapOverlay: View {
+    let milestones: [Milestone]
+    let trackPoints: [TrackPoint]
+    let scrollOffset: CGFloat
+    let pointSpacing: CGFloat
+    let viewWidth: CGFloat
+    let height: CGFloat
+    let paddingTop: CGFloat
+    let paddingBottom: CGFloat
+    let onTap: (Milestone) -> Void
+
+    private var elevationRange: (min: Double, max: Double) {
+        var minEle = Double.infinity
+        var maxEle = -Double.infinity
+        for point in trackPoints {
+            minEle = min(minEle, point.elevation)
+            maxEle = max(maxEle, point.elevation)
+        }
+        return (minEle, max(maxEle - minEle, 1))
+    }
+
+    var body: some View {
+        let centerX = viewWidth / 2
+        let plotHeight = height - paddingTop - paddingBottom
+        let (minEle, eleRange) = elevationRange
+
+        ZStack {
+            ForEach(milestones) { milestone in
+                let milestoneX = CGFloat(milestone.pointIndex) * pointSpacing
+                let xPosition = centerX + (milestoneX - scrollOffset)
+
+                if xPosition > -30 && xPosition < viewWidth + 30 {
+                    let yPosition = paddingTop + plotHeight - CGFloat((milestone.elevation - minEle) / eleRange) * plotHeight
+
+                    Button {
+                        onTap(milestone)
+                    } label: {
+                        Circle()
+                            .fill(Color.clear)
+                            .frame(width: 44, height: 44)
+                    }
+                    .position(x: xPosition, y: yPosition)
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Elevation Stats Overlay (Glassmorphic)
 
-private struct ElevationStatsOverlay: View {
+struct ElevationStatsOverlay: View {
     let altitude: Int
     let dPlus: Int
     let dMinus: Int

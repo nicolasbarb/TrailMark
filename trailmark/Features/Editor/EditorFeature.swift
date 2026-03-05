@@ -26,6 +26,7 @@ struct MilestoneSheetFeature {
         case binding(BindingAction<State>)
         case typeSelected(MilestoneType)
         case saveButtonTapped
+        case deleteButtonTapped
         case dismissTapped
     }
 
@@ -39,6 +40,8 @@ struct MilestoneSheetFeature {
                 state.selectedType = type
                 return .none
             case .saveButtonTapped:
+                return .none
+            case .deleteButtonTapped:
                 return .none
             case .dismissTapped:
                 return .none
@@ -395,6 +398,20 @@ struct EditorFeature {
                 state.milestones[index].message = message
                 state.milestones[index].name = name
                 return .none
+
+            case .milestoneSheet(.presented(.deleteButtonTapped)):
+                guard let sheet = state.milestoneSheet,
+                      let editingMilestone = sheet.editingMilestone,
+                      let milestoneId = editingMilestone.id,
+                      let index = state.milestones.firstIndex(where: { $0.id == milestoneId }) else {
+                    state.milestoneSheet = nil
+                    return .none
+                }
+                state.milestoneSheet = nil
+                return .concatenate(
+                    .send(._removeMilestoneAt(index)),
+                    .send(._saveMilestones)
+                )
 
             case .milestoneSheet(.presented(.dismissTapped)):
                 state.milestoneSheet = nil
