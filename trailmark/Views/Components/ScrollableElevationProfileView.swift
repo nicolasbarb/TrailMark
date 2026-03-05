@@ -296,7 +296,7 @@ struct ScrollableElevationProfileView: View {
                 // Track scroll offset - NO @State updates during scroll
                 .onScrollGeometryChange(for: Int.self) { geo in
                     let index = Int(geo.contentOffset.x / 0.5)
-                    return max(0, index)
+                    return min(max(0, index), trackPoints.count - 1)
                 } action: { oldIndex, newIndex in
                     syncState.currentOffset = CGFloat(newIndex) * 0.5
                     syncState.pendingIndex = newIndex
