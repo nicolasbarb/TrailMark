@@ -172,8 +172,8 @@ struct ProfileStatsView: View {
             HStack(alignment: .top) {
                 // Terrain indicator
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(segment.type.icon)
-                        .font(.system(size: 28))
+                    Image(systemName: segment.type.systemImage)
+                        .font(.system(size: 28, weight: .semibold))
 
                     Text(segment.type.label.uppercased())
                         .font(.system(.caption2, design: .monospaced, weight: .bold))
