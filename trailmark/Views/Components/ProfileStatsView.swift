@@ -177,15 +177,17 @@ struct ProfileStatsView: View {
 
     private func kineticTape(segment: ProfileStatsData.SegmentData) -> some View {
         HStack(spacing: 0) {
-            // Left: Colored block with skewed edge
+            // Left: Icon block
             VStack(spacing: 3) {
                 Image(systemName: segment.type.systemImage)
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(segment.type.color)
+                    .frame(width: 20, height: 20)
 
                 Text(segment.type.label.uppercased())
                     .font(.system(size: 8, weight: .heavy, design: .monospaced))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(segment.type.color.opacity(0.85))
+                    .frame(height: 10)
 
                 HStack(alignment: .firstTextBaseline, spacing: 1) {
                     Text("\(slopePercent > 0 ? "+" : "")\(slopePercent)")
@@ -193,76 +195,37 @@ struct ProfileStatsView: View {
                     Text("%")
                         .font(.system(size: 9, weight: .medium, design: .monospaced))
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(TM.textPrimary)
             }
             .frame(width: 80)
             .frame(maxHeight: .infinity)
-            .background(
-                segment.type.color,
-                in: UnevenRoundedRectangle(
-                    topLeadingRadius: 14,
-                    bottomLeadingRadius: 14,
-                    bottomTrailingRadius: 4,
-                    topTrailingRadius: 4
-                )
-            )
 
-            // Right: Stats grid
-            VStack(spacing: 0) {
-                // Top row
-                HStack(spacing: 0) {
-                    // Segment distance
-                    VStack(spacing: 2) {
-                        Text("SEGMENT")
-                            .font(.system(size: 8, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(TM.textMuted)
-                        Text(formatSegmentDistance(segment.distance))
-                            .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                            .foregroundStyle(TM.textPrimary)
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    Rectangle()
-                        .fill(TM.border.opacity(0.3))
-                        .frame(width: 0.5, height: 20)
-
-                    // Elevation change
-                    VStack(spacing: 2) {
-                        Text("D\(segment.type == .descente ? "-" : "+")")
-                            .font(.system(size: 8, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(TM.textMuted)
-                        Text("\(segment.elevationChange)m")
-                            .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                            .foregroundStyle(TM.textPrimary)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .padding(.vertical, 8)
-
-                Rectangle()
-                    .fill(TM.border.opacity(0.3))
-                    .frame(height: 0.5)
-                    .padding(.horizontal, 16)
-
-                // Bottom row: Average slope full width
-                HStack {
-                    Text("PENTE MOYENNE")
-                        .font(.system(size: 8, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(TM.textMuted)
-                    Spacer()
-                    Text("\(segment.avgSlopePercent)%")
-                        .font(.system(.title3, design: .monospaced, weight: .bold))
-                        .foregroundStyle(segment.type.color)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
+            // Right: Stats (receipt style)
+            VStack(spacing: 6) {
+                statRow("SEGMENT", value: formatSegmentDistance(segment.distance))
+                statRow("D\(segment.type == .descente ? "−" : "+")", value: "\(segment.elevationChange)m")
+                statRow("PENTE MOY", value: "\(segment.avgSlopePercent)%", valueColor: segment.type.color)
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
         }
         .glassEffect(.regular, in: .rect(cornerRadius: 14))
-        .animation(.easeInOut(duration: 0.3), value: segment.type)
     }
 
     // MARK: - Helpers
+
+    private func statRow(_ label: String, value: String, valueColor: Color = TM.textPrimary) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .foregroundStyle(TM.textMuted)
+            Spacer()
+            Text(value)
+                .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                .foregroundStyle(valueColor)
+        }
+    }
 
     private func formatSegmentDistance(_ distance: Double) -> String {
         if distance >= 1000 {
@@ -344,6 +307,8 @@ private struct MilestoneCarousel: View {
     private func milestoneCard(_ milestone: Milestone, number: Int) -> some View {
         let distanceToMilestone = milestone.distance - currentDistance
         let displayName = (milestone.name?.isEmpty == false) ? milestone.name! : "Repère \(number)"
+        let absDist = abs(distanceToMilestone)
+        let isOnMilestone = absDist < 30
         let isAhead = distanceToMilestone > 0
 
         return Button {
@@ -369,13 +334,15 @@ private struct MilestoneCarousel: View {
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(formatDistance(abs(distanceToMilestone)))
-                        .font(.system(.caption, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.textPrimary)
-                    Text(isAhead ? "SUIVANT" : "PASSÉ")
-                        .font(.system(size: 8, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(isAhead ? TM.textMuted : TM.textTertiary)
+                if !isOnMilestone {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(formatDistance(absDist))
+                            .font(.system(.caption, design: .monospaced, weight: .bold))
+                            .foregroundStyle(TM.textPrimary)
+                        Text(isAhead ? "SUIVANT" : "PASSÉ")
+                            .font(.system(size: 8, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(isAhead ? TM.textMuted : TM.textTertiary)
+                    }
                 }
             }
             .padding(12)

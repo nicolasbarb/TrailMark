@@ -91,9 +91,21 @@ struct EditorView: View {
                             statsData: profileStatsData,
                             milestones: store.milestones,
                             onMilestoneTapped: { milestone in
-                                highlightedMilestoneId = milestone.id
-                                Haptic.medium.trigger()
-                                store.send(.editMilestone(milestone))
+                                let isAlreadyOnMilestone = abs(scrollIndexHolder.index - milestone.pointIndex) <= 5
+                                if isAlreadyOnMilestone {
+                                    highlightedMilestoneId = milestone.id
+                                    Haptic.medium.trigger()
+                                    store.send(.editMilestone(milestone))
+                                } else {
+                                    scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
+                                    Task { @MainActor in
+                                        try? await Task.sleep(for: .milliseconds(350))
+                                        highlightedMilestoneId = milestone.id
+                                        try? await Task.sleep(for: .milliseconds(300))
+                                        Haptic.medium.trigger()
+                                        store.send(.editMilestone(milestone))
+                                    }
+                                }
                             },
                             onScrolledToMilestone: { milestone in
                                 scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
