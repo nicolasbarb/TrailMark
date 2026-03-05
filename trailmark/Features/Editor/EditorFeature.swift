@@ -107,7 +107,7 @@ struct EditorFeature {
         case scrollPositionChanged(Int)
         case profileTapped(Int)
         case saveButtonTapped
-        case savingCompleted
+        case savingCompleted([Milestone])
         case milestoneSheet(PresentationAction<MilestoneSheetFeature.Action>)
         case deleteMilestone(Int)
         case editMilestone(Milestone)
@@ -124,7 +124,7 @@ struct EditorFeature {
         case alert(PresentationAction<Alert>)
 
         // Background save
-        case backgroundSaveCompleted(Trail)
+        case backgroundSaveCompleted(Trail, [Milestone])
         case backgroundSaveFailed
 
         @CasePathable
@@ -211,10 +211,11 @@ struct EditorFeature {
                                     name: milestone.name
                                 )
                             }
-                            try await database.saveMilestones(trailId, milestonesWithTrailId)
+                            let savedMs = try await database.saveMilestones(trailId, milestonesWithTrailId)
+                            await send(.backgroundSaveCompleted(savedTrail, savedMs))
+                        } else {
+                            await send(.backgroundSaveCompleted(savedTrail, []))
                         }
-
-                        await send(.backgroundSaveCompleted(savedTrail))
                     } catch {
                         await send(.backgroundSaveFailed)
                     }
@@ -226,12 +227,15 @@ struct EditorFeature {
                 state.originalMilestones = detail.milestones
                 return .none
 
-            case let .backgroundSaveCompleted(savedTrail):
+            case let .backgroundSaveCompleted(savedTrail, savedMilestones):
                 state.isSavingInBackground = false
                 state.trailId = savedTrail.id
                 state.pendingData = nil
-                // Mettre à jour le trail dans le detail
                 state.trailDetail?.trail = savedTrail
+                if !savedMilestones.isEmpty {
+                    state.milestones = savedMilestones
+                    state.originalMilestones = savedMilestones
+                }
                 return .none
 
             case .backgroundSaveFailed:
@@ -337,12 +341,13 @@ struct EditorFeature {
                 // Ne sauvegarder que si on a un trailId (données déjà en DB)
                 guard let trailId = state.trailId else { return .none }
                 return .run { [milestones = state.milestones] send in
-                    try await database.saveMilestones(trailId, milestones)
-                    await send(.savingCompleted)
+                    let saved = try await database.saveMilestones(trailId, milestones)
+                    await send(.savingCompleted(saved))
                 }
 
-            case .savingCompleted:
-                state.originalMilestones = state.milestones
+            case let .savingCompleted(savedMilestones):
+                state.milestones = savedMilestones
+                state.originalMilestones = savedMilestones
                 return .none
 
             case .milestoneSheet(.presented(.typeSelected(let type))):

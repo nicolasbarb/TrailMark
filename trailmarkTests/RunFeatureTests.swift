@@ -83,7 +83,7 @@ struct RunFeatureTests {
                 fetchTrailDetail: { _ in detail },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
@@ -109,7 +109,7 @@ struct RunFeatureTests {
                 fetchTrailDetail: { _ in detail },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
@@ -130,7 +130,7 @@ struct RunFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }

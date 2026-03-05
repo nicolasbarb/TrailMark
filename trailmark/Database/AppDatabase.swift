@@ -109,7 +109,7 @@ struct DatabaseClient: Sendable {
     var fetchTrailDetail: @Sendable (Int64) async throws -> TrailDetail?
     var insertTrail: @Sendable (Trail, [TrackPoint]) async throws -> Trail
     var deleteTrail: @Sendable (Int64) async throws -> Void
-    var saveMilestones: @Sendable (Int64, [Milestone]) async throws -> Void
+    var saveMilestones: @Sendable (Int64, [Milestone]) async throws -> [Milestone]
     var updateTrailName: @Sendable (Int64, String) async throws -> Void
 }
 
@@ -206,7 +206,8 @@ extension DatabaseClient: DependencyKey {
                         .where { col in col.trailId == trailId }
                         .execute(db)
 
-                    // Insert new milestones
+                    // Insert new milestones and collect IDs
+                    var saved: [Milestone] = []
                     for milestone in milestones {
                         try Milestone.insert {
                             Milestone.Draft(
@@ -222,7 +223,21 @@ extension DatabaseClient: DependencyKey {
                             )
                         }
                         .execute(db)
+
+                        saved.append(Milestone(
+                            id: db.lastInsertedRowID,
+                            trailId: trailId,
+                            pointIndex: milestone.pointIndex,
+                            latitude: milestone.latitude,
+                            longitude: milestone.longitude,
+                            elevation: milestone.elevation,
+                            distance: milestone.distance,
+                            type: milestone.milestoneType,
+                            message: milestone.message,
+                            name: milestone.name
+                        ))
                     }
+                    return saved
                 }
             },
             updateTrailName: { trailId, newName in
@@ -241,7 +256,7 @@ extension DatabaseClient: DependencyKey {
             fetchTrailDetail: { _ in nil },
             insertTrail: { trail, _ in trail },
             deleteTrail: { _ in },
-            saveMilestones: { _, _ in },
+            saveMilestones: { _, milestones in milestones },
             updateTrailName: { _, _ in }
         )
     }
@@ -338,6 +353,7 @@ extension DatabaseClient: DependencyKey {
                         .where { col in col.trailId == trailId }
                         .execute(db)
 
+                    var saved: [Milestone] = []
                     for milestone in milestones {
                         try Milestone.insert {
                             Milestone.Draft(
@@ -353,7 +369,21 @@ extension DatabaseClient: DependencyKey {
                             )
                         }
                         .execute(db)
+
+                        saved.append(Milestone(
+                            id: db.lastInsertedRowID,
+                            trailId: trailId,
+                            pointIndex: milestone.pointIndex,
+                            latitude: milestone.latitude,
+                            longitude: milestone.longitude,
+                            elevation: milestone.elevation,
+                            distance: milestone.distance,
+                            type: milestone.milestoneType,
+                            message: milestone.message,
+                            name: milestone.name
+                        ))
                     }
+                    return saved
                 }
             },
             updateTrailName: { trailId, newName in

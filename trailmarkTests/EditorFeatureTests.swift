@@ -85,7 +85,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in detail },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
@@ -113,7 +113,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in detail },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
@@ -136,7 +136,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
@@ -280,13 +280,14 @@ struct EditorFeatureTests {
                 saveMilestones: { trailId, milestones in
                     savedTrailId = trailId
                     savedMilestones = milestones
+                    return milestones
                 },
                 updateTrailName: { _, _ in }
             )
         }
 
         await store.send(._saveMilestones)
-        await store.receive(.savingCompleted) {
+        await store.receive(.savingCompleted([milestone])) {
             $0.originalMilestones = [milestone]
         }
 
@@ -368,7 +369,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { id, name in
                     updatedTrailId = id
                     updatedName = name
@@ -399,7 +400,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { id in deletedTrailId = id },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
             $0.dismiss = DismissEffect { }
@@ -429,7 +430,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
@@ -439,7 +440,7 @@ struct EditorFeatureTests {
             $0.milestones = [milestone2]
         }
         await store.receive(._saveMilestones)
-        await store.receive(.savingCompleted) {
+        await store.receive(.savingCompleted([milestone2])) {
             $0.originalMilestones = [milestone2]
         }
     }
@@ -467,7 +468,7 @@ struct EditorFeatureTests {
     //             fetchTrailDetail: { _ in nil },
     //             insertTrail: { trail, _ in trail },
     //             deleteTrail: { _ in },
-    //             saveMilestones: { _, _ in },
+    //             saveMilestones: { _, ms in ms },
     //             updateTrailName: { _, _ in }
     //         )
     //     }
@@ -502,14 +503,14 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
 
         await store.send(.saveButtonTapped)
         await store.receive(._saveMilestones)
-        await store.receive(.savingCompleted) {
+        await store.receive(.savingCompleted([milestone])) {
             $0.originalMilestones = [milestone]
         }
     }
@@ -574,7 +575,7 @@ struct EditorFeatureTests {
             EditorFeature()
         }
 
-        await store.send(.savingCompleted) {
+        await store.send(.savingCompleted([milestone])) {
             $0.originalMilestones = [milestone]
         }
     }
@@ -645,7 +646,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
@@ -677,7 +678,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in updateCalled = true }
             )
         }
@@ -742,7 +743,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { id in deletedTrailId = id },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
             $0.dismiss = DismissEffect { }
@@ -884,7 +885,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
@@ -912,7 +913,7 @@ struct EditorFeatureTests {
 
         await store.receive(._saveMilestones)
 
-        await store.receive(.savingCompleted) {
+        await store.receive(.savingCompleted([expectedMilestone])) {
             $0.originalMilestones = [expectedMilestone]
         }
     }
@@ -952,7 +953,7 @@ struct EditorFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { _ in },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }
@@ -969,7 +970,7 @@ struct EditorFeatureTests {
 
         await store.receive(._saveMilestones)
 
-        await store.receive(.savingCompleted) {
+        await store.receive(\.savingCompleted) {
             $0.originalMilestones = $0.milestones
         }
     }
