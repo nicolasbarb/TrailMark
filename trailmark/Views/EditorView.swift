@@ -212,20 +212,17 @@ struct EditorView: View {
 
 struct MilestoneSheetView: View {
     @Bindable var store: StoreOf<MilestoneSheetFeature>
+    @Namespace private var typeIndicator
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Type selector
+                    // Type selector (horizontal cards from Approach 3)
                     sectionLabel("TYPE")
 
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                        ForEach(MilestoneType.allCases, id: \.self) { type in
-                            typeButton(type)
-                        }
-                    }
-                    .padding(.top, 8)
+                    typeCardsSelector(selectedType: store.selectedType)
+                        .padding(.top, 8)
 
                     // Message
                     sectionLabel("MESSAGE TTS")
@@ -262,7 +259,6 @@ struct MilestoneSheetView: View {
                 .padding(20)
             }
             .toolbar {
-                // Cancel button (always present)
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Fermer", systemImage: "xmark", role: .cancel) {
                         Haptic.light.trigger()
@@ -270,7 +266,6 @@ struct MilestoneSheetView: View {
                     }
                 }
 
-                // Title
                 ToolbarItem(placement: .principal) {
                     VStack(spacing: 2) {
                         Text(store.isEditing ? "Modifier" : "Nouveau repère")
@@ -279,7 +274,6 @@ struct MilestoneSheetView: View {
                     }
                 }
 
-                // Delete button (edit mode only)
                 if store.isEditing {
                     ToolbarItem(placement: .destructiveAction) {
                         Button("Supprimer", systemImage: "trash", role: .destructive) {
@@ -292,7 +286,6 @@ struct MilestoneSheetView: View {
                     ToolbarSpacer(.fixed, placement: .confirmationAction)
                 }
 
-                // Confirm action
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Valider", systemImage: "checkmark") {
                         Haptic.success.trigger()
@@ -305,6 +298,8 @@ struct MilestoneSheetView: View {
         }
     }
 
+    // MARK: - Section Label
+
     private func sectionLabel(_ text: String) -> some View {
         Text(text)
             .font(.caption2.weight(.semibold))
@@ -312,31 +307,44 @@ struct MilestoneSheetView: View {
             .foregroundStyle(TM.textMuted)
     }
 
-    private func typeButton(_ type: MilestoneType) -> some View {
-        let isSelected = store.selectedType == type
+    // MARK: - Type Selector
 
-        return Button {
-            Haptic.selection.trigger()
-            store.send(.typeSelected(type))
-        } label: {
-            VStack(spacing: 4) {
-                Text(type.icon)
-                    .font(.title3)
-                Text(type.label)
-                    .font(.caption2)
+    private func typeCardsSelector(selectedType: MilestoneType) -> some View {
+        HStack(spacing: 0) {
+            ForEach(MilestoneType.allCases, id: \.self) { (type: MilestoneType) in
+                let isSelected = selectedType == type
+
+                Button {
+                    Haptic.selection.trigger()
+                    withAnimation(.spring(duration: 0.3, bounce: 0.15)) {
+                        store.send(.typeSelected(type))
+                    }
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: type.systemImage)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(isSelected ? type.color : TM.textMuted)
+                            .frame(width: 20, height: 20)
+
+                        Text(type.label)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(isSelected ? TM.textPrimary : TM.textMuted)
+                            .frame(height: 12)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(type.color.opacity(0.12))
+                                .matchedGeometryEffect(id: "typeBackground", in: typeIndicator)
+                        }
+                    }
+                }
             }
-            .foregroundStyle(isSelected ? TM.textPrimary : TM.textSecondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
-            .background(
-                isSelected ? type.color.opacity(0.1) : TM.bgPrimary,
-                in: RoundedRectangle(cornerRadius: 10)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(isSelected ? type.color : TM.border, lineWidth: 1.5)
-            )
         }
+        .padding(4)
+        .glassEffect(.regular, in: .rect(cornerRadius: 14))
     }
 }
 
