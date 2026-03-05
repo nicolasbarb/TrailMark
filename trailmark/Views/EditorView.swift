@@ -35,7 +35,7 @@ struct EditorView: View {
                         .frame(height: 1)
 
                     // Scrollable profile (main) with stats overlay
-                    ZStack(alignment: .topLeading) {
+                    ZStack(alignment: .top) {
                         ScrollableElevationProfileView(
                             trackPoints: detail.trackPoints,
                             milestones: store.milestones,
@@ -61,11 +61,23 @@ struct EditorView: View {
                             }
                         )
 
-                        // Stats overlay (isolated — only this wrapper re-renders on scroll)
-                        StatsOverlayWrapper(
-                            scrollIndexHolder: scrollIndexHolder,
-                            statsData: profileStatsData
-                        )
+                        // Overlays (isolated wrappers — only re-render on scroll)
+                        HStack {
+                            StatsOverlayWrapper(
+                                scrollIndexHolder: scrollIndexHolder,
+                                statsData: profileStatsData
+                            )
+
+                            Spacer()
+
+                            DistanceOverlayWrapper(
+                                scrollIndexHolder: scrollIndexHolder,
+                                statsData: profileStatsData
+                            )
+                        }
+                        .padding(.top, 8)
+                        .padding(.horizontal, 12)
+                        .allowsHitTesting(false)
                     }
                     .containerRelativeFrame(.vertical) { height, _ in height * 0.4 }
 
@@ -76,7 +88,16 @@ struct EditorView: View {
                     ScrollView {
                         ProfileStatsWrapper(
                             scrollIndexHolder: scrollIndexHolder,
-                            statsData: profileStatsData
+                            statsData: profileStatsData,
+                            milestones: store.milestones,
+                            onMilestoneTapped: { milestone in
+                                highlightedMilestoneId = milestone.id
+                                Haptic.medium.trigger()
+                                store.send(.editMilestone(milestone))
+                            },
+                            onScrolledToMilestone: { milestone in
+                                scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
+                            }
                         )
                         Spacer().frame(height: 90) // Space for floating button
                     }
@@ -504,9 +525,21 @@ private struct StatsOverlayWrapper: View {
                 dPlus: stats.cumulativeDPlus[scrollIndexHolder.index],
                 dMinus: stats.cumulativeDMinus[scrollIndexHolder.index]
             )
-            .padding(.top, 8)
-            .padding(.leading, 12)
-            .allowsHitTesting(false)
+        }
+    }
+}
+
+private struct DistanceOverlayWrapper: View {
+    let scrollIndexHolder: ScrollIndexHolder
+    let statsData: ProfileStatsData?
+
+    var body: some View {
+        if let stats = statsData,
+           scrollIndexHolder.index < stats.trackPoints.count {
+            DistanceView(meters: stats.trackPoints[scrollIndexHolder.index].distance)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .glassEffect(.regular, in: .capsule)
         }
     }
 }
@@ -515,13 +548,19 @@ private struct StatsOverlayWrapper: View {
 private struct ProfileStatsWrapper: View {
     let scrollIndexHolder: ScrollIndexHolder
     let statsData: ProfileStatsData?
+    let milestones: [Milestone]
+    var onMilestoneTapped: ((Milestone) -> Void)?
+    var onScrolledToMilestone: ((Milestone) -> Void)?
 
     var body: some View {
         if let stats = statsData,
            scrollIndexHolder.index < stats.trackPoints.count {
             ProfileStatsView(
                 statsData: stats,
-                currentIndex: scrollIndexHolder.index
+                currentIndex: scrollIndexHolder.index,
+                milestones: milestones,
+                onMilestoneTapped: onMilestoneTapped,
+                onScrolledToMilestone: onScrolledToMilestone
             )
         }
     }

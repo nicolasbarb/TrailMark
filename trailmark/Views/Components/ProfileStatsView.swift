@@ -128,12 +128,14 @@ final class ProfileStatsData {
 struct ProfileStatsView: View {
     let statsData: ProfileStatsData
     let currentIndex: Int
+    let milestones: [Milestone]
+    var onMilestoneTapped: ((Milestone) -> Void)?
+    var onScrolledToMilestone: ((Milestone) -> Void)?
 
     private var currentPoint: TrackPoint {
         statsData.trackPoints[currentIndex]
     }
 
-    // O(1) lookups from pre-computed data
     private var slopePercent: Int {
         statsData.slopePercent[currentIndex]
     }
@@ -151,151 +153,113 @@ struct ProfileStatsView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 16) {
-            // HERO: Terrain Segment Card (Important: Slope, Distance in segment, Terrain type)
-            if let segment = currentSegment {
-                terrainSegmentCard(segment: segment)
+        VStack(spacing: 12) {
+            if !milestones.isEmpty {
+                MilestoneCarousel(
+                    milestones: milestones,
+                    currentDistance: currentPoint.distance,
+                    currentPointIndex: currentIndex,
+                    onMilestoneTapped: onMilestoneTapped,
+                    onScrolledToMilestone: onScrolledToMilestone
+                )
+                .padding(.horizontal, -16) // Break out of parent padding
             }
 
-            // SECONDARY: Distance from start
-            distanceCard
+            if let segment = currentSegment {
+                kineticTape(segment: segment)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
     }
 
-    // MARK: - Hero: Terrain Segment Card
+    // MARK: - Terrain Segment Card
 
-    private func terrainSegmentCard(segment: ProfileStatsData.SegmentData) -> some View {
-        VStack(spacing: 0) {
-            // Top row: Terrain type + Slope
-            HStack(alignment: .top) {
-                // Terrain indicator
-                VStack(alignment: .leading, spacing: 4) {
-                    Image(systemName: segment.type.systemImage)
-                        .font(.system(size: 28, weight: .semibold))
+    private func kineticTape(segment: ProfileStatsData.SegmentData) -> some View {
+        HStack(spacing: 0) {
+            // Left: Colored block with skewed edge
+            VStack(spacing: 3) {
+                Image(systemName: segment.type.systemImage)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
 
-                    Text(segment.type.label.uppercased())
-                        .font(.system(.caption2, design: .monospaced, weight: .bold))
+                Text(segment.type.label.uppercased())
+                    .font(.system(size: 8, weight: .heavy, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.85))
+
+                HStack(alignment: .firstTextBaseline, spacing: 1) {
+                    Text("\(slopePercent > 0 ? "+" : "")\(slopePercent)")
+                        .font(.system(size: 18, weight: .black, design: .monospaced))
+                    Text("%")
+                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                }
+                .foregroundStyle(.white)
+            }
+            .frame(width: 80)
+            .frame(maxHeight: .infinity)
+            .background(
+                segment.type.color,
+                in: UnevenRoundedRectangle(
+                    topLeadingRadius: 14,
+                    bottomLeadingRadius: 14,
+                    bottomTrailingRadius: 4,
+                    topTrailingRadius: 4
+                )
+            )
+
+            // Right: Stats grid
+            VStack(spacing: 0) {
+                // Top row
+                HStack(spacing: 0) {
+                    // Segment distance
+                    VStack(spacing: 2) {
+                        Text("SEGMENT")
+                            .font(.system(size: 8, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(TM.textMuted)
+                        Text(formatSegmentDistance(segment.distance))
+                            .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                            .foregroundStyle(TM.textPrimary)
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    Rectangle()
+                        .fill(TM.border.opacity(0.3))
+                        .frame(width: 0.5, height: 20)
+
+                    // Elevation change
+                    VStack(spacing: 2) {
+                        Text("D\(segment.type == .descente ? "-" : "+")")
+                            .font(.system(size: 8, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(TM.textMuted)
+                        Text("\(segment.elevationChange)m")
+                            .font(.system(.subheadline, design: .monospaced, weight: .bold))
+                            .foregroundStyle(TM.textPrimary)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding(.vertical, 8)
+
+                Rectangle()
+                    .fill(TM.border.opacity(0.3))
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 16)
+
+                // Bottom row: Average slope full width
+                HStack {
+                    Text("PENTE MOYENNE")
+                        .font(.system(size: 8, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(TM.textMuted)
+                    Spacer()
+                    Text("\(segment.avgSlopePercent)%")
+                        .font(.system(.title3, design: .monospaced, weight: .bold))
                         .foregroundStyle(segment.type.color)
                 }
-
-                Spacer()
-
-                // Large slope display
-                VStack(alignment: .trailing, spacing: 0) {
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text("\(slopePercent > 0 ? "+" : "")\(slopePercent)")
-                            .font(.system(size: 44, weight: .bold, design: .monospaced))
-                            .foregroundStyle(segment.type.color)
-                        Text("%")
-                            .font(.system(.title3, design: .monospaced, weight: .medium))
-                            .foregroundStyle(segment.type.color.opacity(0.7))
-                    }
-                    Text("PENTE")
-                        .font(.system(.caption2, design: .monospaced, weight: .semibold))
-                        .foregroundStyle(TM.textMuted)
-                }
-            }
-
-            Spacer().frame(height: 16)
-
-            // Segment stats row
-            HStack(spacing: 0) {
-                // Segment distance
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("SEGMENT")
-                        .font(.system(.caption2, design: .monospaced, weight: .semibold))
-                        .foregroundStyle(TM.textMuted)
-                    Text(formatSegmentDistance(segment.distance))
-                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.textPrimary)
-                }
-
-                Spacer()
-
-                // Elevation change
-                VStack(alignment: .center, spacing: 2) {
-                    Text("D\(segment.type == .descente ? "-" : "+")")
-                        .font(.system(.caption2, design: .monospaced, weight: .semibold))
-                        .foregroundStyle(TM.textMuted)
-                    Text("\(segment.elevationChange)m")
-                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.textPrimary)
-                }
-
-                Spacer()
-
-                // Average slope
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("MOY")
-                        .font(.system(.caption2, design: .monospaced, weight: .semibold))
-                        .foregroundStyle(TM.textMuted)
-                    Text("\(segment.avgSlopePercent)%")
-                        .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.textPrimary)
-                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
             }
         }
-        .padding(16)
-        .background {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(segment.type.color.opacity(0.08))
-                }
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [
-                                    segment.type.color.opacity(0.4),
-                                    segment.type.color.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                }
-        }
-    }
-
-    // MARK: - Secondary: Distance Card
-
-    private var distanceCard: some View {
-        HStack {
-            Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-                .font(.system(size: 20))
-                .foregroundStyle(TM.accent)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("DISTANCE PARCOURUE")
-                    .font(.system(.caption2, design: .monospaced, weight: .semibold))
-                    .foregroundStyle(TM.textMuted)
-
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(String(format: "%.2f", currentPoint.distance / 1000))
-                        .font(.system(.title2, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.textPrimary)
-                    Text("km")
-                        .font(.system(.subheadline, design: .monospaced, weight: .medium))
-                        .foregroundStyle(TM.textMuted)
-                }
-            }
-
-            Spacer()
-        }
-        .padding(14)
-        .background {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(TM.border.opacity(0.5), lineWidth: 0.5)
-                }
-        }
+        .glassEffect(.regular, in: .rect(cornerRadius: 14))
+        .animation(.easeInOut(duration: 0.3), value: segment.type)
     }
 
     // MARK: - Helpers
@@ -308,3 +272,123 @@ struct ProfileStatsView: View {
         }
     }
 }
+
+// MARK: - Milestone Carousel
+
+private struct MilestoneCarousel: View {
+    let milestones: [Milestone]
+    let currentDistance: Double
+    let currentPointIndex: Int
+    var onMilestoneTapped: ((Milestone) -> Void)?
+    var onScrolledToMilestone: ((Milestone) -> Void)?
+
+    @State private var scrollPosition: Int?
+    @State private var isProgrammaticScroll = false
+    @State private var suppressCursorSync = false
+    @State private var suppressGeneration = 0
+
+    private let passedMargin = 5
+
+    private var cursorTargetIndex: Int {
+        let target = milestones.firstIndex { $0.pointIndex + passedMargin > currentPointIndex }
+        return target ?? (milestones.count - 1)
+    }
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 12) {
+                ForEach(Array(milestones.enumerated()), id: \.offset) { index, milestone in
+                    milestoneCard(milestone, number: index + 1)
+                        .containerRelativeFrame(.horizontal)
+                        .id(index)
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.viewAligned)
+        .scrollPosition(id: $scrollPosition)
+        .contentMargins(.horizontal, 16)
+        .scrollClipDisabled()
+        .frame(height: 64)
+        .onChange(of: cursorTargetIndex) { _, newTarget in
+            guard !suppressCursorSync else { return }
+            isProgrammaticScroll = true
+            withAnimation(.spring(duration: 0.35, bounce: 0.15)) {
+                scrollPosition = newTarget
+            }
+        }
+        .onChange(of: scrollPosition) { _, newPosition in
+            guard let index = newPosition, index < milestones.count else { return }
+            if isProgrammaticScroll {
+                isProgrammaticScroll = false
+                return
+            }
+            // User swiped — suppress cursor-driven auto-scroll to avoid feedback loop
+            suppressCursorSync = true
+            suppressGeneration += 1
+            let generation = suppressGeneration
+            onScrolledToMilestone?(milestones[index])
+            Task {
+                try? await Task.sleep(for: .milliseconds(600))
+                if suppressGeneration == generation {
+                    suppressCursorSync = false
+                }
+            }
+        }
+        .onAppear {
+            isProgrammaticScroll = true
+            scrollPosition = cursorTargetIndex
+        }
+    }
+
+    private func milestoneCard(_ milestone: Milestone, number: Int) -> some View {
+        let distanceToMilestone = milestone.distance - currentDistance
+        let displayName = (milestone.name?.isEmpty == false) ? milestone.name! : "Repère \(number)"
+        let isAhead = distanceToMilestone > 0
+
+        return Button {
+            onMilestoneTapped?(milestone)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: milestone.milestoneType.systemImage)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 36, height: 36)
+                    .background(milestone.milestoneType.color, in: Circle())
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(displayName)
+                        .font(.system(.subheadline, weight: .bold))
+                        .foregroundStyle(TM.textPrimary)
+
+                    Text(milestone.message)
+                        .font(.system(.caption, weight: .medium))
+                        .foregroundStyle(TM.textSecondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(formatDistance(abs(distanceToMilestone)))
+                        .font(.system(.caption, design: .monospaced, weight: .bold))
+                        .foregroundStyle(TM.textPrimary)
+                    Text(isAhead ? "SUIVANT" : "PASSÉ")
+                        .font(.system(size: 8, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(isAhead ? TM.textMuted : TM.textTertiary)
+                }
+            }
+            .padding(12)
+            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 14))
+        }
+    }
+
+    private func formatDistance(_ meters: Double) -> String {
+        if meters >= 1000 {
+            return String(format: "%.1f km", meters / 1000)
+        } else {
+            return "\(Int(meters)) m"
+        }
+    }
+}
+
