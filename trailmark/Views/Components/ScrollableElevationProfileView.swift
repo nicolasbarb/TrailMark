@@ -301,19 +301,20 @@ struct ScrollableElevationProfileView: View {
                     syncState.currentOffset = CGFloat(newIndex) * 0.5
                     syncState.pendingIndex = newIndex
 
-                    // Callback to parent
-                    onScrollIndexChanged?(newIndex)
-
-                    // Light haptic every 20 points
-                    if abs(newIndex - syncState.lastSyncedIndex) >= 20 {
-                        syncState.lastSyncedIndex = newIndex
-                        Haptic.light.trigger()
+                    // Update data and haptic every 2 points
+                    if newIndex / 2 != oldIndex / 2 {
+                        onScrollIndexChanged?(newIndex)
+                        Haptic.selection.trigger()
                     }
 
                 }
                 // Detect scroll phase
                 .onScrollPhaseChange { oldPhase, newPhase in
                     isScrolling = newPhase != .idle
+                    // Pre-warm Taptic Engine when scroll begins
+                    if oldPhase == .idle && newPhase != .idle {
+                        Haptic.selection.prepare()
+                    }
                     // Commit position when scroll stops (for milestone tap overlay)
                     if oldPhase != .idle && newPhase == .idle {
                         localScrollIndex = syncState.pendingIndex

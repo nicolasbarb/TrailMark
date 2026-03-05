@@ -55,6 +55,7 @@ struct EditorView: View {
 
                                     // 3. After highlight, open sheet
                                     try? await Task.sleep(for: .milliseconds(300))
+                                    Haptic.medium.trigger()
                                     store.send(.editMilestone(milestone))
                                 }
                             }
