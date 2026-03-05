@@ -629,20 +629,26 @@ struct ElevationStatsOverlay: View {
             divider
 
             // D+
-            statItem(value: "+\(dPlus)", unit: "m", color: MilestoneType.montee.color)
+            statItem(value: "+\(dPlus)", unit: "m", color: MilestoneType.montee.color, icon: MilestoneType.montee.systemImage)
 
             divider
 
             // D-
-            statItem(value: "-\(dMinus)", unit: "m", color: MilestoneType.descente.color)
+            statItem(value: "-\(dMinus)", unit: "m", color: MilestoneType.descente.color, icon: MilestoneType.descente.systemImage)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .glassEffect(.regular.interactive(), in: .capsule)
     }
 
-    private func statItem(value: String, unit: String, isPrimary: Bool = false, color: Color? = nil) -> some View {
-        HStack(spacing: 1) {
+    private func statItem(value: String, unit: String, isPrimary: Bool = false, color: Color? = nil, icon: String? = nil) -> some View {
+        HStack(spacing: 2) {
+            if let icon {
+                Image(systemName: icon)
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(color ?? TM.textPrimary)
+            }
+
             Text(value)
                 .font(.system(size: isPrimary ? 12 : 11, weight: isPrimary ? .semibold : .medium, design: .monospaced))
                 .foregroundStyle(color ?? TM.textPrimary)
