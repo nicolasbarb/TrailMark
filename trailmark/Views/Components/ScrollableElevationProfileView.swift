@@ -335,39 +335,40 @@ private struct SegmentBubbleOverlay: View {
             }
 
             // Bubble
-            HStack(spacing: 8) {
-                // Terrain icon
-                Image(systemName: segment.type.systemImage)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(segment.type.color)
-                    .frame(width: 16)
-
-                // Slope
-                HStack(alignment: .firstTextBaseline, spacing: 1) {
-                    Text("\(slope > 0 ? "+" : "")\(slope)")
-                        .font(.system(size: 13, weight: .black, design: .monospaced))
-                    Text("%")
-                        .font(.system(size: 8, weight: .medium, design: .monospaced))
-                }
-                .foregroundStyle(TM.textPrimary)
-
-                Rectangle()
-                    .fill(TM.border.opacity(0.3))
-                    .frame(width: 0.5, height: 14)
-
-                // Segment distance
-                Text(formatDistance(segment.distance))
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+            HStack(spacing: 10) {
+                // Slope (with angle icon)
+                HStack(spacing: 3) {
+                    Image(systemName: "angle")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(TM.textTertiary)
+                    HStack(alignment: .firstTextBaseline, spacing: 1) {
+                        Text("\(slope > 0 ? "+" : "")\(slope)")
+                            .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        Text("%")
+                            .font(.system(size: 8, weight: .medium, design: .monospaced))
+                    }
                     .foregroundStyle(TM.textSecondary)
+                }
 
-                Rectangle()
-                    .fill(TM.border.opacity(0.3))
-                    .frame(width: 0.5, height: 14)
+                // D+/- (with arrowtriangle icon)
+                HStack(spacing: 3) {
+                    Image(systemName: segment.type == .descente ? "arrowtriangle.down.fill" : "arrowtriangle.up.fill")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(TM.textSecondary)
+                    Text("\(segment.elevationChange)m")
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .foregroundStyle(TM.textSecondary)
+                }
 
-                // D+/-
-                Text("\(segment.type == .descente ? "−" : "+")\(segment.elevationChange)m")
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
-                    .foregroundStyle(segment.type.color)
+                // Segment distance (with path icon)
+                HStack(spacing: 3) {
+                    Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(TM.textTertiary)
+                    Text(formatDistance(segment.distance))
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .foregroundStyle(TM.textSecondary)
+                }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
@@ -480,15 +481,6 @@ struct ScrollableElevationProfileView: View {
                 .onChange(of: scrollTarget) { _, newTarget in
                     handleProgrammaticScroll(target: newTarget)
                 }
-
-                // Triangle indicator
-                VStack {
-                    Image(systemName: "arrowtriangle.down.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.secondary)
-                    Spacer()
-                }
-                .allowsHitTesting(false)
 
                 // Tappable milestone zones
                 MilestoneTapOverlay(
@@ -801,12 +793,12 @@ struct ElevationStatsOverlay: View {
     var body: some View {
         HStack(spacing: 8) {
             // D+
-            statItem(value: "+\(dPlus)", unit: "m", color: MilestoneType.montee.color, icon: MilestoneType.montee.systemImage)
+            statItem(value: "+\(dPlus)", unit: "m", color: MilestoneType.montee.color, icon: "arrowtriangle.up.fill")
 
             divider
 
             // D-
-            statItem(value: "-\(dMinus)", unit: "m", color: MilestoneType.descente.color, icon: MilestoneType.descente.systemImage)
+            statItem(value: "-\(dMinus)", unit: "m", color: MilestoneType.descente.color, icon: "arrowtriangle.down.fill")
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
