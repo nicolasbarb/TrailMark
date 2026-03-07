@@ -129,7 +129,8 @@ struct ProfileStatsView: View {
     let statsData: ProfileStatsData
     let currentIndex: Int
     let milestones: [Milestone]
-    var onMilestoneTapped: ((Milestone) -> Void)?
+    var onGoToMilestone: ((Milestone) -> Void)?
+    var onEditMilestone: ((Milestone) -> Void)?
     var onScrolledToMilestone: ((Milestone) -> Void)?
 
     private var currentPoint: TrackPoint {
@@ -154,12 +155,15 @@ struct ProfileStatsView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            if !milestones.isEmpty {
+            if milestones.isEmpty {
+                emptyState
+            } else {
                 MilestoneCarousel(
                     milestones: milestones,
                     currentDistance: currentPoint.distance,
                     currentPointIndex: currentIndex,
-                    onMilestoneTapped: onMilestoneTapped,
+                    onGoToMilestone: onGoToMilestone,
+                    onEditMilestone: onEditMilestone,
                     onScrolledToMilestone: onScrolledToMilestone
                 )
                 .padding(.horizontal, -16) // Break out of parent padding
@@ -167,6 +171,45 @@ struct ProfileStatsView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            VStack(spacing: 20) {
+                // Stacked milestone type icons as decoration
+                HStack(spacing: 8) {
+                    ForEach([MilestoneType.montee, .descente, .ravito, .danger, .info], id: \.self) { type in
+                        Image(systemName: type.systemImage)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(type.color.opacity(0.5))
+                            .frame(width: 28, height: 28)
+                            .glassEffect(.regular, in: Circle())
+                    }
+                }
+
+                VStack(spacing: 6) {
+                    Text("Aucun repère")
+                        .font(.system(.subheadline, weight: .bold))
+                        .foregroundStyle(TM.textPrimary)
+
+                    Text("Déplacez le curseur sur le profil\npuis ajoutez votre premier repère")
+                        .font(.system(.caption, weight: .medium))
+                        .foregroundStyle(TM.textTertiary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(2)
+                }
+            }
+
+            Spacer()
+
+            // Chevron pointing down to the button
+            Image(systemName: "chevron.compact.down")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundStyle(TM.textTertiary.opacity(0.6))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Terrain Segment Card
@@ -238,7 +281,8 @@ private struct MilestoneCarousel: View {
     let milestones: [Milestone]
     let currentDistance: Double
     let currentPointIndex: Int
-    var onMilestoneTapped: ((Milestone) -> Void)?
+    var onGoToMilestone: ((Milestone) -> Void)?
+    var onEditMilestone: ((Milestone) -> Void)?
     var onScrolledToMilestone: ((Milestone) -> Void)?
 
     @State private var scrollPosition: Int?
@@ -268,7 +312,7 @@ private struct MilestoneCarousel: View {
         .scrollPosition(id: $scrollPosition)
         .contentMargins(.horizontal, 16)
         .scrollClipDisabled()
-        .frame(height: 64)
+        .frame(maxHeight: .infinity)
         .onChange(of: cursorTargetIndex) { _, newTarget in
             guard !suppressCursorSync else { return }
             isProgrammaticScroll = true
@@ -307,43 +351,64 @@ private struct MilestoneCarousel: View {
         let isOnMilestone = absDist < 30
         let isAhead = distanceToMilestone > 0
 
-        return Button {
-            onMilestoneTapped?(milestone)
-        } label: {
-            HStack(spacing: 12) {
+        return VStack(alignment: .leading, spacing: 8) {
+            // Header: type · distance
+            HStack(spacing: 4) {
                 Image(systemName: milestone.milestoneType.systemImage)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-                    .background(milestone.milestoneType.color, in: Circle())
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(displayName)
-                        .font(.system(.subheadline, weight: .bold))
-                        .foregroundStyle(TM.textPrimary)
-
-                    Text(milestone.message)
-                        .font(.system(.caption, weight: .medium))
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(milestone.milestoneType.color)
+                if isOnMilestone {
+                    Text(milestone.milestoneType.label)
+                        .font(.system(.caption2, weight: .semibold))
                         .foregroundStyle(TM.textSecondary)
-                        .lineLimit(1)
-                }
-
-                Spacer()
-
-                if !isOnMilestone {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(formatDistance(absDist))
-                            .font(.system(.caption, design: .monospaced, weight: .bold))
-                            .foregroundStyle(TM.textPrimary)
-                        Text(isAhead ? "SUIVANT" : "PASSÉ")
-                            .font(.system(size: 8, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(isAhead ? TM.textMuted : TM.textTertiary)
-                    }
+                } else {
+                    Text("\(milestone.milestoneType.label) · \(isAhead ? "Dans" : "Il y a") \(formatDistance(absDist))")
+                        .font(.system(.caption2, weight: .semibold))
+                        .foregroundStyle(TM.textSecondary)
                 }
             }
-            .padding(12)
-            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 14))
+
+            // Name
+            Text(displayName)
+                .font(.system(.subheadline, weight: .bold))
+                .foregroundStyle(TM.textPrimary)
+
+            // Message
+            Text(milestone.message)
+                .font(.system(.caption, weight: .medium))
+                .foregroundStyle(TM.textSecondary)
+                .multilineTextAlignment(.leading)
+
+            Spacer()
+
+            // Action buttons
+            HStack(spacing: 8) {
+                Button {
+                    onGoToMilestone?(milestone)
+                } label: {
+                    Label("Voir", systemImage: "eye")
+                        .font(.system(.caption, weight: .semibold))
+                        .foregroundStyle(TM.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .glassEffect(.regular, in: .capsule)
+                }
+
+                Button {
+                    onEditMilestone?(milestone)
+                } label: {
+                    Label("Modifier", systemImage: "pencil")
+                        .font(.system(.caption, weight: .semibold))
+                        .foregroundStyle(TM.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .glassEffect(.regular, in: .capsule)
+                }
+            }
         }
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 14))
     }
 
     private func formatDistance(_ meters: Double) -> String {
