@@ -350,22 +350,22 @@ private struct SegmentBubbleOverlay: View {
                     .foregroundStyle(TM.textSecondary)
                 }
 
-                // D+/- (with arrowtriangle icon)
-                HStack(spacing: 3) {
-                    Image(systemName: segment.type == .descente ? "arrowtriangle.down.fill" : "arrowtriangle.up.fill")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(TM.textSecondary)
-                    Text("\(segment.elevationChange)m")
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
-                        .foregroundStyle(TM.textSecondary)
-                }
-
                 // Segment distance (with path icon)
                 HStack(spacing: 3) {
                     Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(TM.textTertiary)
                     Text(formatDistance(segment.distance))
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .foregroundStyle(TM.textSecondary)
+                }
+
+                // D+/- (with arrowtriangle icon)
+                HStack(spacing: 3) {
+                    Image(systemName: segment.type == .descente ? "arrowtriangle.down.fill" : "arrowtriangle.up.fill")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(TM.textSecondary)
+                    Text("\(segment.type == .descente ? "-" : "+")\(segment.elevationChange)m")
                         .font(.system(size: 11, weight: .bold, design: .monospaced))
                         .foregroundStyle(TM.textSecondary)
                 }
