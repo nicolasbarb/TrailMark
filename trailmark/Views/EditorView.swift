@@ -78,45 +78,28 @@ struct EditorView: View {
                     }
                     .containerRelativeFrame(.vertical) { height, _ in height * 0.5 }
 
-                    // Stats for current point (isolated wrapper)
-                    ScrollView {
-                        ProfileStatsWrapper(
-                            scrollIndexHolder: scrollIndexHolder,
-                            statsData: profileStatsData,
-                            milestones: store.milestones,
-                            onMilestoneTapped: { milestone in
-                                let isAlreadyOnMilestone = abs(scrollIndexHolder.index - milestone.pointIndex) <= 5
-                                if isAlreadyOnMilestone {
-                                    highlightedMilestoneId = milestone.id
-                                    Haptic.medium.trigger()
-                                    store.send(.editMilestone(milestone))
-                                } else {
-                                    scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
-                                    Task { @MainActor in
-                                        try? await Task.sleep(for: .milliseconds(350))
-                                        highlightedMilestoneId = milestone.id
-                                        try? await Task.sleep(for: .milliseconds(300))
-                                        Haptic.medium.trigger()
-                                        store.send(.editMilestone(milestone))
-                                    }
-                                }
-                            },
-                            onScrolledToMilestone: { milestone in
-                                scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
-                            }
-                        )
-                        Spacer().frame(height: 90) // Space for floating button
-                    }
-                    .scrollBounceBehavior(.basedOnSize)
-                }
+                    // Milestone carousel (fills remaining space)
+                    ProfileStatsWrapper(
+                        scrollIndexHolder: scrollIndexHolder,
+                        statsData: profileStatsData,
+                        milestones: store.milestones,
+                        onGoToMilestone: { milestone in
+                            scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
+                        },
+                        onEditMilestone: { milestone in
+                            highlightedMilestoneId = milestone.id
+                            Haptic.medium.trigger()
+                            store.send(.editMilestone(milestone))
+                        },
+                        onScrolledToMilestone: { milestone in
+                            scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
+                        }
+                    )
+                    .padding(.bottom, 12)
 
-                // Floating CTA button with gradient backdrop
-                VStack(spacing: 0) {
-                    Spacer()
-
-                    // Button container
+                    // Add milestone button (glass, bottom)
                     addMilestoneButton
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 16)
                         .padding(.bottom, 16)
                 }
             } else {
@@ -201,27 +184,28 @@ struct EditorView: View {
 
     // MARK: - Add Milestone Button (Primary CTA)
 
+    private var isOnExistingMilestone: Bool {
+        store.milestones.contains { abs($0.pointIndex - scrollIndexHolder.index) <= 5 }
+    }
+
     private var addMilestoneButton: some View {
         Button {
             Haptic.medium.trigger()
             store.send(.profileTapped(scrollIndexHolder.index))
         } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 22, weight: .semibold))
-
-                Text("Ajouter un repère")
-                    .font(.headline.weight(.semibold))
-            }
+            Text("Ajouter un repère")
+                .font(.headline.weight(.semibold))
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background {
-                RoundedRectangle(cornerRadius: 16)
+                Capsule()
                     .fill(TM.accent)
                     .shadow(color: TM.accent.opacity(0.4), radius: 12, x: 0, y: 6)
             }
         }
+        .disabled(isOnExistingMilestone)
+        .opacity(isOnExistingMilestone ? 0.4 : 1)
     }
 }
 
@@ -366,7 +350,7 @@ struct MilestoneSheetView: View {
 }
 
 // MARK: - Preview Helpers
-
+ 
 @MainActor
 private enum PreviewData {
     /// Charge les points depuis le GPX bundlé (preview-trail.gpx)
@@ -563,7 +547,8 @@ private struct ProfileStatsWrapper: View {
     let scrollIndexHolder: ScrollIndexHolder
     let statsData: ProfileStatsData?
     let milestones: [Milestone]
-    var onMilestoneTapped: ((Milestone) -> Void)?
+    var onGoToMilestone: ((Milestone) -> Void)?
+    var onEditMilestone: ((Milestone) -> Void)?
     var onScrolledToMilestone: ((Milestone) -> Void)?
 
     var body: some View {
@@ -573,7 +558,8 @@ private struct ProfileStatsWrapper: View {
                 statsData: stats,
                 currentIndex: scrollIndexHolder.index,
                 milestones: milestones,
-                onMilestoneTapped: onMilestoneTapped,
+                onGoToMilestone: onGoToMilestone,
+                onEditMilestone: onEditMilestone,
                 onScrolledToMilestone: onScrolledToMilestone
             )
         }
