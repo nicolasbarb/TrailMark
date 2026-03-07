@@ -74,6 +74,17 @@ extension MilestoneType {
         }
     }
 
+    var systemImage: String {
+        switch self {
+        case .montee: return "arrow.up.right"
+        case .descente: return "arrow.down.right"
+        case .plat: return "minus"
+        case .ravito: return "fork.knife"
+        case .danger: return "exclamationmark.triangle.fill"
+        case .info: return "info.circle.fill"
+        }
+    }
+
     var label: String {
         switch self {
         case .montee: return "Montée"

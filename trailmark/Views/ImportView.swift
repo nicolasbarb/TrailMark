@@ -368,56 +368,46 @@ private struct ElevationProfilePreview: View {
         let eleRange = max(maxEle - minEle, 1)
         let maxDist = trackPoints.last?.distance ?? 1
 
-        // Draw fill
-        drawFill(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange, maxDist: maxDist)
+        // Use shared ElevationProfileAnalyzer
+        let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: trackPoints)
 
-        // Draw elevation line
-        drawElevationLine(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange, maxDist: maxDist)
+        // Draw colored segments
+        drawColoredSegments(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange, maxDist: maxDist, terrainTypes: terrainTypes)
 
         // Draw milestone markers
         drawMilestones(context: context, plotRect: plotRect, minEle: minEle, eleRange: eleRange, maxDist: maxDist)
     }
 
-    private func drawFill(context: GraphicsContext, plotRect: CGRect, minEle: Double, eleRange: Double, maxDist: Double) {
-        var fillPath = Path()
+    private func drawColoredSegments(context: GraphicsContext, plotRect: CGRect, minEle: Double, eleRange: Double, maxDist: Double, terrainTypes: [TerrainType]) {
+        guard trackPoints.count >= 2 else { return }
 
-        for (index, point) in trackPoints.enumerated() {
-            let x = plotRect.minX + CGFloat(point.distance / maxDist) * plotRect.width
-            let y = plotRect.maxY - CGFloat((point.elevation - minEle) / eleRange) * plotRect.height
+        for i in 1..<trackPoints.count {
+            let prevPoint = trackPoints[i - 1]
+            let currPoint = trackPoints[i]
+            let terrain = terrainTypes[i]
 
-            if index == 0 {
-                fillPath.move(to: CGPoint(x: x, y: plotRect.maxY))
-                fillPath.addLine(to: CGPoint(x: x, y: y))
-            } else {
-                fillPath.addLine(to: CGPoint(x: x, y: y))
-            }
+            let x1 = plotRect.minX + CGFloat(prevPoint.distance / maxDist) * plotRect.width
+            let y1 = plotRect.maxY - CGFloat((prevPoint.elevation - minEle) / eleRange) * plotRect.height
+            let x2 = plotRect.minX + CGFloat(currPoint.distance / maxDist) * plotRect.width
+            let y2 = plotRect.maxY - CGFloat((currPoint.elevation - minEle) / eleRange) * plotRect.height
+
+            // Draw fill for this segment
+            var fillPath = Path()
+            fillPath.move(to: CGPoint(x: x1, y: plotRect.maxY))
+            fillPath.addLine(to: CGPoint(x: x1, y: y1))
+            fillPath.addLine(to: CGPoint(x: x2, y: y2))
+            fillPath.addLine(to: CGPoint(x: x2, y: plotRect.maxY))
+            fillPath.closeSubpath()
+
+            context.fill(fillPath, with: .color(terrain.color.opacity(0.2)))
+
+            // Draw line for this segment
+            var linePath = Path()
+            linePath.move(to: CGPoint(x: x1, y: y1))
+            linePath.addLine(to: CGPoint(x: x2, y: y2))
+
+            context.stroke(linePath, with: .color(terrain.color), style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
         }
-
-        if let last = trackPoints.last {
-            let lastX = plotRect.minX + CGFloat(last.distance / maxDist) * plotRect.width
-            fillPath.addLine(to: CGPoint(x: lastX, y: plotRect.maxY))
-        }
-        fillPath.closeSubpath()
-
-        let gradient = Gradient(colors: [TM.trace.opacity(0.3), TM.trace.opacity(0.05)])
-        context.fill(fillPath, with: .linearGradient(gradient, startPoint: CGPoint(x: 0, y: plotRect.minY), endPoint: CGPoint(x: 0, y: plotRect.maxY)))
-    }
-
-    private func drawElevationLine(context: GraphicsContext, plotRect: CGRect, minEle: Double, eleRange: Double, maxDist: Double) {
-        var linePath = Path()
-
-        for (index, point) in trackPoints.enumerated() {
-            let x = plotRect.minX + CGFloat(point.distance / maxDist) * plotRect.width
-            let y = plotRect.maxY - CGFloat((point.elevation - minEle) / eleRange) * plotRect.height
-
-            if index == 0 {
-                linePath.move(to: CGPoint(x: x, y: y))
-            } else {
-                linePath.addLine(to: CGPoint(x: x, y: y))
-            }
-        }
-
-        context.stroke(linePath, with: .color(TM.trace), style: StrokeStyle(lineWidth: 2, lineJoin: .round))
     }
 
     private func drawMilestones(context: GraphicsContext, plotRect: CGRect, minEle: Double, eleRange: Double, maxDist: Double) {

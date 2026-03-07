@@ -41,6 +41,19 @@ struct GPXParser: Sendable {
         defer { url.stopAccessingSecurityScopedResource() }
 
         let data = try Data(contentsOf: url)
+        return try parseData(data)
+    }
+
+    /// Parse GPX from Bundle resource (for previews)
+    @MainActor static func parseFromBundle(resource: String, extension ext: String = "gpx") throws -> (points: [ParsedPoint], dPlus: Int) {
+        guard let url = Bundle.main.url(forResource: resource, withExtension: ext) else {
+            throw ParseError.fileNotFound
+        }
+        let data = try Data(contentsOf: url)
+        return try parseData(data)
+    }
+
+    @MainActor private static func parseData(_ data: Data) throws -> (points: [ParsedPoint], dPlus: Int) {
         let delegate = GPXParserDelegate()
         let parser = XMLParser(data: data)
         parser.delegate = delegate

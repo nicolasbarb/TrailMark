@@ -156,7 +156,7 @@ struct TrailListFeatureTests {
                 fetchTrailDetail: { _ in nil },
                 insertTrail: { trail, _ in trail },
                 deleteTrail: { id in deleteCalledWithId = id },
-                saveMilestones: { _, _ in },
+                saveMilestones: { _, ms in ms },
                 updateTrailName: { _, _ in }
             )
         }

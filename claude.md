@@ -82,7 +82,7 @@ TrailMark/
 ### Couleurs et style
 - Toujours utiliser les tokens de `Theme.swift` (enum `TM`) — jamais de couleur en dur
 - Font `.system(design: .monospaced)` pour toutes les données numériques
-- Dark mode uniquement, géré dans `TrailMarkApp.swift` — ne jamais ajouter `.preferredColorScheme()` ailleurs (ni dans les views, ni dans les previews)
+- Light et dark mode supportés — ne jamais ajouter `.preferredColorScheme()` dans les views ou les previews
 
 ## GPS Background — configuration critique
 
