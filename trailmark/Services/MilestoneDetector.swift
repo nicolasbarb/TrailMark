@@ -78,7 +78,8 @@ enum MilestoneDetector {
                 guard dMinus >= Int(minimumDescentElevation) else { continue }
 
                 let distKm = segment.distance / 1000
-                let message = formatDescentMessage(dMinus: dMinus, distKm: distKm)
+                let slopePercent = Int(abs(segment.averageSlope * 100))
+                let message = formatDescentMessage(dMinus: dMinus, distKm: distKm, slopePercent: slopePercent)
 
                 let milestone = Milestone(
                     trailId: trailId,
@@ -129,11 +130,11 @@ enum MilestoneDetector {
         return "Montée de \(dPlus) m sur \(dist). Pente moyenne \(slopePercent)%."
     }
 
-    private static func formatDescentMessage(dMinus: Int, distKm: Double) -> String {
+    private static func formatDescentMessage(dMinus: Int, distKm: Double, slopePercent: Int) -> String {
         let dist = distKm >= 1
             ? "\(String(format: "%.1f", distKm)) km"
             : "\(Int(distKm * 1000)) m"
 
-        return "Descente de \(dMinus) m sur \(dist)."
+        return "Descente de \(dMinus) m sur \(dist). Pente moyenne \(slopePercent)%."
     }
 }
