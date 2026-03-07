@@ -8,7 +8,10 @@ struct PaywallContainerView: View {
         ZStack {
             TM.bgPrimary.ignoresSafeArea()
 
-            if store.isLoading {
+            if store.purchaseSucceeded {
+                successView
+                    .transition(.opacity)
+            } else if store.isLoading {
                 ProgressView()
                     .tint(TM.accent)
             } else {
@@ -16,26 +19,50 @@ struct PaywallContainerView: View {
             }
 
             // Close button
-            VStack {
-                HStack {
-                    Spacer()
-                    Button {
-                        Haptic.light.trigger()
-                        store.send(.closeButtonTapped)
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(TM.textSecondary)
-                            .frame(width: 28, height: 28)
-                            .background(.ultraThinMaterial, in: Circle())
+            if !store.purchaseSucceeded {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button {
+                            Haptic.light.trigger()
+                            store.send(.closeButtonTapped)
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(TM.textSecondary)
+                                .frame(width: 28, height: 28)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+                        .padding(16)
                     }
-                    .padding(16)
+                    Spacer()
                 }
-                Spacer()
             }
         }
         .onAppear {
             store.send(.onAppear)
+        }
+    }
+
+    // MARK: - Success View
+
+    private var successView: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 56))
+                .foregroundStyle(TM.success)
+
+            Text("Bienvenue dans PaceMark PRO")
+                .font(.title3.weight(.bold))
+                .foregroundStyle(TM.textPrimary)
+
+            Text("Toutes les fonctionnalités sont débloquées.")
+                .font(.subheadline)
+                .foregroundStyle(TM.textSecondary)
+
+            Spacer()
         }
     }
 
@@ -286,6 +313,7 @@ struct PaywallContainerView: View {
                     .underline()
             }
             .tertiaryButton(size: .mini, tint: TM.textMuted)
+            .disabled(store.isPurchasing)
 
             Text("Paiement sécurisé via App Store\nAnnulation possible à tout moment")
                 .font(.caption2)

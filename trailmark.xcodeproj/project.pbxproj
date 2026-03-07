@@ -11,6 +11,7 @@
 		3F95E3942F446A860004B7A7 /* SQLiteData in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3932F446A860004B7A7 /* SQLiteData */; };
 		3F95E3962F446A860004B7A7 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3952F446A860004B7A7 /* RevenueCat */; };
 		3F95E3982F446A860004B7A7 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3972F446A860004B7A7 /* RevenueCatUI */; };
+		3FF6D58B2F5C886800C70143 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3FF6D58A2F5C886800C70143 /* Secrets.xcconfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +35,7 @@
 		3F7872A02F445DC200FB9399 /* trailmark.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = trailmark.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F7872AD2F445DC500FB9399 /* trailmarkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = trailmarkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F7872B72F445DC500FB9399 /* trailmarkUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = trailmarkUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FF6D58A2F5C886800C70143 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -91,6 +93,7 @@
 				3F7872BA2F445DC500FB9399 /* trailmarkUITests */,
 				3F95E3902F446A860004B7A7 /* Frameworks */,
 				3F7872A12F445DC200FB9399 /* Products */,
+				3FF6D58A2F5C886800C70143 /* Secrets.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -240,6 +243,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3FF6D58B2F5C886800C70143 /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -420,6 +424,7 @@
 		};
 		3F7872C22F445DC500FB9399 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3FF6D58A2F5C886800C70143 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = TrailMark;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -460,6 +465,7 @@
 		};
 		3F7872C32F445DC500FB9399 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3FF6D58A2F5C886800C70143 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = TrailMark;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

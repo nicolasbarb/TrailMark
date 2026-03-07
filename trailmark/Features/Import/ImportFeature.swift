@@ -168,9 +168,8 @@ struct ImportFeature {
 
             case .paywall(.presented(.purchaseCompleted)),
                  .paywall(.presented(.restoreCompleted)):
-                // Achat réussi: fermer le paywall et rester sur l'écran résultat
-                // L'utilisateur peut maintenant voir ses repères et appuyer sur "Continuer"
-                state.paywall = nil
+                // Update premium status but do NOT dismiss —
+                // the PaywallFeature shows a success view then dismisses itself
                 state.$isPremium.withLock { $0 = true }
                 return .none
 

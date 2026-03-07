@@ -168,15 +168,10 @@ struct TrailListFeature {
                     await send(.navigateToEditorWithPendingData(pendingData))
                 }
 
-            case .destination(.presented(.paywall(.purchaseCompleted))):
-                // Purchase succeeded, just dismiss paywall and let user tap again
-                state.destination = nil
-                state.$isPremium.withLock { $0 = true }
-                return .none
-
-            case .destination(.presented(.paywall(.restoreCompleted))):
-                // Restore succeeded, just dismiss paywall and let user tap again
-                state.destination = nil
+            case .destination(.presented(.paywall(.purchaseCompleted))),
+                 .destination(.presented(.paywall(.restoreCompleted))):
+                // Update premium status but do NOT dismiss —
+                // the PaywallFeature shows a success view then dismisses itself
                 state.$isPremium.withLock { $0 = true }
                 return .none
 
