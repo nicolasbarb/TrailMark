@@ -1,0 +1,21 @@
+Ton coach de stratégie de course. Importe un GPX, prépare tes repères sur le profil altimétrique et laisse PaceMark te guider vocalement terrain par terrain.
+
+PaceMark analyse ton parcours, détecte automatiquement les montées, descentes et plats, et place des repères stratégiques sur chaque segment. Personnalise les messages vocaux, ajuste ta stratégie, et le jour de la course : téléphone dans la poche, PaceMark t'annonce chaque repère au bon moment.
+
+FONCTIONNALITES :
+
+- Import GPX depuis n'importe quelle source (Strava, Komoot, AllTrails...)
+- Détection automatique des segments : montée, descente, plat
+- Repères stratégiques avec messages vocaux personnalisables
+- Profil altimétrique interactif pour préparer ta course
+- Guidage vocal GPS en temps réel, même en arrière-plan
+- Fonctionne 100% hors-ligne, aucune connexion requise
+
+POUR QUI :
+
+- Trail runners qui préparent leurs courses
+- Coureurs sur route et marathon
+- Cyclistes sur parcours techniques
+- Tout athlète d'endurance qui veut courir avec un plan
+
+PaceMark n'est pas un tracker. C'est le coach qui te rappelle ce que tu avais prévu de faire, au moment où tu dois le faire.
