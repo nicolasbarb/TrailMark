@@ -55,6 +55,14 @@ Push to TestFlight without version bump (rebuild with new build number)
 
 Build app for release (without upload)
 
+### ios metadata
+
+```sh
+[bundle exec] fastlane ios metadata
+```
+
+Push metadata (description, keywords, etc.) to App Store Connect
+
 ### ios test
 
 ```sh
