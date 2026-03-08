@@ -213,10 +213,10 @@
 				};
 			};
 			buildConfigurationList = 3F78729B2F445DC200FB9399 /* Build configuration list for PBXProject "trailmark" */;
-			developmentRegion = en;
+			developmentRegion = fr;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
+				fr,
 				Base,
 			);
 			mainGroup = 3F7872972F445DC200FB9399;
