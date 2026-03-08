@@ -21,43 +21,37 @@ struct OnboardingView: View {
                     items: [
                         .init(
                             id: 0,
-                            title: "Tous tes parcours réunis",
-                            subtitle: "Centralise tous tes parcours\net accède-y en un instant.",
-                            screenshot: UIImage(named: "listScreenshot")
-                        ),
-                        .init(
-                            id: 1,
-                            title: "Importe tes traces GPX",
-                            subtitle: "Depuis tes fichiers, mails\nou apps de trace.",
+                            title: "Importe ton parcours",
+                            subtitle: "Un fichier GPX, et PaceMark\nanalyse tout automatiquement.",
                             screenshot: UIImage(named: "gpxScreenshot")
                         ),
                         .init(
-                            id: 2,
-                            title: "Analyse le profil",
-                            subtitle: "Visualise la trace de ton gpx et\nles points clés du parcours.",
+                            id: 1,
+                            title: "Prépare ta stratégie",
+                            subtitle: "Visualise le profil altimétrique\net les segments clés de ta course.",
                             screenshot: UIImage(named: "editScreenshot"),
                             zoomScale: 1.3,
                             zoomAnchor: .init(x: 0.5, y: 0.0)
                         ),
                         .init(
-                            id: 3,
+                            id: 2,
                             title: "Place tes repères",
-                            subtitle: "Marque les moments clés :\nmontées, descentes, ravitos, dangers...",
+                            subtitle: "Chaque segment a son instruction.\nMontées, descentes, ravitos, dangers.",
                             screenshot: UIImage(named: "editScreenshot"),
                             zoomScale: 1.5,
                             zoomAnchor: .init(x: 0.5, y: 1.2),
                             sameScreenshotAsPrevious: true
                         ),
                         .init(
-                            id: 4,
-                            title: "Laisse-toi guider",
-                            subtitle: "Reçois des annonces vocales\nà chaque repère pendant ta course.",
+                            id: 3,
+                            title: "Cours sans écran",
+                            subtitle: "Téléphone en poche. PaceMark t'annonce\nchaque repère au bon moment.",
                             screenshot: UIImage(named: "playScreenshot")
                         ),
                         .init(
-                            id: 5,
+                            id: 4,
                             title: "Autorisation GPS",
-                            subtitle: "Autorise TrailMark à accéder à ta\nposition pour te guider vocalement.",
+                            subtitle: "PaceMark a besoin du GPS pour\ndéclencher les annonces vocales.",
                             screenshot: UIImage(named: "mapScreenshot"),
                             isLocationStep: true
                         )
@@ -101,11 +95,11 @@ private struct IntroView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 32))
 
             VStack(spacing: 12) {
-                Text("TrailMark")
+                Text("PaceMark")
                     .font(.system(.largeTitle, design: .monospaced, weight: .bold))
                     .foregroundStyle(TM.accent)
 
-                Text("Bienvenue sur TrailMark,\nPrépare ta course. Optimise ta performance.")
+                Text("Prépare ta course comme un pro.")
                     .font(.title3)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)

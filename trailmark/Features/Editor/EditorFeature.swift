@@ -79,8 +79,10 @@ struct EditorFeature {
         // var isSelectingMilestones = false
         // var selectedMilestoneIndices: Set<Int> = []
         var isSavingInBackground = false
+        @Shared(.inMemory("isPremium")) var isPremium = false
         @Presents var alert: AlertState<Action.Alert>?
         @Presents var milestoneSheet: MilestoneSheetFeature.State?
+        @Presents var paywall: PaywallFeature.State?
 
         var hasMilestoneChanges: Bool {
             milestones != originalMilestones
@@ -122,6 +124,7 @@ struct EditorFeature {
         case renameCancelled
         case trailNameUpdated(String)
         case alert(PresentationAction<Alert>)
+        case paywall(PresentationAction<PaywallFeature.Action>)
 
         // Background save
         case backgroundSaveCompleted(Trail, [Milestone])
@@ -254,6 +257,12 @@ struct EditorFeature {
             case let .profileTapped(pointIndex):
                 guard let detail = state.trailDetail,
                       pointIndex < detail.trackPoints.count else { return .none }
+
+                // Free users: max 10 milestones
+                if !state.isPremium && state.milestones.count >= 10 {
+                    state.paywall = PaywallFeature.State()
+                    return .none
+                }
 
                 let point = detail.trackPoints[pointIndex]
 
@@ -496,11 +505,28 @@ struct EditorFeature {
 
             case .alert:
                 return .none
+
+            // MARK: - Paywall
+
+            case .paywall(.presented(.purchaseCompleted)),
+                 .paywall(.presented(.restoreCompleted)):
+                state.$isPremium.withLock { $0 = true }
+                return .none
+
+            case .paywall(.dismiss):
+                state.paywall = nil
+                return .none
+
+            case .paywall:
+                return .none
             }
         }
         .ifLet(\.$alert, action: \.alert)
         .ifLet(\.$milestoneSheet, action: \.milestoneSheet) {
             MilestoneSheetFeature()
+        }
+        .ifLet(\.$paywall, action: \.paywall) {
+            PaywallFeature()
         }
     }
 

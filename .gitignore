@@ -45,5 +45,8 @@ fastlane/builds/
 *.ipa
 *.dSYM.zip
 
+# Secrets
+Secrets.xcconfig
+
 # Code Injection
 iOSInjectionProject/

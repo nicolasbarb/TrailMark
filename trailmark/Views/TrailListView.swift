@@ -40,7 +40,7 @@ struct TrailListView: View {
             }
         }
         .toolbarRole(.editor)
-        .navigationTitle(Text("TrailMark"))
+        .navigationTitle(Text("Mes parcours"))
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
             store.send(.onAppear)
@@ -94,11 +94,11 @@ struct TrailListView: View {
             Text("🏔️")
                 .font(.system(size: 40))
 
-            Text("Aucun TrailMark")
+            Text("Aucun parcours")
                 .font(.headline)
                 .foregroundStyle(TM.textSecondary)
 
-            Text("Importez un fichier GPX pour créer\nvotre premier guide vocal de trail")
+            Text("Importe ton premier GPX\net prépare ta stratégie de course.")
                 .font(.caption)
                 .foregroundStyle(TM.textMuted)
                 .multilineTextAlignment(.center)
@@ -199,7 +199,7 @@ private struct TrailCard: View {
                         onUnlock()
                     } label: {
                         Label {
-                            Text("Débloquer avec Pro")
+                            Text("Débloquer avec PRO")
                                 .font(.caption.weight(.medium))
                         } icon: {
                             Image(systemName: "lock.fill")

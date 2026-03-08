@@ -30,8 +30,6 @@ struct SubscriptionPackage: Equatable, Sendable, Identifiable {
 // MARK: - DependencyKey
 
 extension SubscriptionClient: DependencyKey {
-    // TODO: Replace with your RevenueCat API key
-    private static let apiKey = "REDACTED_REVENUECAT_KEY"
     private static let premiumEntitlementID = "premium"
 
     static var liveValue: SubscriptionClient {
@@ -39,8 +37,7 @@ extension SubscriptionClient: DependencyKey {
 
         return SubscriptionClient(
             configure: {
-                Purchases.logLevel = .debug
-                Purchases.configure(withAPIKey: apiKey)
+                // RevenueCat is configured in TrailMarkApp.init() via Info.plist key
             },
             isPremium: {
                 await manager.checkPremiumStatus()

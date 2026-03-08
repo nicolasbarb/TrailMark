@@ -13,7 +13,13 @@ struct TrailMarkApp: App {
 
         // Configure RevenueCat
         Purchases.logLevel = .debug
-        Purchases.configure(withAPIKey: "REDACTED_REVENUECAT_KEY")
+        guard let apiKey = Bundle.main.object(forInfoDictionaryKey: "RevenueCatAPIKey") as? String,
+              !apiKey.isEmpty,
+              apiKey != "your_revenuecat_api_key_here"
+        else {
+            fatalError("Missing RevenueCatAPIKey — copy Secrets.xcconfig.template to Secrets.xcconfig and fill in your key")
+        }
+        Purchases.configure(withAPIKey: apiKey)
     }
 
     var body: some Scene {

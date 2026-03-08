@@ -4,9 +4,7 @@ import ComposableArchitecture
 @Reducer
 struct PaywallFeature {
     @ObservableState
-    struct State: Equatable {
-        var purchaseSucceeded = false
-    }
+    struct State: Equatable {}
 
     enum Action: Equatable {
         case purchaseCompleted
@@ -19,15 +17,7 @@ struct PaywallFeature {
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
-            case .purchaseCompleted:
-                state.purchaseSucceeded = true
-                return .none
-
-            case .restoreCompleted:
-                state.purchaseSucceeded = true
-                return .none
-
-            case .closeButtonTapped:
+            case .purchaseCompleted, .restoreCompleted, .closeButtonTapped:
                 return .run { _ in
                     await dismiss()
                 }

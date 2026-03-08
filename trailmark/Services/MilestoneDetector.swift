@@ -78,7 +78,8 @@ enum MilestoneDetector {
                 guard dMinus >= Int(minimumDescentElevation) else { continue }
 
                 let distKm = segment.distance / 1000
-                let message = formatDescentMessage(dMinus: dMinus, distKm: distKm)
+                let slopePercent = Int(abs(segment.averageSlope * 100))
+                let message = formatDescentMessage(dMinus: dMinus, distKm: distKm, slopePercent: slopePercent)
 
                 let milestone = Milestone(
                     trailId: trailId,
@@ -119,58 +120,21 @@ enum MilestoneDetector {
         return filtered
     }
 
-    // MARK: - Climb Categories
-
-    enum ClimbCategory: String {
-        case hc = "Hors Catégorie"
-        case cat1 = "Catégorie 1"
-        case cat2 = "Catégorie 2"
-        case cat3 = "Catégorie 3"
-        case cat4 = "Catégorie 4"
-
-        var shortName: String {
-            switch self {
-            case .hc: return "HC"
-            case .cat1: return "Cat 1"
-            case .cat2: return "Cat 2"
-            case .cat3: return "Cat 3"
-            case .cat4: return "Cat 4"
-            }
-        }
-
-        /// Categorizes a climb based on elevation gain
-        static func from(elevationGain: Int) -> ClimbCategory {
-            switch elevationGain {
-            case 1000...: return .hc
-            case 600..<1000: return .cat1
-            case 300..<600: return .cat2
-            case 150..<300: return .cat3
-            default: return .cat4
-            }
-        }
-    }
-
     // MARK: - Message Formatting
 
     private static func formatClimbMessage(dPlus: Int, distKm: Double, slopePercent: Int) -> String {
-        let category = ClimbCategory.from(elevationGain: dPlus)
+        let dist = distKm >= 1
+            ? "\(String(format: "%.1f", distKm)) km"
+            : "\(Int(distKm * 1000)) m"
 
-        if distKm >= 1 {
-            return "Montée \(category.shortName) — \(dPlus) mètres sur \(String(format: "%.1f", distKm)) kilomètres, \(slopePercent)% moyen"
-        } else {
-            let distM = Int(distKm * 1000)
-            return "Montée \(category.shortName) — \(dPlus) mètres sur \(distM) mètres, \(slopePercent)% moyen"
-        }
+        return "Montée de \(dPlus) m sur \(dist). Pente moyenne \(slopePercent)%."
     }
 
-    private static func formatDescentMessage(dMinus: Int, distKm: Double) -> String {
-        let category = ClimbCategory.from(elevationGain: dMinus)
+    private static func formatDescentMessage(dMinus: Int, distKm: Double, slopePercent: Int) -> String {
+        let dist = distKm >= 1
+            ? "\(String(format: "%.1f", distKm)) km"
+            : "\(Int(distKm * 1000)) m"
 
-        if distKm >= 1 {
-            return "Descente \(category.shortName) — \(dMinus) mètres sur \(String(format: "%.1f", distKm)) kilomètres"
-        } else {
-            let distM = Int(distKm * 1000)
-            return "Descente \(category.shortName) — \(dMinus) mètres sur \(distM) mètres"
-        }
+        return "Descente de \(dMinus) m sur \(dist). Pente moyenne \(slopePercent)%."
     }
 }
