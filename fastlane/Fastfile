@@ -246,6 +246,17 @@ platform :ios do
     UI.success("✅ Built version #{get_version_number(xcodeproj: 'trailmark.xcodeproj')} (build #{new_build})")
   end
 
+  desc "Push metadata (description, keywords, etc.) to App Store Connect"
+  lane :metadata do
+    deliver(
+      api_key: api_key,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      force: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
   desc "Run tests"
   lane :test do
     run_tests(
