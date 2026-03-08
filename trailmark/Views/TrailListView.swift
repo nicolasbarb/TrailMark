@@ -40,7 +40,7 @@ struct TrailListView: View {
             }
         }
         .toolbarRole(.editor)
-        .navigationTitle(Text("PaceMark"))
+        .navigationTitle(Text("Mes parcours"))
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
             store.send(.onAppear)
