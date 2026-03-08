@@ -293,12 +293,11 @@ struct ImportFeatureTests {
         // @Shared state changes don't work well with exhaustive assertions
         store.exhaustivity = .off
 
-        await store.send(.paywall(.presented(.purchaseCompleted))) {
-            $0.paywall = nil
-        }
-        // Should stay on result phase, not auto-continue
+        await store.send(.paywall(.presented(.purchaseCompleted)))
+        // Parent updates premium but does NOT dismiss — child handles dismiss
         #expect(store.state.phase == .result)
         #expect(store.state.isPremium == true)
+        #expect(store.state.paywall != nil)
     }
 
     @Test
@@ -321,12 +320,11 @@ struct ImportFeatureTests {
         // @Shared state changes don't work well with exhaustive assertions
         store.exhaustivity = .off
 
-        await store.send(.paywall(.presented(.restoreCompleted))) {
-            $0.paywall = nil
-        }
-        // Should stay on result phase, not auto-continue
+        await store.send(.paywall(.presented(.restoreCompleted)))
+        // Parent updates premium but does NOT dismiss — child handles dismiss
         #expect(store.state.phase == .result)
         #expect(store.state.isPremium == true)
+        #expect(store.state.paywall != nil)
     }
 
     @Test

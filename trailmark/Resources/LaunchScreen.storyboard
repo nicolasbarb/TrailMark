@@ -26,7 +26,7 @@
                                             <constraint firstAttribute="height" constant="120" id="logo-height"/>
                                         </constraints>
                                     </imageView>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TrailMark" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="app-name-label">
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="PaceMark" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="app-name-label">
                                         <rect key="frame" x="0.66666666666665719" y="136" width="118.66666666666667" height="44"/>
                                         <fontDescription key="fontDescription" name="Menlo-Bold" family="Menlo" pointSize="24"/>
                                         <color key="textColor" red="0.97647058823529409" green="0.45098039215686275" blue="0.086274509803921567" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

@@ -53,11 +53,11 @@ struct ImportView: View {
 
             // Logo
             VStack(spacing: 8) {
-                Text("TrailMark")
+                Text("PaceMark")
                     .font(.system(.largeTitle, design: .monospaced, weight: .bold))
                     .foregroundStyle(TM.accent)
 
-                Text("ÉDITEUR DE REPÈRES GPS")
+                Text("COACH VOCAL DE COURSE")
                     .font(.caption2)
                     .tracking(3)
                     .foregroundStyle(TM.textMuted)

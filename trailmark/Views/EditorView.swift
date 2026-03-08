@@ -179,6 +179,11 @@ struct EditorView: View {
                     highlightedMilestoneId = nil
                 }
         }
+        .fullScreenCover(
+            item: $store.scope(state: \.paywall, action: \.paywall)
+        ) { paywallStore in
+            PaywallContainerView(store: paywallStore)
+        }
     }
 
 

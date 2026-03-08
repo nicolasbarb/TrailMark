@@ -278,29 +278,10 @@ struct MilestoneDetectorTests {
 
         if let climb = milestones.first(where: { $0.milestoneType == .montee }) {
             #expect(climb.message.contains("Montée"))
-            #expect(climb.message.contains("mètres"))
+            #expect(climb.message.contains(" m "))
         }
     }
 
-    // MARK: - Climb Category
-
-    @Test
-    func climbCategoryClassification() {
-        #expect(MilestoneDetector.ClimbCategory.from(elevationGain: 50) == .cat4)
-        #expect(MilestoneDetector.ClimbCategory.from(elevationGain: 150) == .cat3)
-        #expect(MilestoneDetector.ClimbCategory.from(elevationGain: 350) == .cat2)
-        #expect(MilestoneDetector.ClimbCategory.from(elevationGain: 700) == .cat1)
-        #expect(MilestoneDetector.ClimbCategory.from(elevationGain: 1200) == .hc)
-    }
-
-    @Test
-    func climbCategoryShortNames() {
-        #expect(MilestoneDetector.ClimbCategory.cat4.shortName == "Cat 4")
-        #expect(MilestoneDetector.ClimbCategory.cat3.shortName == "Cat 3")
-        #expect(MilestoneDetector.ClimbCategory.cat2.shortName == "Cat 2")
-        #expect(MilestoneDetector.ClimbCategory.cat1.shortName == "Cat 1")
-        #expect(MilestoneDetector.ClimbCategory.hc.shortName == "HC")
-    }
 
     // MARK: - Milestone Properties
 

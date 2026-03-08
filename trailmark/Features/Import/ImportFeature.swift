@@ -168,9 +168,7 @@ struct ImportFeature {
 
             case .paywall(.presented(.purchaseCompleted)),
                  .paywall(.presented(.restoreCompleted)):
-                // Achat réussi: fermer le paywall et rester sur l'écran résultat
-                // L'utilisateur peut maintenant voir ses repères et appuyer sur "Continuer"
-                state.paywall = nil
+                // RevenueCat handles the purchase — isPremium updated via premiumStatusStream
                 state.$isPremium.withLock { $0 = true }
                 return .none
 

@@ -194,7 +194,7 @@ struct ProfileStatsView: View {
                         .font(.system(.subheadline, weight: .bold))
                         .foregroundStyle(TM.textPrimary)
 
-                    Text("Déplacez le curseur sur le profil\npuis ajoutez votre premier repère")
+                    Text("Place tes repères sur le profil\npour préparer ta stratégie de course.")
                         .font(.system(.caption, weight: .medium))
                         .foregroundStyle(TM.textTertiary)
                         .multilineTextAlignment(.center)
