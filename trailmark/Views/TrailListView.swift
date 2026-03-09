@@ -15,9 +15,15 @@ struct TrailListView: View {
             }
         }
         .toolbar {
+            ToolbarItem(placement: .secondaryAction) {
+                Link(destination: URL(string: "mailto:contact@pacemark.app?subject=Retour%20PaceMark")!) {
+                    Label("Donner un retour", systemImage: "envelope")
+                }
+            }
+
             if store.isPremium {
                 ToolbarItem(placement: .primaryAction) {
-                    
+
                     Text("PRO")
                         .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundStyle(.white)
@@ -27,7 +33,7 @@ struct TrailListView: View {
                 }
                 .sharedBackgroundVisibility(.hidden)
             }
-            
+
             ToolbarSpacer(.fixed, placement: .primaryAction)
 
             ToolbarItem(placement: .primaryAction) {
