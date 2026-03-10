@@ -15,11 +15,6 @@ struct TrailListView: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .secondaryAction) {
-                Link(destination: URL(string: "mailto:nicolas.barb.pro@gmail.com?subject=Retour%20PaceMark")!) {
-                    Label("Donner un retour", systemImage: "envelope")
-                }
-            }
 
             if store.isPremium {
                 ToolbarItem(placement: .primaryAction) {
@@ -34,14 +29,18 @@ struct TrailListView: View {
                 .sharedBackgroundVisibility(.hidden)
             }
 
-            ToolbarSpacer(.fixed, placement: .primaryAction)
-
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     Haptic.medium.trigger()
                     store.send(.addButtonTapped)
                 } label: {
                     Image(systemName: "plus")
+                }
+            }
+
+            ToolbarItem(placement: .secondaryAction) {
+                Link(destination: URL(string: "mailto:nicolas.barb.pro@gmail.com?subject=Retour%20PaceMark")!) {
+                    Label("Donner un retour", systemImage: "ellipsis")
                 }
             }
         }
