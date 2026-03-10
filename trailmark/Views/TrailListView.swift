@@ -16,7 +16,7 @@ struct TrailListView: View {
         }
         .toolbar {
             ToolbarItem(placement: .secondaryAction) {
-                Link(destination: URL(string: "mailto:contact@pacemark.app?subject=Retour%20PaceMark")!) {
+                Link(destination: URL(string: "mailto:nicolas.barb.pro@gmail.com?subject=Retour%20PaceMark")!) {
                     Label("Donner un retour", systemImage: "envelope")
                 }
             }
