@@ -31,6 +31,7 @@ struct RunFeature {
         var authorizationDenied = false
         var triggeredMilestoneIds: Set<Int64> = []
         var currentTTSMessage: String?
+        @Shared(.appStorage("completedRunsCount")) var completedRunsCount = 0
 
         // Debug
         var showDebugView = false
@@ -63,12 +64,14 @@ struct RunFeature {
         case _speakMessage(String)
         case _stopTracking
         case _stopSpeech
+        case _requestReviewIfNeeded
         case _dismiss
     }
 
     @Dependency(\.database) var database
     @Dependency(\.location) var location
     @Dependency(\.speech) var speech
+    @Dependency(\.storeKit) var storeKit
     @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
@@ -134,9 +137,12 @@ struct RunFeature {
                 print("[Run] ⏹️ Arrêt du guidage (bouton stop)")
                 state.isRunning = false
                 state.currentTTSMessage = nil
+                state.$completedRunsCount.withLock { $0 += 1 }
+                print("[Run] Courses complétées: \(state.completedRunsCount)")
                 return .concatenate(
                     .send(._stopTracking),
                     .send(._stopSpeech),
+                    .send(._requestReviewIfNeeded),
                     .send(._dismiss)
                 )
 
@@ -250,6 +256,17 @@ struct RunFeature {
                 return .run { [speech] _ in
                     speech.stop()
                     print("[Run] TTS arrêté")
+                }
+
+            case ._requestReviewIfNeeded:
+                let count = state.completedRunsCount
+                guard count == 2 else {
+                    print("[Run] Review non demandée (courses: \(count), requis: 2)")
+                    return .none
+                }
+                print("[Run] ⭐ Demande de review App Store")
+                return .run { [storeKit] _ in
+                    await storeKit.requestReview()
                 }
 
             case ._dismiss:
