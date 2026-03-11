@@ -12,6 +12,12 @@ def asc_api_key
   )
 end
 
+# agvtool overwrites Info.plist with hardcoded values — restore build settings variables
+def restore_infoplist_variables
+  sh("plutil -replace CFBundleShortVersionString -string '$(MARKETING_VERSION)' ../Info.plist")
+  sh("plutil -replace CFBundleVersion -string '$(CURRENT_PROJECT_VERSION)' ../Info.plist")
+end
+
 platform :ios do
   before_all do
     unless File.exist?(API_KEY_PATH)
@@ -117,6 +123,8 @@ platform :ios do
         xcodeproj: "trailmark.xcodeproj",
         build_number: 1
       )
+
+      restore_infoplist_variables
     else
       # No bump: increment build number based on latest TestFlight build
       latest_build = latest_testflight_build_number(
@@ -129,6 +137,8 @@ platform :ios do
         xcodeproj: "trailmark.xcodeproj",
         build_number: latest_build + 1
       )
+
+      restore_infoplist_variables
     end
 
     # Setup certificates and provisioning profiles
