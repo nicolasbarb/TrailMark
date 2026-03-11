@@ -10,6 +10,8 @@ struct TrailListFeature {
         @Shared(.inMemory("isPremium")) var isPremium = false
         var showExpiredAlert = false
         @Shared(.appStorage("trailListVisitCount")) var trailListVisitCount = 0
+        @Shared(.appStorage("completedRunsCount")) var completedRunsCount = 0
+        @Shared(.appStorage("hasRequestedReview")) var hasRequestedReview = false
         @Presents var destination: Destination.State?
     }
 
@@ -33,6 +35,7 @@ struct TrailListFeature {
         case _checkFirstVisitPaywall
         case _loadTrails
         case _startPremiumStream
+        case _requestReviewIfNeeded
 
         #if DEBUG
         // DEBUG: Simuler l'expiration
@@ -47,6 +50,7 @@ struct TrailListFeature {
 
     @Dependency(\.database) var database
     @Dependency(\.subscription) var subscription
+    @Dependency(\.storeKit) var storeKit
 
     var body: some Reducer<State, Action> {
         Reduce { state, action in
@@ -56,6 +60,7 @@ struct TrailListFeature {
                 return .concatenate(
                     .send(._incrementVisitCount),
                     .send(._checkFirstVisitPaywall),
+                    .send(._requestReviewIfNeeded),
                     .merge(
                         .send(._loadTrails),
                         .send(._startPremiumStream)
@@ -85,6 +90,15 @@ struct TrailListFeature {
                     }
                 }
                 .cancellable(id: TrailListCancelID.premiumStatus)
+
+            case ._requestReviewIfNeeded:
+                guard state.completedRunsCount >= 1 && !state.hasRequestedReview else {
+                    return .none
+                }
+                state.$hasRequestedReview.withLock { $0 = true }
+                return .run { [storeKit] _ in
+                    await storeKit.requestReview()
+                }
 
             case let .trailsLoaded(trails):
                 state.isLoading = false
