@@ -50,3 +50,6 @@ Secrets.xcconfig
 
 # Code Injection
 iOSInjectionProject/
+
+# Docs
+docs/
