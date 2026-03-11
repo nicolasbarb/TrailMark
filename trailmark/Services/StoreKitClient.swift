@@ -11,14 +11,13 @@ struct StoreKitClient: Sendable {
 // MARK: - DependencyKey
 
 extension StoreKitClient: DependencyKey {
+    @MainActor
     static let liveValue = StoreKitClient(
         requestReview: {
-            await MainActor.run {
-                guard let windowScene = UIApplication.shared.connectedScenes
-                    .compactMap({ $0 as? UIWindowScene })
-                    .first else { return }
-                SKStoreReviewController.requestReview(in: windowScene)
-            }
+            guard let windowScene = await UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first else { return }
+            try? await AppStore.requestReview(in: windowScene)
         }
     )
 
