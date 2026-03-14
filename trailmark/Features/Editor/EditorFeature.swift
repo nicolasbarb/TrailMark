@@ -19,6 +19,7 @@ struct MilestoneSheetFeature {
         var message: String
         var name: String
         var premiumPreviewMessage: String? = nil
+        var isPlayingPreview = false
 
         var isEditing: Bool { editingMilestone != nil }
     }
@@ -29,7 +30,14 @@ struct MilestoneSheetFeature {
         case saveButtonTapped
         case deleteButtonTapped
         case dismissTapped
+        case previewTTSTapped
+        case stopTTSTapped
+        case ttsFinished
     }
+
+    @Dependency(\.speech) var speech
+
+    private enum CancelID { case ttsPreview }
 
     var body: some Reducer<State, Action> {
         BindingReducer()
@@ -45,6 +53,23 @@ struct MilestoneSheetFeature {
             case .deleteButtonTapped:
                 return .none
             case .dismissTapped:
+                speech.stop()
+                return .cancel(id: CancelID.ttsPreview)
+            case .previewTTSTapped:
+                guard !state.message.isEmpty else { return .none }
+                state.isPlayingPreview = true
+                return .run { [message = state.message] send in
+                    try? speech.configureAudioSession()
+                    await speech.speak(message)
+                    await send(.ttsFinished)
+                }
+                .cancellable(id: CancelID.ttsPreview)
+            case .stopTTSTapped:
+                state.isPlayingPreview = false
+                speech.stop()
+                return .cancel(id: CancelID.ttsPreview)
+            case .ttsFinished:
+                state.isPlayingPreview = false
                 return .none
             }
         }
@@ -485,6 +510,11 @@ struct EditorFeature {
                 return .none
 
             case .milestoneSheet(.presented(.binding)):
+                return .none
+
+            case .milestoneSheet(.presented(.previewTTSTapped)),
+                 .milestoneSheet(.presented(.stopTTSTapped)),
+                 .milestoneSheet(.presented(.ttsFinished)):
                 return .none
 
             case .milestoneSheet(.dismiss):
