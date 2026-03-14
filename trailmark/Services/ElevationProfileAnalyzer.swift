@@ -233,8 +233,9 @@ enum ElevationProfileAnalyzer {
         trackPoints: [TrackPoint],
         terrainTypes: [TerrainType]
     ) -> LookaheadStats? {
-        guard pointIndex < trackPoints.count,
-              pointIndex < terrainTypes.count else { return nil }
+        guard pointIndex >= 0,
+              pointIndex < trackPoints.count,
+              terrainTypes.count == trackPoints.count else { return nil }
 
         let startType = terrainTypes[pointIndex]
         let startPoint = trackPoints[pointIndex]
