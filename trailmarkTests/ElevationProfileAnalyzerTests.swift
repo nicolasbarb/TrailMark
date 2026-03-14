@@ -286,4 +286,118 @@ struct ElevationProfileAnalyzerTests {
         #expect(ElevationProfileAnalyzer.minSegmentLength >= 50)
         #expect(ElevationProfileAnalyzer.minSegmentLength <= 500)
     }
+
+    // MARK: - computeLookaheadStats() Tests
+
+    @Test
+    func computeLookaheadStats_atStartOfClimb_returnsFullClimbStats() {
+        let points = Self.makeVariedProfile()
+        let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: points)
+        let segments = ElevationProfileAnalyzer.segments(from: points)
+
+        guard let climbSegment = segments.first(where: { $0.type == .climbing }) else {
+            Issue.record("No climbing segment found")
+            return
+        }
+
+        let stats = ElevationProfileAnalyzer.computeLookaheadStats(
+            from: climbSegment.startIndex,
+            trackPoints: points,
+            terrainTypes: terrainTypes
+        )
+
+        #expect(stats != nil)
+        #expect(stats!.distance > 0)
+        #expect(stats!.elevationGain > 0)
+        #expect(stats!.terrainType == .climbing)
+    }
+
+    @Test
+    func computeLookaheadStats_atMidClimb_returnsRemainingStats() {
+        let points = Self.makeVariedProfile()
+        let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: points)
+        let segments = ElevationProfileAnalyzer.segments(from: points)
+
+        guard let climbSegment = segments.first(where: { $0.type == .climbing }) else {
+            Issue.record("No climbing segment found")
+            return
+        }
+
+        let midIndex = (climbSegment.startIndex + climbSegment.endIndex) / 2
+        let fullStats = ElevationProfileAnalyzer.computeLookaheadStats(
+            from: climbSegment.startIndex,
+            trackPoints: points,
+            terrainTypes: terrainTypes
+        )
+        let midStats = ElevationProfileAnalyzer.computeLookaheadStats(
+            from: midIndex,
+            trackPoints: points,
+            terrainTypes: terrainTypes
+        )
+
+        #expect(midStats != nil)
+        #expect(fullStats != nil)
+        #expect(midStats!.distance < fullStats!.distance)
+        #expect(midStats!.elevationGain < fullStats!.elevationGain)
+    }
+
+    @Test
+    func computeLookaheadStats_nearEndOfZone_returnsNil() {
+        let points = Self.makeVariedProfile()
+        let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: points)
+        let segments = ElevationProfileAnalyzer.segments(from: points)
+
+        guard let climbSegment = segments.first(where: { $0.type == .climbing }) else {
+            Issue.record("No climbing segment found")
+            return
+        }
+
+        let nearEndIndex = climbSegment.endIndex
+        let stats = ElevationProfileAnalyzer.computeLookaheadStats(
+            from: nearEndIndex,
+            trackPoints: points,
+            terrainTypes: terrainTypes
+        )
+
+        // Should be nil because remaining distance < 200m
+        #expect(stats == nil)
+    }
+
+    @Test
+    func computeLookaheadStats_onFlatTerrain_returnsFlatStats() {
+        let points = Self.makeVariedProfile()
+        let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: points)
+
+        let stats = ElevationProfileAnalyzer.computeLookaheadStats(
+            from: 0,
+            trackPoints: points,
+            terrainTypes: terrainTypes
+        )
+
+        if let stats {
+            #expect(stats.terrainType == .flat)
+        }
+    }
+
+    @Test
+    func computeLookaheadStats_atDescent_returnsDescentStats() {
+        let points = Self.makeVariedProfile()
+        let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: points)
+        let segments = ElevationProfileAnalyzer.segments(from: points)
+
+        guard let descentSegment = segments.first(where: { $0.type == .descending }) else {
+            Issue.record("No descending segment found")
+            return
+        }
+
+        let stats = ElevationProfileAnalyzer.computeLookaheadStats(
+            from: descentSegment.startIndex,
+            trackPoints: points,
+            terrainTypes: terrainTypes
+        )
+
+        #expect(stats != nil)
+        #expect(stats!.terrainType == .descending)
+        #expect(stats!.elevationLoss > 0)
+    }
 }

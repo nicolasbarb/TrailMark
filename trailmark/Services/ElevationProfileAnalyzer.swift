@@ -210,4 +210,65 @@ enum ElevationProfileAnalyzer {
 
         return (trackPoints[endIdx].elevation - trackPoints[startIdx].elevation) / distanceDelta
     }
+
+    // MARK: - Lookahead Stats
+
+    /// Stats for the remaining terrain zone from a given point forward
+    struct LookaheadStats: Equatable, Sendable {
+        let terrainType: TerrainType
+        let distance: Double        // meters
+        let elevationGain: Double   // meters (>= 0)
+        let elevationLoss: Double   // meters (>= 0)
+        let averageSlope: Double    // ratio (e.g., 0.12 for 12%)
+    }
+
+    /// Computes remaining terrain zone stats from a given track point index
+    /// - Parameters:
+    ///   - pointIndex: Starting track point index
+    ///   - trackPoints: Full array of track points
+    ///   - terrainTypes: Terrain classification per point (from `classify()`)
+    /// - Returns: Stats for the remaining zone, or nil if remaining distance < minSegmentLength
+    static func computeLookaheadStats(
+        from pointIndex: Int,
+        trackPoints: [TrackPoint],
+        terrainTypes: [TerrainType]
+    ) -> LookaheadStats? {
+        guard pointIndex < trackPoints.count,
+              pointIndex < terrainTypes.count else { return nil }
+
+        let startType = terrainTypes[pointIndex]
+        let startPoint = trackPoints[pointIndex]
+
+        // Walk forward while terrain type matches
+        var endIndex = pointIndex
+        while endIndex + 1 < trackPoints.count && terrainTypes[endIndex + 1] == startType {
+            endIndex += 1
+        }
+
+        let endPoint = trackPoints[endIndex]
+        let distance = endPoint.distance - startPoint.distance
+
+        // Skip if remaining distance is below minimum
+        guard distance >= minSegmentLength else { return nil }
+
+        // Compute actual elevation gain/loss between start and end
+        var gain: Double = 0
+        var loss: Double = 0
+        for i in pointIndex..<endIndex {
+            let delta = trackPoints[i + 1].elevation - trackPoints[i].elevation
+            if delta > 0 { gain += delta }
+            else { loss += abs(delta) }
+        }
+
+        let elevationChange = endPoint.elevation - startPoint.elevation
+        let slope = distance > 0 ? elevationChange / distance : 0
+
+        return LookaheadStats(
+            terrainType: startType,
+            distance: distance,
+            elevationGain: gain,
+            elevationLoss: loss,
+            averageSlope: slope
+        )
+    }
 }
