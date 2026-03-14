@@ -230,21 +230,56 @@ struct MilestoneSheetView: View {
                     typeCardsSelector(selectedType: store.selectedType)
                         .padding(.top, 8)
 
-                    // Message
-                    sectionLabel("MESSAGE TTS")
-                        .padding(.top, 14)
+                    // Message with TTS preview button
+                    HStack(alignment: .center) {
+                        sectionLabel("MESSAGE TTS")
 
-                    TextField("ex: Montée de 200m, marchez…", text: $store.message, axis: .vertical)
-                        .lineLimit(3...5)
-                        .font(.body)
-                        .foregroundStyle(TM.textPrimary)
-                        .padding(12)
-                        .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(TM.border, lineWidth: 1)
-                        )
-                        .padding(.top, 8)
+                        Spacer()
+
+                        // TTS preview button
+                        Button {
+                            Haptic.light.trigger()
+                            if store.isPlayingPreview {
+                                store.send(.stopTTSTapped)
+                            } else {
+                                store.send(.previewTTSTapped)
+                            }
+                        } label: {
+                            Image(systemName: store.isPlayingPreview ? "stop.fill" : "speaker.wave.2.fill")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(store.message.isEmpty ? TM.textMuted : TM.accent)
+                        }
+                        .disabled(store.message.isEmpty)
+                    }
+                    .padding(.top, 14)
+
+                    TextField(
+                        store.premiumPreviewMessage ?? "ex: Montée de 200m, marchez…",
+                        text: $store.message,
+                        axis: .vertical
+                    )
+                    .lineLimit(3...5)
+                    .font(.body)
+                    .foregroundStyle(TM.textPrimary)
+                    .padding(12)
+                    .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(TM.border, lineWidth: 1)
+                    )
+                    .padding(.top, 8)
+
+                    // Premium teaser for free users
+                    if store.premiumPreviewMessage != nil && store.message.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 10))
+                            Text("Remplissage auto — Premium")
+                                .font(.caption2.weight(.medium))
+                        }
+                        .foregroundStyle(TM.accent)
+                        .padding(.top, 6)
+                    }
 
                     // Name
                     sectionLabel("NOM (OPTIONNEL)")
