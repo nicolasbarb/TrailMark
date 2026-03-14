@@ -18,6 +18,7 @@ struct MilestoneSheetFeature {
         var selectedType: MilestoneType
         var message: String
         var name: String
+        var premiumPreviewMessage: String? = nil
 
         var isEditing: Bool { editingMilestone != nil }
     }
@@ -272,6 +273,19 @@ struct EditorFeature {
                     trackPoints: detail.trackPoints
                 )
 
+                // Compute lookahead stats and build premium message
+                let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
+                let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
+                    from: pointIndex,
+                    trackPoints: detail.trackPoints,
+                    terrainTypes: terrainTypes
+                )
+                let premiumMessage = AnnouncementBuilder.build(
+                    type: detectedType,
+                    name: nil,
+                    lookaheadStats: lookaheadStats
+                )
+
                 state.milestoneSheet = MilestoneSheetFeature.State(
                     editingMilestone: nil,
                     pointIndex: pointIndex,
@@ -280,12 +294,29 @@ struct EditorFeature {
                     elevation: point.elevation,
                     distance: point.distance,
                     selectedType: detectedType,
-                    message: "",
-                    name: ""
+                    message: state.isPremium ? (premiumMessage ?? "") : "",
+                    name: "",
+                    premiumPreviewMessage: premiumMessage
                 )
                 return .none
 
             case let .editMilestone(milestone):
+                // Compute lookahead stats for existing milestone
+                var premiumMessage: String? = nil
+                if let detail = state.trailDetail {
+                    let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
+                    let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
+                        from: milestone.pointIndex,
+                        trackPoints: detail.trackPoints,
+                        terrainTypes: terrainTypes
+                    )
+                    premiumMessage = AnnouncementBuilder.build(
+                        type: milestone.milestoneType,
+                        name: milestone.name,
+                        lookaheadStats: lookaheadStats
+                    )
+                }
+
                 state.milestoneSheet = MilestoneSheetFeature.State(
                     editingMilestone: milestone,
                     pointIndex: milestone.pointIndex,
@@ -295,7 +326,8 @@ struct EditorFeature {
                     distance: milestone.distance,
                     selectedType: milestone.milestoneType,
                     message: milestone.message,
-                    name: milestone.name ?? ""
+                    name: milestone.name ?? "",
+                    premiumPreviewMessage: premiumMessage
                 )
                 return .none
 
@@ -360,7 +392,28 @@ struct EditorFeature {
                 return .none
 
             case .milestoneSheet(.presented(.typeSelected(let type))):
-                state.milestoneSheet?.selectedType = type
+                // Note: selectedType is already set by the child MilestoneSheetFeature reducer
+
+                // Recompute premium preview for new type
+                if let sheet = state.milestoneSheet, let detail = state.trailDetail {
+                    let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
+                    let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
+                        from: sheet.pointIndex,
+                        trackPoints: detail.trackPoints,
+                        terrainTypes: terrainTypes
+                    )
+                    let premiumMessage = AnnouncementBuilder.build(
+                        type: type,
+                        name: sheet.name.isEmpty ? nil : sheet.name,
+                        lookaheadStats: lookaheadStats
+                    )
+                    state.milestoneSheet?.premiumPreviewMessage = premiumMessage
+
+                    // If premium and message was auto-generated (empty or was previous preview), update it
+                    if state.isPremium && (sheet.message.isEmpty || sheet.message == sheet.premiumPreviewMessage) {
+                        state.milestoneSheet?.message = premiumMessage ?? ""
+                    }
+                }
                 return .none
 
             case .milestoneSheet(.presented(.saveButtonTapped)):
