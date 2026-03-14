@@ -250,6 +250,7 @@ struct MilestoneSheetView: View {
                                 .foregroundStyle(store.message.isEmpty ? TM.textMuted : TM.accent)
                         }
                         .disabled(store.message.isEmpty)
+                        .accessibilityLabel(store.isPlayingPreview ? "Arrêter la lecture" : "Écouter le message")
                     }
                     .padding(.top, 14)
 
