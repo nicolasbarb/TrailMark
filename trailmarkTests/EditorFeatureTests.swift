@@ -1017,4 +1017,119 @@ struct EditorFeatureTests {
             $0.trailDetail?.trail.name = "Updated Trail Name"
         }
     }
+
+    // MARK: - Premium pre-fill
+
+    @Test
+    func profileTapped_premium_montee_prefillsMessage() async {
+        // Create a profile with a clear climbing section
+        var elevations: [Double] = []
+        // Flat (10 points)
+        for _ in 0..<10 { elevations.append(1000) }
+        // Climb (20 points, 10m per point = 10% slope at 100m spacing)
+        for i in 0..<20 { elevations.append(1000 + Double(i + 1) * 10) }
+        // Flat (10 points)
+        for _ in 0..<10 { elevations.append(1200) }
+
+        let trackPoints = elevations.enumerated().map { index, elev in
+            TrackPoint(
+                id: Int64(index + 1),
+                trailId: 1,
+                index: index,
+                latitude: 45.0 + Double(index) * 0.001,
+                longitude: 5.0,
+                elevation: elev,
+                distance: Double(index) * 100
+            )
+        }
+
+        let detail = TrailDetail(
+            trail: Self.makeTrail(),
+            trackPoints: trackPoints,
+            milestones: []
+        )
+
+        var state = EditorFeature.State(trailId: 1)
+        state.trailDetail = detail
+        state.$isPremium.withLock { $0 = true }
+
+        let store = TestStore(initialState: state) {
+            EditorFeature()
+        }
+        store.exhaustivity = .off
+
+        // Tap at start of climbing section (index 10)
+        await store.send(.profileTapped(10))
+
+        // Premium user should have message pre-filled
+        #expect(store.state.milestoneSheet != nil)
+        #expect(!store.state.milestoneSheet!.message.isEmpty)
+        #expect(store.state.milestoneSheet!.premiumPreviewMessage != nil)
+    }
+
+    @Test
+    func profileTapped_free_montee_emptyMessageWithPreview() async {
+        var elevations: [Double] = []
+        for _ in 0..<10 { elevations.append(1000) }
+        for i in 0..<20 { elevations.append(1000 + Double(i + 1) * 10) }
+        for _ in 0..<10 { elevations.append(1200) }
+
+        let trackPoints = elevations.enumerated().map { index, elev in
+            TrackPoint(
+                id: Int64(index + 1),
+                trailId: 1,
+                index: index,
+                latitude: 45.0 + Double(index) * 0.001,
+                longitude: 5.0,
+                elevation: elev,
+                distance: Double(index) * 100
+            )
+        }
+
+        let detail = TrailDetail(
+            trail: Self.makeTrail(),
+            trackPoints: trackPoints,
+            milestones: []
+        )
+
+        var state = EditorFeature.State(trailId: 1)
+        state.trailDetail = detail
+        state.$isPremium.withLock { $0 = false }
+
+        let store = TestStore(initialState: state) {
+            EditorFeature()
+        }
+        store.exhaustivity = .off
+
+        await store.send(.profileTapped(10))
+
+        // Free user should have empty message but premiumPreviewMessage set
+        #expect(store.state.milestoneSheet != nil)
+        #expect(store.state.milestoneSheet!.message.isEmpty)
+        #expect(store.state.milestoneSheet!.premiumPreviewMessage != nil)
+    }
+
+    @Test
+    func profileTapped_plat_noPremiumPreview() async {
+        let trackPoints = [
+            Self.makeTrackPoint(id: 1, index: 0, distance: 0, elevation: 100),
+            Self.makeTrackPoint(id: 2, index: 1, distance: 100, elevation: 100),
+        ]
+        let detail = Self.makeTrailDetail(trackPoints: trackPoints, milestones: [])
+
+        var state = EditorFeature.State(trailId: 1)
+        state.trailDetail = detail
+        state.$isPremium.withLock { $0 = true }
+
+        let store = TestStore(initialState: state) {
+            EditorFeature()
+        }
+        store.exhaustivity = .off
+
+        await store.send(.profileTapped(0))
+
+        // Flat type should not generate a premium preview
+        #expect(store.state.milestoneSheet != nil)
+        #expect(store.state.milestoneSheet!.premiumPreviewMessage == nil)
+    }
 }
