@@ -16,12 +16,28 @@ struct MilestoneSheetFeature {
         var elevation: Double
         var distance: Double
         var selectedType: MilestoneType
-        var message: String
+        var personalMessage: String
         var name: String
-        var premiumPreviewMessage: String? = nil
+        var autoMessage: String? = nil
         var isPlayingPreview = false
+        @Shared(.inMemory("isPremium")) var isPremium = false
 
         var isEditing: Bool { editingMilestone != nil }
+    }
+
+    static func buildFullMessage(
+        autoMessage: String?,
+        personalMessage: String,
+        includeAuto: Bool
+    ) -> String? {
+        var parts: [String] = []
+        if includeAuto, let auto = autoMessage, !auto.isEmpty {
+            parts.append(auto)
+        }
+        if !personalMessage.isEmpty {
+            parts.append(personalMessage)
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " ")
     }
 
     enum Action: BindableAction, Equatable {
@@ -56,11 +72,16 @@ struct MilestoneSheetFeature {
                 speech.stop()
                 return .cancel(id: CancelID.ttsPreview)
             case .previewTTSTapped:
-                guard !state.message.isEmpty else { return .none }
+                guard !(state.autoMessage ?? "").isEmpty || !state.personalMessage.isEmpty else { return .none }
                 state.isPlayingPreview = true
-                return .run { [message = state.message] send in
+                let fullMessage = Self.buildFullMessage(
+                    autoMessage: state.autoMessage,
+                    personalMessage: state.personalMessage,
+                    includeAuto: true
+                )!
+                return .run { send in
                     try? speech.configureAudioSession()
-                    await speech.speak(message)
+                    await speech.speak(fullMessage)
                     await send(.ttsFinished)
                 }
                 .cancellable(id: CancelID.ttsPreview)
@@ -305,7 +326,7 @@ struct EditorFeature {
                     trackPoints: detail.trackPoints,
                     terrainTypes: terrainTypes
                 )
-                let premiumMessage = AnnouncementBuilder.build(
+                let autoMessage = AnnouncementBuilder.build(
                     type: detectedType,
                     name: nil,
                     lookaheadStats: lookaheadStats
@@ -319,15 +340,16 @@ struct EditorFeature {
                     elevation: point.elevation,
                     distance: point.distance,
                     selectedType: detectedType,
-                    message: state.isPremium ? (premiumMessage ?? "") : "",
+                    personalMessage: "",
                     name: "",
-                    premiumPreviewMessage: premiumMessage
+                    autoMessage: autoMessage
                 )
                 return .none
 
             case let .editMilestone(milestone):
-                // Compute lookahead stats for existing milestone
-                var premiumMessage: String? = nil
+                // Recompute autoMessage from current terrain data
+                var autoMessage: String? = nil
+                var personalMessage = milestone.message
                 if let detail = state.trailDetail {
                     let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
                     let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
@@ -335,11 +357,18 @@ struct EditorFeature {
                         trackPoints: detail.trackPoints,
                         terrainTypes: terrainTypes
                     )
-                    premiumMessage = AnnouncementBuilder.build(
+                    autoMessage = AnnouncementBuilder.build(
                         type: milestone.milestoneType,
                         name: milestone.name,
                         lookaheadStats: lookaheadStats
                     )
+
+                    // Split: if saved message starts with auto prefix, strip it
+                    if let auto = autoMessage, personalMessage.hasPrefix(auto) {
+                        let remainder = String(personalMessage.dropFirst(auto.count))
+                            .trimmingCharacters(in: .whitespaces)
+                        personalMessage = remainder
+                    }
                 }
 
                 state.milestoneSheet = MilestoneSheetFeature.State(
@@ -350,9 +379,9 @@ struct EditorFeature {
                     elevation: milestone.elevation,
                     distance: milestone.distance,
                     selectedType: milestone.milestoneType,
-                    message: milestone.message,
+                    personalMessage: personalMessage,
                     name: milestone.name ?? "",
-                    premiumPreviewMessage: premiumMessage
+                    autoMessage: autoMessage
                 )
                 return .none
 
@@ -417,9 +446,7 @@ struct EditorFeature {
                 return .none
 
             case .milestoneSheet(.presented(.typeSelected(let type))):
-                // Note: selectedType is already set by the child MilestoneSheetFeature reducer
-
-                // Recompute premium preview for new type
+                // Recompute autoMessage for new type
                 if let sheet = state.milestoneSheet, let detail = state.trailDetail {
                     let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
                     let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
@@ -427,24 +454,23 @@ struct EditorFeature {
                         trackPoints: detail.trackPoints,
                         terrainTypes: terrainTypes
                     )
-                    let premiumMessage = AnnouncementBuilder.build(
+                    let autoMessage = AnnouncementBuilder.build(
                         type: type,
                         name: sheet.name.isEmpty ? nil : sheet.name,
                         lookaheadStats: lookaheadStats
                     )
-                    state.milestoneSheet?.premiumPreviewMessage = premiumMessage
-
-                    // If premium and message was auto-generated (empty or was previous preview), update it
-                    if state.isPremium && (sheet.message.isEmpty || sheet.message == sheet.premiumPreviewMessage) {
-                        state.milestoneSheet?.message = premiumMessage ?? ""
-                    }
+                    state.milestoneSheet?.autoMessage = autoMessage
                 }
                 return .none
 
             case .milestoneSheet(.presented(.saveButtonTapped)):
                 guard let sheet = state.milestoneSheet else { return .none }
 
-                let message = sheet.message.isEmpty ? sheet.selectedType.label : sheet.message
+                let fullMessage = MilestoneSheetFeature.buildFullMessage(
+                    autoMessage: sheet.autoMessage,
+                    personalMessage: sheet.personalMessage,
+                    includeAuto: state.isPremium
+                ) ?? sheet.selectedType.label
                 let name: String? = sheet.name.isEmpty ? nil : sheet.name
                 let currentTrailId = state.trailId ?? 0
 
@@ -452,13 +478,11 @@ struct EditorFeature {
 
                 if let existingMilestone = sheet.editingMilestone,
                    existingMilestone.id != nil {
-                    // Update existing milestone
                     return .concatenate(
-                        .send(._updateMilestone(existingMilestone.id!, sheet.selectedType, message, name)),
+                        .send(._updateMilestone(existingMilestone.id!, sheet.selectedType, fullMessage, name)),
                         .send(._saveMilestones)
                     )
                 } else {
-                    // Create new milestone
                     let milestone = Milestone(
                         id: nil,
                         trailId: currentTrailId,
@@ -468,7 +492,7 @@ struct EditorFeature {
                         elevation: sheet.elevation,
                         distance: sheet.distance,
                         type: sheet.selectedType,
-                        message: message,
+                        message: fullMessage,
                         name: name
                     )
                     return .concatenate(
