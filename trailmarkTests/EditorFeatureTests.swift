@@ -803,7 +803,7 @@ struct EditorFeatureTests {
         #expect(store.state.milestoneSheet?.elevation == 100)
         #expect(store.state.milestoneSheet?.distance == 0)
         #expect(store.state.milestoneSheet?.selectedType == .plat)
-        #expect(store.state.milestoneSheet?.message == "")
+        #expect(store.state.milestoneSheet?.personalMessage == "")
         #expect(store.state.milestoneSheet?.name == "")
     }
 
@@ -854,7 +854,7 @@ struct EditorFeatureTests {
         #expect(store.state.milestoneSheet?.elevation == 100)
         #expect(store.state.milestoneSheet?.distance == 500)
         #expect(store.state.milestoneSheet?.selectedType == .descente)
-        #expect(store.state.milestoneSheet?.message == "Descente technique")
+        #expect(store.state.milestoneSheet?.personalMessage == "Descente technique")
         #expect(store.state.milestoneSheet?.name == "Col de la Croix")
     }
 
@@ -873,7 +873,7 @@ struct EditorFeatureTests {
             elevation: 200,
             distance: 1000,
             selectedType: .montee,
-            message: "Debut montee",
+            personalMessage: "Debut montee",
             name: "Col"
         )
 
@@ -941,7 +941,7 @@ struct EditorFeatureTests {
             elevation: 100,
             distance: 1000,
             selectedType: .descente,
-            message: "New message",
+            personalMessage: "New message",
             name: "Summit"
         )
 
@@ -988,7 +988,7 @@ struct EditorFeatureTests {
             elevation: 100,
             distance: 0,
             selectedType: .plat,
-            message: "",
+            personalMessage: "",
             name: ""
         )
 
@@ -1063,8 +1063,8 @@ struct EditorFeatureTests {
 
         // Premium user should have message pre-filled
         #expect(store.state.milestoneSheet != nil)
-        #expect(!store.state.milestoneSheet!.message.isEmpty)
-        #expect(store.state.milestoneSheet!.premiumPreviewMessage != nil)
+        #expect(store.state.milestoneSheet!.personalMessage.isEmpty)
+        #expect(store.state.milestoneSheet!.autoMessage != nil)
     }
 
     @Test
@@ -1103,10 +1103,10 @@ struct EditorFeatureTests {
 
         await store.send(.profileTapped(10))
 
-        // Free user should have empty message but premiumPreviewMessage set
+        // Free user should have empty personalMessage but autoMessage set
         #expect(store.state.milestoneSheet != nil)
-        #expect(store.state.milestoneSheet!.message.isEmpty)
-        #expect(store.state.milestoneSheet!.premiumPreviewMessage != nil)
+        #expect(store.state.milestoneSheet!.personalMessage.isEmpty)
+        #expect(store.state.milestoneSheet!.autoMessage != nil)
     }
 
     @Test
@@ -1130,7 +1130,7 @@ struct EditorFeatureTests {
 
         // Flat type should not generate a premium preview
         #expect(store.state.milestoneSheet != nil)
-        #expect(store.state.milestoneSheet!.premiumPreviewMessage == nil)
+        #expect(store.state.milestoneSheet!.autoMessage == nil)
     }
 
     // MARK: - TTS Preview
@@ -1148,8 +1148,9 @@ struct EditorFeatureTests {
             elevation: 100,
             distance: 0,
             selectedType: .montee,
-            message: "Montée. 1 virgule 8 kilomètres.",
-            name: ""
+            personalMessage: "Attention virage",
+            name: "",
+            autoMessage: "Montee. 2 kilometres."
         )
 
         let store = TestStore(initialState: state) {
@@ -1170,7 +1171,8 @@ struct EditorFeatureTests {
             $0.milestoneSheet?.isPlayingPreview = false
         }
 
-        #expect(spokeMsgs.value == ["Montée. 1 virgule 8 kilomètres."])
+        // TTS reads auto + personal concatenated
+        #expect(spokeMsgs.value == ["Montee. 2 kilometres. Attention virage"])
     }
 
     @Test
@@ -1186,7 +1188,7 @@ struct EditorFeatureTests {
             elevation: 100,
             distance: 0,
             selectedType: .montee,
-            message: "Test",
+            personalMessage: "Test",
             name: ""
         )
         state.milestoneSheet?.isPlayingPreview = true
@@ -1206,5 +1208,301 @@ struct EditorFeatureTests {
         }
 
         #expect(stopCalled.value)
+    }
+
+    // MARK: - Save with buildFullMessage
+
+    @Test
+    func milestoneSheetSave_premium_includesAutoMessage() async {
+        var state = EditorFeature.State(trailId: 1)
+        state.milestones = []
+        state.originalMilestones = []
+        state.$isPremium.withLock { $0 = true }
+        state.milestoneSheet = MilestoneSheetFeature.State(
+            editingMilestone: nil,
+            pointIndex: 10,
+            latitude: 45.5,
+            longitude: 5.5,
+            elevation: 200,
+            distance: 1000,
+            selectedType: .montee,
+            personalMessage: "Attention virage",
+            name: "",
+            autoMessage: "Montee. 2 kilometres."
+        )
+
+        let store = TestStore(initialState: state) {
+            EditorFeature()
+        } withDependencies: {
+            $0.database = DatabaseClient(
+                fetchAllTrails: { [] },
+                fetchTrailDetail: { _ in nil },
+                insertTrail: { trail, _ in trail },
+                deleteTrail: { _ in },
+                saveMilestones: { _, ms in ms },
+                updateTrailName: { _, _ in }
+            )
+        }
+
+        await store.send(.milestoneSheet(.presented(.saveButtonTapped))) {
+            $0.milestoneSheet = nil
+        }
+
+        let expectedMilestone = Milestone(
+            id: nil,
+            trailId: 1,
+            pointIndex: 10,
+            latitude: 45.5,
+            longitude: 5.5,
+            elevation: 200,
+            distance: 1000,
+            type: .montee,
+            message: "Montee. 2 kilometres. Attention virage",
+            name: nil
+        )
+
+        await store.receive(._addMilestone(expectedMilestone)) {
+            $0.milestones = [expectedMilestone]
+        }
+        await store.receive(._saveMilestones)
+        await store.receive(.savingCompleted([expectedMilestone])) {
+            $0.originalMilestones = [expectedMilestone]
+        }
+    }
+
+    @Test
+    func milestoneSheetSave_free_excludesAutoMessage() async {
+        var state = EditorFeature.State(trailId: 1)
+        state.milestones = []
+        state.originalMilestones = []
+        state.$isPremium.withLock { $0 = false }
+        state.milestoneSheet = MilestoneSheetFeature.State(
+            editingMilestone: nil,
+            pointIndex: 10,
+            latitude: 45.5,
+            longitude: 5.5,
+            elevation: 200,
+            distance: 1000,
+            selectedType: .montee,
+            personalMessage: "Mon message",
+            name: "",
+            autoMessage: "Montee. 2 kilometres."
+        )
+
+        let store = TestStore(initialState: state) {
+            EditorFeature()
+        } withDependencies: {
+            $0.database = DatabaseClient(
+                fetchAllTrails: { [] },
+                fetchTrailDetail: { _ in nil },
+                insertTrail: { trail, _ in trail },
+                deleteTrail: { _ in },
+                saveMilestones: { _, ms in ms },
+                updateTrailName: { _, _ in }
+            )
+        }
+
+        await store.send(.milestoneSheet(.presented(.saveButtonTapped))) {
+            $0.milestoneSheet = nil
+        }
+
+        let expectedMilestone = Milestone(
+            id: nil,
+            trailId: 1,
+            pointIndex: 10,
+            latitude: 45.5,
+            longitude: 5.5,
+            elevation: 200,
+            distance: 1000,
+            type: .montee,
+            message: "Mon message",
+            name: nil
+        )
+
+        await store.receive(._addMilestone(expectedMilestone)) {
+            $0.milestones = [expectedMilestone]
+        }
+        await store.receive(._saveMilestones)
+        await store.receive(.savingCompleted([expectedMilestone])) {
+            $0.originalMilestones = [expectedMilestone]
+        }
+    }
+
+    @Test
+    func milestoneSheetSave_freeNoPersonal_fallsBackToTypeLabel() async {
+        var state = EditorFeature.State(trailId: 1)
+        state.milestones = []
+        state.originalMilestones = []
+        state.$isPremium.withLock { $0 = false }
+        state.milestoneSheet = MilestoneSheetFeature.State(
+            editingMilestone: nil,
+            pointIndex: 10,
+            latitude: 45.5,
+            longitude: 5.5,
+            elevation: 200,
+            distance: 1000,
+            selectedType: .montee,
+            personalMessage: "",
+            name: "",
+            autoMessage: "Montee. 2 kilometres."
+        )
+
+        let store = TestStore(initialState: state) {
+            EditorFeature()
+        } withDependencies: {
+            $0.database = DatabaseClient(
+                fetchAllTrails: { [] },
+                fetchTrailDetail: { _ in nil },
+                insertTrail: { trail, _ in trail },
+                deleteTrail: { _ in },
+                saveMilestones: { _, ms in ms },
+                updateTrailName: { _, _ in }
+            )
+        }
+
+        await store.send(.milestoneSheet(.presented(.saveButtonTapped))) {
+            $0.milestoneSheet = nil
+        }
+
+        let expectedMilestone = Milestone(
+            id: nil,
+            trailId: 1,
+            pointIndex: 10,
+            latitude: 45.5,
+            longitude: 5.5,
+            elevation: 200,
+            distance: 1000,
+            type: .montee,
+            message: "Montée",
+            name: nil
+        )
+
+        await store.receive(._addMilestone(expectedMilestone)) {
+            $0.milestones = [expectedMilestone]
+        }
+        await store.receive(._saveMilestones)
+        await store.receive(.savingCompleted([expectedMilestone])) {
+            $0.originalMilestones = [expectedMilestone]
+        }
+    }
+
+    // MARK: - Edit splitting
+
+    @Test
+    func editMilestone_splitsPrefixCorrectly() async throws {
+        var elevations: [Double] = []
+        for _ in 0..<10 { elevations.append(1000) }
+        for i in 0..<20 { elevations.append(1000 + Double(i + 1) * 10) }
+        for _ in 0..<10 { elevations.append(1200) }
+
+        let trackPoints = elevations.enumerated().map { index, elev in
+            TrackPoint(
+                id: Int64(index + 1),
+                trailId: 1,
+                index: index,
+                latitude: 45.0 + Double(index) * 0.001,
+                longitude: 5.0,
+                elevation: elev,
+                distance: Double(index) * 100
+            )
+        }
+
+        let detail = TrailDetail(
+            trail: Self.makeTrail(),
+            trackPoints: trackPoints,
+            milestones: []
+        )
+
+        let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: trackPoints)
+        let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
+            from: 10,
+            trackPoints: trackPoints,
+            terrainTypes: terrainTypes
+        )
+        let expectedAuto = try #require(AnnouncementBuilder.build(
+            type: .montee,
+            name: nil,
+            lookaheadStats: lookaheadStats
+        ))
+
+        let milestone = Milestone(
+            id: 1,
+            trailId: 1,
+            pointIndex: 10,
+            latitude: trackPoints[10].latitude,
+            longitude: trackPoints[10].longitude,
+            elevation: trackPoints[10].elevation,
+            distance: trackPoints[10].distance,
+            type: .montee,
+            message: expectedAuto + " Mon complement",
+            name: nil
+        )
+
+        var state = EditorFeature.State(trailId: 1)
+        state.trailDetail = detail
+        state.milestones = [milestone]
+
+        let store = TestStore(initialState: state) {
+            EditorFeature()
+        }
+        store.exhaustivity = .off
+
+        await store.send(.editMilestone(milestone))
+
+        #expect(store.state.milestoneSheet != nil)
+        #expect(store.state.milestoneSheet?.autoMessage == expectedAuto)
+        #expect(store.state.milestoneSheet?.personalMessage == "Mon complement")
+    }
+
+    // MARK: - buildFullMessage
+
+    @Test
+    func buildFullMessage_bothParts_premium() {
+        let result = MilestoneSheetFeature.buildFullMessage(
+            autoMessage: "Montee. 2 kilometres.",
+            personalMessage: "Attention virage",
+            includeAuto: true
+        )
+        #expect(result == "Montee. 2 kilometres. Attention virage")
+    }
+
+    @Test
+    func buildFullMessage_autoOnly_premium() {
+        let result = MilestoneSheetFeature.buildFullMessage(
+            autoMessage: "Montee. 2 kilometres.",
+            personalMessage: "",
+            includeAuto: true
+        )
+        #expect(result == "Montee. 2 kilometres.")
+    }
+
+    @Test
+    func buildFullMessage_personalOnly() {
+        let result = MilestoneSheetFeature.buildFullMessage(
+            autoMessage: "Montee. 2 kilometres.",
+            personalMessage: "Attention virage",
+            includeAuto: false
+        )
+        #expect(result == "Attention virage")
+    }
+
+    @Test
+    func buildFullMessage_freeNoPersonal_returnsNil() {
+        let result = MilestoneSheetFeature.buildFullMessage(
+            autoMessage: "Montee. 2 kilometres.",
+            personalMessage: "",
+            includeAuto: false
+        )
+        #expect(result == nil)
+    }
+
+    @Test
+    func buildFullMessage_noAutoNoPersonal_returnsNil() {
+        let result = MilestoneSheetFeature.buildFullMessage(
+            autoMessage: nil,
+            personalMessage: "",
+            includeAuto: true
+        )
+        #expect(result == nil)
     }
 }

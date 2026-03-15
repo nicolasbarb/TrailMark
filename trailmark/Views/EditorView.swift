@@ -230,57 +230,68 @@ struct MilestoneSheetView: View {
                     typeCardsSelector(selectedType: store.selectedType)
                         .padding(.top, 8)
 
-                    // Message with TTS preview button
-                    HStack(alignment: .center) {
+                    // MARK: - Message Section (conditional layout)
+                    if let autoMessage = store.autoMessage {
+                        // montee/descente: auto block + personal complement
+                        HStack(spacing: 6) {
+                            sectionLabel("ANNONCE VOCALE")
+                            proBadge
+                        }
+                        .padding(.top, 14)
+
+                        // Auto-generated text block (read-only)
+                        Text(autoMessage)
+                            .font(.body)
+                            .foregroundStyle(TM.textPrimary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(TM.bgSecondary, in: RoundedRectangle(cornerRadius: 10))
+                            .opacity(store.isPremium ? 1 : 0.7)
+                            .padding(.top, 8)
+
+                        sectionLabel("COMPLEMENT PERSO")
+                            .padding(.top, 14)
+
+                        TextField(
+                            "Ajouter un message personnel\u{2026}",
+                            text: $store.personalMessage,
+                            axis: .vertical
+                        )
+                        .lineLimit(3...5)
+                        .font(.body)
+                        .foregroundStyle(TM.textPrimary)
+                        .padding(12)
+                        .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(TM.border, lineWidth: 1)
+                        )
+                        .padding(.top, 8)
+                    } else {
+                        // Non montee/descente: plain message field
                         sectionLabel("MESSAGE TTS")
+                            .padding(.top, 14)
 
-                        Spacer()
-
-                        // TTS preview button
-                        Button {
-                            Haptic.light.trigger()
-                            if store.isPlayingPreview {
-                                store.send(.stopTTSTapped)
-                            } else {
-                                store.send(.previewTTSTapped)
-                            }
-                        } label: {
-                            Image(systemName: store.isPlayingPreview ? "stop.fill" : "speaker.wave.2.fill")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(store.message.isEmpty ? TM.textMuted : TM.accent)
-                        }
-                        .disabled(store.message.isEmpty)
-                        .accessibilityLabel(store.isPlayingPreview ? "Arrêter la lecture" : "Écouter le message")
+                        TextField(
+                            messagePlaceholder,
+                            text: $store.personalMessage,
+                            axis: .vertical
+                        )
+                        .lineLimit(3...5)
+                        .font(.body)
+                        .foregroundStyle(TM.textPrimary)
+                        .padding(12)
+                        .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(TM.border, lineWidth: 1)
+                        )
+                        .padding(.top, 8)
                     }
-                    .padding(.top, 14)
 
-                    TextField(
-                        store.premiumPreviewMessage ?? "ex: Montée de 200m, marchez…",
-                        text: $store.message,
-                        axis: .vertical
-                    )
-                    .lineLimit(3...5)
-                    .font(.body)
-                    .foregroundStyle(TM.textPrimary)
-                    .padding(12)
-                    .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(TM.border, lineWidth: 1)
-                    )
-                    .padding(.top, 8)
-
-                    // Premium teaser for free users
-                    if store.premiumPreviewMessage != nil && store.message.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "lock.fill")
-                                .font(.system(size: 10))
-                            Text("Remplissage auto — Premium")
-                                .font(.caption2.weight(.medium))
-                        }
-                        .foregroundStyle(TM.accent)
-                        .padding(.top, 6)
-                    }
+                    // Full-width listen button
+                    listenButton
+                        .padding(.top, 12)
 
                     // Name
                     sectionLabel("NOM (OPTIONNEL)")
@@ -347,6 +358,69 @@ struct MilestoneSheetView: View {
             .font(.caption2.weight(.semibold))
             .tracking(1)
             .foregroundStyle(TM.textMuted)
+    }
+
+    // MARK: - PRO Badge
+
+    private var proBadge: some View {
+        HStack(spacing: 4) {
+            if !store.isPremium {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 8))
+                    .foregroundStyle(.black)
+            }
+            Text("PRO")
+                .font(.system(size: 9, weight: .heavy))
+                .foregroundStyle(.black)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(TM.accent, in: RoundedRectangle(cornerRadius: 4))
+    }
+
+    // MARK: - Listen Button
+
+    private var isListenDisabled: Bool {
+        (store.autoMessage ?? "").isEmpty && store.personalMessage.isEmpty
+    }
+
+    private var listenButton: some View {
+        Button {
+            Haptic.light.trigger()
+            if store.isPlayingPreview {
+                store.send(.stopTTSTapped)
+            } else {
+                store.send(.previewTTSTapped)
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: store.isPlayingPreview ? "stop.fill" : "speaker.wave.2.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                Text(store.isPlayingPreview ? "Arrêter" : "Écouter l'annonce")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(isListenDisabled ? TM.textMuted : TM.accent)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isListenDisabled ? TM.border : TM.accent, lineWidth: 1)
+            )
+        }
+        .disabled(isListenDisabled)
+        .accessibilityLabel(store.isPlayingPreview ? "Arrêter la lecture" : "Écouter l'annonce")
+    }
+
+    // MARK: - Message Placeholder
+
+    private var messagePlaceholder: String {
+        switch store.selectedType {
+        case .ravito: "ex: Ravitaillement, prenez à gauche\u{2026}"
+        case .danger: "ex: Attention, passage technique\u{2026}"
+        case .info: "ex: Belle vue sur la vallée\u{2026}"
+        case .plat: "ex: Portion plate, relancez\u{2026}"
+        case .montee, .descente: "Ajouter un message personnel\u{2026}"
+        }
     }
 
     // MARK: - Type Selector
@@ -622,8 +696,9 @@ private struct ProfileStatsWrapper: View {
                 elevation: 2350,
                 distance: 3500,
                 selectedType: .montee,
-                message: "",
-                name: ""
+                personalMessage: "",
+                name: "",
+                autoMessage: "Montée. 1 virgule 8 kilomètres à 12 pourcent. 215 mètres de dénivelé positif."
             )
         ) {
             MilestoneSheetFeature()
