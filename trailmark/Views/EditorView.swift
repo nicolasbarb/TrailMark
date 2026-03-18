@@ -107,14 +107,9 @@ struct EditorView: View {
                     SegmentInfoWrapper(
                         scrollIndexHolder: scrollIndexHolder,
                         statsData: profileStatsData,
-                        milestones: store.milestones,
+                        store: store,
                         onGoToMilestone: { milestone in
                             scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
-                        },
-                        onEditMilestone: { milestone in
-                            highlightedMilestoneId = milestone.id
-                            Haptic.medium.trigger()
-                            store.send(.editMilestone(milestone))
                         },
                         onAddMilestone: {
                             Haptic.medium.trigger()
@@ -711,10 +706,11 @@ private struct DistanceOverlayWrapper: View {
 private struct SegmentInfoWrapper: View {
     let scrollIndexHolder: ScrollIndexHolder
     let statsData: ProfileStatsData?
-    let milestones: [Milestone]
+    @Bindable var store: StoreOf<EditorFeature>
     var onGoToMilestone: ((Milestone) -> Void)?
-    var onEditMilestone: ((Milestone) -> Void)?
     var onAddMilestone: (() -> Void)?
+
+    private var milestones: [Milestone] { store.milestones }
 
     private var currentSegment: ProfileStatsData.SegmentData? {
         guard let stats = statsData else { return nil }
@@ -734,104 +730,86 @@ private struct SegmentInfoWrapper: View {
 
     var body: some View {
         if let segment = currentSegment {
-            VStack(alignment: .leading, spacing: 10) {
-                // Titre + repères count + actions
-                HStack(alignment: .center) {
-                    Text("Segment")
-                        .font(.headline)
-                        .foregroundStyle(TM.textPrimary)
+            VStack(spacing: 8) {
+                // Ligne 1 : Type + bouton liste
+                HStack {
+                    HStack(spacing: 5) {
+                        Image(systemName: segment.type.systemImage)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(segment.type.color)
+                        Text(segment.type.label)
+                            .font(.system(.title3, weight: .bold))
+                            .foregroundStyle(TM.textPrimary)
+                    }
 
                     Spacer()
 
-                    HStack(spacing: 8) {
-                        if !segmentMilestones.isEmpty {
-                            Button {
-                                showMilestonesList = true
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "mappin.and.ellipse")
-                                        .font(.system(size: 11, weight: .bold))
-                                    Text("\(segmentMilestones.count)")
-                                        .font(.subheadline.weight(.semibold))
-                                }
-                                .foregroundStyle(segment.type.color)
-                            }
-                        } else {
-                            HStack(spacing: 4) {
-                                Image(systemName: "mappin.and.ellipse")
-                                    .font(.system(size: 11, weight: .bold))
-                                Text("0")
-                                    .font(.subheadline.weight(.semibold))
-                            }
-                            .foregroundStyle(TM.textTertiary)
-                        }
-
-                        Button {
-                            onAddMilestone?()
-                        } label: {
-                            Image(systemName: "plus")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(TM.accent)
+                    Button {
+                        showMilestonesList = true
+                    } label: {
+                        Image(systemName: "list.bullet")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(milestones.isEmpty ? TM.textTertiary : TM.textPrimary)
+                            .frame(width: 44, height: 44)
+                            .glassEffect(.regular, in: .circle)
+                    }
+                    .disabled(milestones.isEmpty)
+                    .overlay(alignment: .topTrailing) {
+                        if !milestones.isEmpty {
+                            Text("\(milestones.count)")
+                                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                .foregroundStyle(.white)
+                                .frame(width: 16, height: 16)
+                                .background(segment.type.color, in: Circle())
+                                .offset(x: 4, y: -4)
                         }
                     }
                 }
 
-                Divider()
+                // Ligne 2 : Distance + dénivelé + bouton ajouter
+                HStack(alignment: .center) {
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Distance")
+                                .font(.caption2)
+                                .foregroundStyle(TM.textTertiary)
+                            Text(formatDistance(segment.distance))
+                                .font(.system(.title3, design: .monospaced, weight: .bold))
+                                .foregroundStyle(TM.textPrimary)
+                        }
 
-                // Type / distance / dénivelé
-                HStack(spacing: 0) {
-                    // Type
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Type")
-                            .font(.caption)
-                            .foregroundStyle(TM.textTertiary)
-                        HStack(spacing: 4) {
-                            Image(systemName: segment.type.systemImage)
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(segment.type.color)
-                            Text(segment.type.label)
-                                .font(.body.weight(.semibold))
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Dénivelé")
+                                .font(.caption2)
+                                .foregroundStyle(TM.textTertiary)
+                            Text("\(segment.type == .descente ? "-" : "+")\(segment.elevationChange) m")
+                                .font(.system(.title3, design: .monospaced, weight: .bold))
                                 .foregroundStyle(TM.textPrimary)
                         }
                     }
 
-                    Divider()
-                        .padding(.horizontal, 12)
+                    Spacer()
 
-                    // Distance
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Distance")
-                            .font(.caption)
-                            .foregroundStyle(TM.textTertiary)
-                        Text(formatDistance(segment.distance))
-                            .font(.system(.body, design: .monospaced, weight: .semibold))
-                            .foregroundStyle(TM.textPrimary)
-                    }
-
-                    Divider()
-                        .padding(.horizontal, 12)
-
-                    // Dénivelé
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Dénivelé")
-                            .font(.caption)
-                            .foregroundStyle(TM.textTertiary)
-                        Text("\(segment.type == .descente ? "-" : "+")\(segment.elevationChange) m")
-                            .font(.system(.body, design: .monospaced, weight: .semibold))
-                            .foregroundStyle(TM.textPrimary)
+                    Button {
+                        onAddMilestone?()
+                    } label: {
+                        Image("custom.flag.badge.plus")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(TM.accent, in: Circle())
                     }
                 }
-                .frame(maxHeight: 36)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, 12)
             .sheet(isPresented: $showMilestonesList) {
                 NavigationStack {
-                    List(segmentMilestones) { milestone in
+                    List(milestones) { milestone in
                         Button {
-                            showMilestonesList = false
                             onGoToMilestone?(milestone)
+                            Haptic.medium.trigger()
+                            store.send(.editMilestone(milestone))
                         } label: {
                             HStack(spacing: 10) {
                                 Image(systemName: milestone.milestoneType.systemImage)
@@ -853,7 +831,7 @@ private struct SegmentInfoWrapper: View {
                             }
                         }
                     }
-                    .navigationTitle("Repères du segment")
+                    .navigationTitle("Repères")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
@@ -862,8 +840,16 @@ private struct SegmentInfoWrapper: View {
                             }
                         }
                     }
+                    .sheet(
+                        item: $store.scope(state: \.milestoneSheet, action: \.milestoneSheet)
+                    ) { sheetStore in
+                        MilestoneSheetView(store: sheetStore)
+                            .presentationDetents([.fraction(0.5), .large])
+                            .presentationBackground(TM.bgCard)
+                    }
                 }
-                .presentationDetents([.medium])
+                .presentationDetents([.medium, .large], selection: .constant(.large))
+                .presentationBackground(TM.bgCard)
             }
         }
     }
