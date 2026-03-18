@@ -4,7 +4,7 @@ import ComposableArchitecture
 @testable import trailmark
 
 @MainActor
-struct EditorFeatureTests {
+struct EditorStoreTests {
 
     // MARK: - Test Data
 
@@ -77,8 +77,8 @@ struct EditorFeatureTests {
     func onAppear_sendsLoadTrailDetail() async {
         let detail = Self.makeTrailDetail()
 
-        let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-            EditorFeature()
+        let store = TestStore(initialState: EditorStore.State(trailId: 1)) {
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -105,8 +105,8 @@ struct EditorFeatureTests {
     func _loadTrailDetail_loadsTrail() async {
         let detail = Self.makeTrailDetail()
 
-        let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-            EditorFeature()
+        let store = TestStore(initialState: EditorStore.State(trailId: 1)) {
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -128,8 +128,8 @@ struct EditorFeatureTests {
 
     @Test
     func _loadTrailDetail_handlesNilTrail() async {
-        let store = TestStore(initialState: EditorFeature.State(trailId: 999)) {
-            EditorFeature()
+        let store = TestStore(initialState: EditorStore.State(trailId: 999)) {
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -151,8 +151,8 @@ struct EditorFeatureTests {
     func trailLoaded_setsState() async {
         let detail = Self.makeTrailDetail()
 
-        let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-            EditorFeature()
+        let store = TestStore(initialState: EditorStore.State(trailId: 1)) {
+            EditorStore()
         }
 
         await store.send(.trailLoaded(detail)) {
@@ -167,8 +167,8 @@ struct EditorFeatureTests {
     // TODO: Réactiver pour gestion batch des milestones
     // @Test
     // func tabSelected_changesTab() async {
-    //     let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-    //         EditorFeature()
+    //     let store = TestStore(initialState: EditorStore.State(trailId: 1)) {
+    //         EditorStore()
     //     }
     //
     //     await store.send(.tabSelected(.milestones)) {
@@ -184,8 +184,8 @@ struct EditorFeatureTests {
 
     @Test
     func cursorMoved_updatesCursor() async {
-        let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-            EditorFeature()
+        let store = TestStore(initialState: EditorStore.State(trailId: 1)) {
+            EditorStore()
         }
 
         await store.send(.cursorMoved(10)) {
@@ -204,12 +204,12 @@ struct EditorFeatureTests {
         let milestone1 = Self.makeMilestone(id: 1, distance: 100)
         let milestone2 = Self.makeMilestone(id: 2, distance: 200)
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [milestone1, milestone2]
         state.originalMilestones = [milestone1, milestone2]
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(._removeMilestoneAt(0)) {
@@ -221,11 +221,11 @@ struct EditorFeatureTests {
     func _removeMilestoneAt_invalidIndex_doesNothing() async {
         let milestone1 = Self.makeMilestone(id: 1, distance: 100)
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [milestone1]
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(._removeMilestoneAt(5))
@@ -241,13 +241,13 @@ struct EditorFeatureTests {
     //     let milestone2 = Self.makeMilestone(id: 2, distance: 200)
     //     let milestone3 = Self.makeMilestone(id: 3, distance: 300)
     //
-    //     var state = EditorFeature.State(trailId: 1)
+    //     var state = EditorStore.State(trailId: 1)
     //     state.milestones = [milestone1, milestone2, milestone3]
     //     state.isSelectingMilestones = true
     //     state.selectedMilestoneIndices = [0, 2]
     //
     //     let store = TestStore(initialState: state) {
-    //         EditorFeature()
+    //         EditorStore()
     //     }
     //
     //     await store.send(._removeSelectedMilestones) {
@@ -265,12 +265,12 @@ struct EditorFeatureTests {
         var savedMilestones: [Milestone]?
         var savedTrailId: Int64?
 
-        var state = EditorFeature.State(trailId: 42)
+        var state = EditorStore.State(trailId: 42)
         state.milestones = [milestone]
         state.originalMilestones = []
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -302,11 +302,11 @@ struct EditorFeatureTests {
         let existingMilestone = Self.makeMilestone(id: 1, distance: 200)
         let newMilestone = Self.makeMilestone(id: nil, distance: 100)
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [existingMilestone]
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(._addMilestone(newMilestone)) {
@@ -321,11 +321,11 @@ struct EditorFeatureTests {
     func _updateMilestone_updatesExistingMilestone() async {
         let milestone = Self.makeMilestone(id: 1, type: .montee, message: "Old message", name: nil)
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [milestone]
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(._updateMilestone(1, .descente, "New message", "Col")) {
@@ -339,11 +339,11 @@ struct EditorFeatureTests {
     func _updateMilestone_invalidId_doesNothing() async {
         let milestone = Self.makeMilestone(id: 1)
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [milestone]
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(._updateMilestone(999, .plat, "Test", nil))
@@ -358,11 +358,11 @@ struct EditorFeatureTests {
         var updatedName: String?
 
         let detail = Self.makeTrailDetail()
-        var state = EditorFeature.State(trailId: 42)
+        var state = EditorStore.State(trailId: 42)
         state.trailDetail = detail
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -392,8 +392,8 @@ struct EditorFeatureTests {
     func _deleteTrail_deletesAndDismisses() async {
         var deletedTrailId: Int64?
 
-        let store = TestStore(initialState: EditorFeature.State(trailId: 42)) {
-            EditorFeature()
+        let store = TestStore(initialState: EditorStore.State(trailId: 42)) {
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -418,12 +418,12 @@ struct EditorFeatureTests {
         let milestone1 = Self.makeMilestone(id: 1, distance: 100)
         let milestone2 = Self.makeMilestone(id: 2, distance: 200)
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [milestone1, milestone2]
         state.originalMilestones = [milestone1, milestone2]
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -454,14 +454,14 @@ struct EditorFeatureTests {
     //     let milestone2 = Self.makeMilestone(id: 2, distance: 200)
     //     let milestone3 = Self.makeMilestone(id: 3, distance: 300)
     //
-    //     var state = EditorFeature.State(trailId: 1)
+    //     var state = EditorStore.State(trailId: 1)
     //     state.milestones = [milestone1, milestone2, milestone3]
     //     state.originalMilestones = [milestone1, milestone2, milestone3]
     //     state.isSelectingMilestones = true
     //     state.selectedMilestoneIndices = [0, 2]
     //
     //     let store = TestStore(initialState: state) {
-    //         EditorFeature()
+    //         EditorStore()
     //     } withDependencies: {
     //         $0.database = DatabaseClient(
     //             fetchAllTrails: { [] },
@@ -491,12 +491,12 @@ struct EditorFeatureTests {
     func saveButtonTapped_sendsSaveMilestones() async {
         let milestone = Self.makeMilestone()
 
-        var state = EditorFeature.State(trailId: 42)
+        var state = EditorStore.State(trailId: 42)
         state.milestones = [milestone]
         state.originalMilestones = []
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -520,11 +520,11 @@ struct EditorFeatureTests {
     // TODO: Réactiver pour gestion batch des milestones
     // @Test
     // func toggleSelectionMode_togglesAndClearsSelection() async {
-    //     var state = EditorFeature.State(trailId: 1)
+    //     var state = EditorStore.State(trailId: 1)
     //     state.selectedMilestoneIndices = [0, 1]
     //
     //     let store = TestStore(initialState: state) {
-    //         EditorFeature()
+    //         EditorStore()
     //     }
     //
     //     // Enable selection mode
@@ -544,8 +544,8 @@ struct EditorFeatureTests {
     // TODO: Réactiver pour gestion batch des milestones
     // @Test
     // func toggleMilestoneSelection_togglesIndex() async {
-    //     let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-    //         EditorFeature()
+    //     let store = TestStore(initialState: EditorStore.State(trailId: 1)) {
+    //         EditorStore()
     //     }
     //
     //     await store.send(.toggleMilestoneSelection(0)) {
@@ -567,12 +567,12 @@ struct EditorFeatureTests {
     func savingCompleted_updatesOriginalMilestones() async {
         let milestone = Self.makeMilestone()
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [milestone]
         state.originalMilestones = []
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(.savingCompleted([milestone])) {
@@ -584,8 +584,8 @@ struct EditorFeatureTests {
 
     @Test
     func backTapped_callsDismiss() async {
-        let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-            EditorFeature()
+        let store = TestStore(initialState: EditorStore.State(trailId: 1)) {
+            EditorStore()
         } withDependencies: {
             $0.dismiss = DismissEffect { }
         }
@@ -598,11 +598,11 @@ struct EditorFeatureTests {
     @Test
     func renameButtonTapped_startsRenaming() async {
         let detail = Self.makeTrailDetail()
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.trailDetail = detail
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(.renameButtonTapped) {
@@ -615,12 +615,12 @@ struct EditorFeatureTests {
 
     @Test
     func renameCancelled_stopsRenaming() async {
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.isRenamingTrail = true
         state.editedTrailName = "New Name"
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(.renameCancelled) {
@@ -633,13 +633,13 @@ struct EditorFeatureTests {
     @Test
     func renameConfirmed_sendsUpdateTrailName() async {
         let detail = Self.makeTrailDetail()
-        var state = EditorFeature.State(trailId: 42)
+        var state = EditorStore.State(trailId: 42)
         state.trailDetail = detail
         state.isRenamingTrail = true
         state.editedTrailName = "New Name"
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -666,12 +666,12 @@ struct EditorFeatureTests {
     func renameConfirmed_emptyName_doesNotUpdate() async {
         var updateCalled = false
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.isRenamingTrail = true
         state.editedTrailName = "   "
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -694,8 +694,8 @@ struct EditorFeatureTests {
 
     @Test
     func deleteTrailButtonTapped_showsAlert() async {
-        let store = TestStore(initialState: EditorFeature.State(trailId: 1)) {
-            EditorFeature()
+        let store = TestStore(initialState: EditorStore.State(trailId: 1)) {
+            EditorStore()
         }
 
         await store.send(.deleteTrailButtonTapped) {
@@ -721,7 +721,7 @@ struct EditorFeatureTests {
         var deletedTrailId: Int64?
 
         // Create state with the alert already showing
-        var state = EditorFeature.State(trailId: 42)
+        var state = EditorStore.State(trailId: 42)
         state.alert = AlertState {
             TextState("Supprimer ce parcours ?")
         } actions: {
@@ -736,7 +736,7 @@ struct EditorFeatureTests {
         }
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -764,7 +764,7 @@ struct EditorFeatureTests {
     func hasMilestoneChanges_detectsChanges() async {
         let milestone = Self.makeMilestone()
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [milestone]
         state.originalMilestones = []
 
@@ -784,17 +784,17 @@ struct EditorFeatureTests {
         ]
         let detail = Self.makeTrailDetail(trackPoints: trackPoints, milestones: [])
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.trailDetail = detail
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
         store.exhaustivity = .off
 
         await store.send(.profileTapped(0))
 
-        // MilestoneSheetFeature.State has a random UUID, so we verify after send
+        // MilestoneSheetStore.State has a random UUID, so we verify after send
         #expect(store.state.milestoneSheet != nil)
         #expect(store.state.milestoneSheet?.editingMilestone == nil)
         #expect(store.state.milestoneSheet?.pointIndex == 0)
@@ -811,11 +811,11 @@ struct EditorFeatureTests {
     func profileTapped_invalidIndex_doesNothing() async {
         let detail = Self.makeTrailDetail(trackPoints: [Self.makeTrackPoint()], milestones: [])
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.trailDetail = detail
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(.profileTapped(100))
@@ -835,17 +835,17 @@ struct EditorFeatureTests {
             name: "Col de la Croix"
         )
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [milestone]
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
         store.exhaustivity = .off
 
         await store.send(.editMilestone(milestone))
 
-        // MilestoneSheetFeature.State has a random UUID, so we verify after send
+        // MilestoneSheetStore.State has a random UUID, so we verify after send
         #expect(store.state.milestoneSheet != nil)
         #expect(store.state.milestoneSheet?.editingMilestone == milestone)
         #expect(store.state.milestoneSheet?.pointIndex == 5)
@@ -862,10 +862,10 @@ struct EditorFeatureTests {
 
     @Test
     func milestoneSheetSave_newMilestone_addsAndSaves() async {
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = []
         state.originalMilestones = []
-        state.milestoneSheet = MilestoneSheetFeature.State(
+        state.milestoneSheet = MilestoneSheetStore.State(
             editingMilestone: nil,
             pointIndex: 10,
             latitude: 45.5,
@@ -878,7 +878,7 @@ struct EditorFeatureTests {
         )
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -930,10 +930,10 @@ struct EditorFeatureTests {
             message: "Old message"
         )
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = [existingMilestone]
         state.originalMilestones = [existingMilestone]
-        state.milestoneSheet = MilestoneSheetFeature.State(
+        state.milestoneSheet = MilestoneSheetStore.State(
             editingMilestone: existingMilestone,
             pointIndex: 10,
             latitude: 45.0,
@@ -946,7 +946,7 @@ struct EditorFeatureTests {
         )
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -979,8 +979,8 @@ struct EditorFeatureTests {
 
     @Test
     func milestoneSheetDismiss_closesSheet() async {
-        var state = EditorFeature.State(trailId: 1)
-        state.milestoneSheet = MilestoneSheetFeature.State(
+        var state = EditorStore.State(trailId: 1)
+        state.milestoneSheet = MilestoneSheetStore.State(
             editingMilestone: nil,
             pointIndex: 0,
             latitude: 45.0,
@@ -993,7 +993,7 @@ struct EditorFeatureTests {
         )
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(.milestoneSheet(.presented(.dismissTapped))) {
@@ -1006,11 +1006,11 @@ struct EditorFeatureTests {
     @Test
     func trailNameUpdated_updatesTrailDetail() async {
         let detail = Self.makeTrailDetail()
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.trailDetail = detail
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
 
         await store.send(.trailNameUpdated("Updated Trail Name")) {
@@ -1049,12 +1049,12 @@ struct EditorFeatureTests {
             milestones: []
         )
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.trailDetail = detail
         state.$isPremium.withLock { $0 = true }
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
         store.exhaustivity = .off
 
@@ -1092,12 +1092,12 @@ struct EditorFeatureTests {
             milestones: []
         )
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.trailDetail = detail
         state.$isPremium.withLock { $0 = false }
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
         store.exhaustivity = .off
 
@@ -1117,12 +1117,12 @@ struct EditorFeatureTests {
         ]
         let detail = Self.makeTrailDetail(trackPoints: trackPoints, milestones: [])
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.trailDetail = detail
         state.$isPremium.withLock { $0 = true }
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
         store.exhaustivity = .off
 
@@ -1139,8 +1139,8 @@ struct EditorFeatureTests {
     func milestoneSheet_previewTTS_playsAndFinishes() async {
         let spokeMsgs = LockIsolated<[String]>([])
 
-        var state = EditorFeature.State(trailId: 1)
-        state.milestoneSheet = MilestoneSheetFeature.State(
+        var state = EditorStore.State(trailId: 1)
+        state.milestoneSheet = MilestoneSheetStore.State(
             editingMilestone: nil,
             pointIndex: 0,
             latitude: 45.0,
@@ -1154,7 +1154,7 @@ struct EditorFeatureTests {
         )
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.speech = SpeechClient(
                 speak: { msg in spokeMsgs.withValue { $0.append(msg) } },
@@ -1179,8 +1179,8 @@ struct EditorFeatureTests {
     func milestoneSheet_stopTTS_stopsPlayback() async {
         let stopCalled = LockIsolated(false)
 
-        var state = EditorFeature.State(trailId: 1)
-        state.milestoneSheet = MilestoneSheetFeature.State(
+        var state = EditorStore.State(trailId: 1)
+        state.milestoneSheet = MilestoneSheetStore.State(
             editingMilestone: nil,
             pointIndex: 0,
             latitude: 45.0,
@@ -1194,7 +1194,7 @@ struct EditorFeatureTests {
         state.milestoneSheet?.isPlayingPreview = true
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.speech = SpeechClient(
                 speak: { _ in },
@@ -1214,11 +1214,11 @@ struct EditorFeatureTests {
 
     @Test
     func milestoneSheetSave_premium_includesAutoMessage() async {
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = []
         state.originalMilestones = []
         state.$isPremium.withLock { $0 = true }
-        state.milestoneSheet = MilestoneSheetFeature.State(
+        state.milestoneSheet = MilestoneSheetStore.State(
             editingMilestone: nil,
             pointIndex: 10,
             latitude: 45.5,
@@ -1232,7 +1232,7 @@ struct EditorFeatureTests {
         )
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -1272,11 +1272,11 @@ struct EditorFeatureTests {
 
     @Test
     func milestoneSheetSave_free_excludesAutoMessage() async {
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = []
         state.originalMilestones = []
         state.$isPremium.withLock { $0 = false }
-        state.milestoneSheet = MilestoneSheetFeature.State(
+        state.milestoneSheet = MilestoneSheetStore.State(
             editingMilestone: nil,
             pointIndex: 10,
             latitude: 45.5,
@@ -1290,7 +1290,7 @@ struct EditorFeatureTests {
         )
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -1330,11 +1330,11 @@ struct EditorFeatureTests {
 
     @Test
     func milestoneSheetSave_freeNoPersonal_fallsBackToTypeLabel() async {
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.milestones = []
         state.originalMilestones = []
         state.$isPremium.withLock { $0 = false }
-        state.milestoneSheet = MilestoneSheetFeature.State(
+        state.milestoneSheet = MilestoneSheetStore.State(
             editingMilestone: nil,
             pointIndex: 10,
             latitude: 45.5,
@@ -1348,7 +1348,7 @@ struct EditorFeatureTests {
         )
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -1438,12 +1438,12 @@ struct EditorFeatureTests {
             name: nil
         )
 
-        var state = EditorFeature.State(trailId: 1)
+        var state = EditorStore.State(trailId: 1)
         state.trailDetail = detail
         state.milestones = [milestone]
 
         let store = TestStore(initialState: state) {
-            EditorFeature()
+            EditorStore()
         }
         store.exhaustivity = .off
 
@@ -1458,7 +1458,7 @@ struct EditorFeatureTests {
 
     @Test
     func buildFullMessage_bothParts_premium() {
-        let result = MilestoneSheetFeature.buildFullMessage(
+        let result = MilestoneSheetStore.buildFullMessage(
             autoMessage: "Montee. 2 kilometres.",
             personalMessage: "Attention virage",
             includeAuto: true
@@ -1468,7 +1468,7 @@ struct EditorFeatureTests {
 
     @Test
     func buildFullMessage_autoOnly_premium() {
-        let result = MilestoneSheetFeature.buildFullMessage(
+        let result = MilestoneSheetStore.buildFullMessage(
             autoMessage: "Montee. 2 kilometres.",
             personalMessage: "",
             includeAuto: true
@@ -1478,7 +1478,7 @@ struct EditorFeatureTests {
 
     @Test
     func buildFullMessage_personalOnly() {
-        let result = MilestoneSheetFeature.buildFullMessage(
+        let result = MilestoneSheetStore.buildFullMessage(
             autoMessage: "Montee. 2 kilometres.",
             personalMessage: "Attention virage",
             includeAuto: false
@@ -1488,7 +1488,7 @@ struct EditorFeatureTests {
 
     @Test
     func buildFullMessage_freeNoPersonal_returnsNil() {
-        let result = MilestoneSheetFeature.buildFullMessage(
+        let result = MilestoneSheetStore.buildFullMessage(
             autoMessage: "Montee. 2 kilometres.",
             personalMessage: "",
             includeAuto: false
@@ -1498,7 +1498,7 @@ struct EditorFeatureTests {
 
     @Test
     func buildFullMessage_noAutoNoPersonal_returnsNil() {
-        let result = MilestoneSheetFeature.buildFullMessage(
+        let result = MilestoneSheetStore.buildFullMessage(
             autoMessage: nil,
             personalMessage: "",
             includeAuto: true

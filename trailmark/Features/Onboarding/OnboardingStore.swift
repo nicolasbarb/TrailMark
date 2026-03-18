@@ -2,7 +2,7 @@ import CoreLocation
 import ComposableArchitecture
 
 @Reducer
-struct OnboardingFeature {
+struct OnboardingStore {
     // MARK: - Cancel IDs
 
     private enum CancelID {

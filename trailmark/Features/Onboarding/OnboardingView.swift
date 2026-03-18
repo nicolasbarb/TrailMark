@@ -3,7 +3,7 @@ import ComposableArchitecture
 import CoreLocation
 
 struct OnboardingView: View {
-    @Bindable var store: StoreOf<OnboardingFeature>
+    @Bindable var store: StoreOf<OnboardingStore>
 
     var body: some View {
         ZStack {
@@ -123,16 +123,16 @@ private struct IntroView: View {
 
 #Preview("Intro") {
     OnboardingView(
-        store: Store(initialState: OnboardingFeature.State(currentPhase: .intro)) {
-            OnboardingFeature()
+        store: Store(initialState: OnboardingStore.State(currentPhase: .intro)) {
+            OnboardingStore()
         }
     )
 }
 
 #Preview("Carousel") {
     OnboardingView(
-        store: Store(initialState: OnboardingFeature.State(currentPhase: .carousel)) {
-            OnboardingFeature()
+        store: Store(initialState: OnboardingStore.State(currentPhase: .carousel)) {
+            OnboardingStore()
         }
     )
 }

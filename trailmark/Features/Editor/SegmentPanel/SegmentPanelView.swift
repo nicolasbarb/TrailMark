@@ -2,7 +2,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct SegmentPanelView: View {
-    @Bindable var store: StoreOf<SegmentPanelFeature>
+    @Bindable var store: StoreOf<SegmentPanelStore>
     let milestones: [Milestone]
     let statsData: ProfileStatsData?
     var onGoToMilestone: ((Milestone) -> Void)?
@@ -120,9 +120,9 @@ struct SegmentPanelView: View {
         Spacer()
         SegmentPanelView(
             store: Store(
-                initialState: SegmentPanelFeature.State()
+                initialState: SegmentPanelStore.State()
             ) {
-                SegmentPanelFeature()
+                SegmentPanelStore()
             },
             milestones: [],
             statsData: nil

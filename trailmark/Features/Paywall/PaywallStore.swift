@@ -2,7 +2,7 @@ import Foundation
 import ComposableArchitecture
 
 @Reducer
-struct PaywallFeature {
+struct PaywallStore {
     @ObservableState
     struct State: Equatable {}
 

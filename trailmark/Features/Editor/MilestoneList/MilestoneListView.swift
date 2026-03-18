@@ -2,7 +2,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct MilestoneListView: View {
-    @Bindable var store: StoreOf<MilestoneListFeature>
+    @Bindable var store: StoreOf<MilestoneListStore>
     let milestones: [Milestone]
     var onGoToMilestone: ((Milestone) -> Void)?
     @Environment(\.dismiss) private var dismiss
@@ -77,9 +77,9 @@ struct MilestoneListView: View {
 #Preview("Milestone List") {
     MilestoneListView(
         store: Store(
-            initialState: MilestoneListFeature.State()
+            initialState: MilestoneListStore.State()
         ) {
-            MilestoneListFeature()
+            MilestoneListStore()
         },
         milestones: []
     )

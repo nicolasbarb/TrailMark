@@ -3,7 +3,7 @@ import ComposableArchitecture
 import UniformTypeIdentifiers
 
 @Reducer
-struct ImportFeature {
+struct ImportStore {
     @ObservableState
     struct State: Equatable, Sendable {
         var phase: Phase = .upload
@@ -17,7 +17,7 @@ struct ImportFeature {
         @Shared(.inMemory("isPremium")) var isPremium = false
 
         // Paywall
-        @Presents var paywall: PaywallFeature.State?
+        @Presents var paywall: PaywallStore.State?
 
         enum Phase: Equatable, Sendable {
             case upload
@@ -46,7 +46,7 @@ struct ImportFeature {
         case importCompleted(PendingTrailData)
 
         // Paywall
-        case paywall(PresentationAction<PaywallFeature.Action>)
+        case paywall(PresentationAction<PaywallStore.Action>)
     }
 
     @Dependency(\.dismiss) var dismiss
@@ -132,7 +132,7 @@ struct ImportFeature {
             // MARK: - Result Phase Actions
 
             case .unlockTapped:
-                state.paywall = PaywallFeature.State()
+                state.paywall = PaywallStore.State()
                 return .none
 
             case .continueWithMilestonesTapped:
@@ -181,7 +181,7 @@ struct ImportFeature {
             }
         }
         .ifLet(\.$paywall, action: \.paywall) {
-            PaywallFeature()
+            PaywallStore()
         }
     }
 }

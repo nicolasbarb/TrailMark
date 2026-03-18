@@ -13,7 +13,7 @@ struct PendingTrailData: Equatable, Sendable {
 // MARK: - Editor Feature (Parent Coordinator)
 
 @Reducer
-struct EditorFeature {
+struct EditorStore {
     @ObservableState
     struct State: Equatable, Sendable {
         // Mode: soit trailId (existant), soit pendingData (nouveau)
@@ -27,13 +27,13 @@ struct EditorFeature {
         @Shared(.inMemory("isPremium")) var isPremium = false
 
         // Child features
-        var elevationProfile = ElevationProfileFeature.State()
-        var trailMetadata = TrailMetadataFeature.State()
-        var segmentPanel = SegmentPanelFeature.State()
+        var elevationProfile = ElevationProfileStore.State()
+        var trailMetadata = TrailMetadataStore.State()
+        var segmentPanel = SegmentPanelStore.State()
 
         // Presentations
-        @Presents var milestoneSheet: MilestoneSheetFeature.State?
-        @Presents var paywall: PaywallFeature.State?
+        @Presents var milestoneSheet: MilestoneSheetStore.State?
+        @Presents var paywall: PaywallStore.State?
 
         // Init pour un trail existant
         init(trailId: Int64) {
@@ -56,13 +56,13 @@ struct EditorFeature {
         case savingCompleted([Milestone])
 
         // Child features
-        case elevationProfile(ElevationProfileFeature.Action)
-        case trailMetadata(TrailMetadataFeature.Action)
-        case segmentPanel(SegmentPanelFeature.Action)
+        case elevationProfile(ElevationProfileStore.Action)
+        case trailMetadata(TrailMetadataStore.Action)
+        case segmentPanel(SegmentPanelStore.Action)
 
         // Presentations
-        case milestoneSheet(PresentationAction<MilestoneSheetFeature.Action>)
-        case paywall(PresentationAction<PaywallFeature.Action>)
+        case milestoneSheet(PresentationAction<MilestoneSheetStore.Action>)
+        case paywall(PresentationAction<PaywallStore.Action>)
 
         // Internal
         case _loadTrailDetail
@@ -78,13 +78,13 @@ struct EditorFeature {
 
     var body: some Reducer<State, Action> {
         Scope(state: \.elevationProfile, action: \.elevationProfile) {
-            ElevationProfileFeature()
+            ElevationProfileStore()
         }
         Scope(state: \.trailMetadata, action: \.trailMetadata) {
-            TrailMetadataFeature()
+            TrailMetadataStore()
         }
         Scope(state: \.segmentPanel, action: \.segmentPanel) {
-            SegmentPanelFeature()
+            SegmentPanelStore()
         }
 
         Reduce { state, action in
@@ -218,7 +218,7 @@ struct EditorFeature {
                       pointIndex < detail.trackPoints.count else { return .none }
 
                 if !state.isPremium && state.milestones.count >= 10 {
-                    state.paywall = PaywallFeature.State()
+                    state.paywall = PaywallStore.State()
                     return .none
                 }
 
@@ -236,7 +236,7 @@ struct EditorFeature {
                     lookaheadStats: lookaheadStats
                 )
 
-                state.milestoneSheet = MilestoneSheetFeature.State(
+                state.milestoneSheet = MilestoneSheetStore.State(
                     editingMilestone: nil,
                     pointIndex: pointIndex,
                     latitude: point.latitude,
@@ -275,7 +275,7 @@ struct EditorFeature {
                     }
                 }
 
-                state.milestoneSheet = MilestoneSheetFeature.State(
+                state.milestoneSheet = MilestoneSheetStore.State(
                     editingMilestone: milestone,
                     pointIndex: milestone.pointIndex,
                     latitude: milestone.latitude,
@@ -342,7 +342,7 @@ struct EditorFeature {
             case .milestoneSheet(.presented(.saveButtonTapped)):
                 guard let sheet = state.milestoneSheet else { return .none }
 
-                let fullMessage = MilestoneSheetFeature.buildFullMessage(
+                let fullMessage = MilestoneSheetStore.buildFullMessage(
                     autoMessage: sheet.autoMessage,
                     personalMessage: sheet.personalMessage,
                     includeAuto: state.isPremium
@@ -414,10 +414,10 @@ struct EditorFeature {
             }
         }
         .ifLet(\.$milestoneSheet, action: \.milestoneSheet) {
-            MilestoneSheetFeature()
+            MilestoneSheetStore()
         }
         .ifLet(\.$paywall, action: \.paywall) {
-            PaywallFeature()
+            PaywallStore()
         }
     }
 

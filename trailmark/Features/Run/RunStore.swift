@@ -19,10 +19,10 @@ extension CLAuthorizationStatus {
 
 // MARK: - Cancel IDs (must be outside reducer for proper isolation)
 
-private let trackingCancelID = "RunFeature.tracking"
+private let trackingCancelID = "RunStore.tracking"
 
 @Reducer
-struct RunFeature {
+struct RunStore {
     @ObservableState
     struct State: Equatable, Sendable {
         let trailId: Int64

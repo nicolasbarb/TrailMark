@@ -2,7 +2,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct RootView: View {
-    @Bindable var store: StoreOf<RootFeature>
+    @Bindable var store: StoreOf<RootStore>
 
     var body: some View {
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
@@ -29,8 +29,8 @@ struct RootView: View {
 
 #Preview("Onboarding") {
     RootView(
-        store: Store(initialState: RootFeature.State()) {
-            RootFeature()
+        store: Store(initialState: RootStore.State()) {
+            RootStore()
         }
     )
 }

@@ -2,7 +2,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct EditorView: View {
-    @Bindable var store: StoreOf<EditorFeature>
+    @Bindable var store: StoreOf<EditorStore>
     @State private var scrollTarget: ScrollTarget?
     @State private var profileStatsData: ProfileStatsData?
     @State private var scrollIndexHolder = ScrollIndexHolder()
@@ -300,14 +300,14 @@ private struct EditorPreviewWrapper: View {
                     EditorView(
                         store: Store(
                             initialState: {
-                                var state = EditorFeature.State(trailId: 1)
+                                var state = EditorStore.State(trailId: 1)
                                 state.trailDetail = TrailDetail(trail: PreviewData.trail, trackPoints: points, milestones: ms)
                                 state.milestones = ms
                                 state.originalMilestones = ms
                                 return state
                             }()
                         ) {
-                            EditorFeature()
+                            EditorStore()
                         }
                     )
                 }
