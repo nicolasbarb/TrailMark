@@ -5,7 +5,7 @@ import CoreLocation
 @testable import trailmark
 
 @MainActor
-struct RunFeatureTests {
+struct RunStoreTests {
 
     // MARK: - Test Data
 
@@ -75,8 +75,8 @@ struct RunFeatureTests {
     func onAppear_sendsLoadTrailDetail() async {
         let detail = Self.makeTrailDetail()
 
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -101,8 +101,8 @@ struct RunFeatureTests {
     func loadTrailDetail_loadsTrail() async {
         let detail = Self.makeTrailDetail()
 
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -122,8 +122,8 @@ struct RunFeatureTests {
 
     @Test
     func loadTrailDetail_handlesNilTrail() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 999)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 999)) {
+            RunStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -145,8 +145,8 @@ struct RunFeatureTests {
     func trailLoaded_setsState() async {
         let detail = Self.makeTrailDetail()
 
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         }
 
         await store.send(.trailLoaded(detail)) {
@@ -158,8 +158,8 @@ struct RunFeatureTests {
 
     @Test
     func startButtonTapped_sendsCheckLocationAuthorization() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .authorizedWhenInUse },
@@ -185,8 +185,8 @@ struct RunFeatureTests {
 
     @Test
     func checkLocationAuthorization_sendsAuthorizationResult() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .authorizedWhenInUse },
@@ -210,8 +210,8 @@ struct RunFeatureTests {
 
     @Test
     func checkLocationAuthorization_denied_sendsAuthorizationResult() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .denied },
@@ -232,8 +232,8 @@ struct RunFeatureTests {
 
     @Test
     func authorizationResult_authorized_startsRunning() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .authorizedWhenInUse },
@@ -262,8 +262,8 @@ struct RunFeatureTests {
 
     @Test
     func authorizationResult_authorizedAlways_startsRunning() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .authorizedAlways },
@@ -292,8 +292,8 @@ struct RunFeatureTests {
 
     @Test
     func authorizationResult_denied_setsAuthorizationDenied() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         }
 
         await store.send(.authorizationResult(CLAuthorizationStatus.denied.rawValue)) {
@@ -303,8 +303,8 @@ struct RunFeatureTests {
 
     @Test
     func authorizationResult_restricted_setsAuthorizationDenied() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         }
 
         await store.send(.authorizationResult(CLAuthorizationStatus.restricted.rawValue)) {
@@ -318,8 +318,8 @@ struct RunFeatureTests {
     func configureAudioSession_callsSpeechClient() async {
         var configureAudioSessionCalled = false
 
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.speech = SpeechClient(
                 speak: { _ in },
@@ -337,8 +337,8 @@ struct RunFeatureTests {
 
     @Test
     func startLocationTracking_receivesLocationUpdates() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .authorizedWhenInUse },
@@ -354,11 +354,11 @@ struct RunFeatureTests {
             )
         }
 
-        var state = RunFeature.State(trailId: 1)
+        var state = RunStore.State(trailId: 1)
         state.trailDetail = Self.makeTrailDetail(milestones: [])
 
         let storeWithDetail = TestStore(initialState: state) {
-            RunFeature()
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .authorizedWhenInUse },
@@ -387,11 +387,11 @@ struct RunFeatureTests {
     func locationUpdated_sendsInternalActions() async {
         let detail = Self.makeTrailDetail(milestones: [])
 
-        var state = RunFeature.State(trailId: 1)
+        var state = RunStore.State(trailId: 1)
         state.trailDetail = detail
 
         let store = TestStore(initialState: state) {
-            RunFeature()
+            RunStore()
         }
 
         await store.send(.locationUpdated(45.123, 5.456))
@@ -405,8 +405,8 @@ struct RunFeatureTests {
 
     @Test
     func locationUpdated_withoutTrailDetail_doesNothing() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         }
 
         await store.send(.locationUpdated(45.123, 5.456))
@@ -417,8 +417,8 @@ struct RunFeatureTests {
 
     @Test
     func updateDebugLocation_updatesState() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         }
 
         await store.send(._updateDebugLocation(45.123, 5.456)) {
@@ -441,11 +441,11 @@ struct RunFeatureTests {
         let milestone = Self.makeMilestone(id: 1, latitude: 45.0, longitude: 5.0, message: "Milestone reached!")
         let detail = Self.makeTrailDetail(milestones: [milestone])
 
-        var state = RunFeature.State(trailId: 1)
+        var state = RunStore.State(trailId: 1)
         state.trailDetail = detail
 
         let store = TestStore(initialState: state) {
-            RunFeature()
+            RunStore()
         } withDependencies: {
             $0.speech = SpeechClient(
                 speak: { _ in },
@@ -469,12 +469,12 @@ struct RunFeatureTests {
         let milestone = Self.makeMilestone(id: 1, latitude: 45.0, longitude: 5.0)
         let detail = Self.makeTrailDetail(milestones: [milestone])
 
-        var state = RunFeature.State(trailId: 1)
+        var state = RunStore.State(trailId: 1)
         state.trailDetail = detail
         state.triggeredMilestoneIds = [1] // Already triggered
 
         let store = TestStore(initialState: state) {
-            RunFeature()
+            RunStore()
         }
 
         // Location close to already-triggered milestone
@@ -487,11 +487,11 @@ struct RunFeatureTests {
         let milestone = Self.makeMilestone(id: 1, latitude: 45.0, longitude: 5.0, message: "Upcoming milestone")
         let detail = Self.makeTrailDetail(milestones: [milestone])
 
-        var state = RunFeature.State(trailId: 1)
+        var state = RunStore.State(trailId: 1)
         state.trailDetail = detail
 
         let store = TestStore(initialState: state) {
-            RunFeature()
+            RunStore()
         }
 
         // Location far from milestone (more than 30m)
@@ -504,8 +504,8 @@ struct RunFeatureTests {
 
     @Test
     func checkMilestoneProximity_withoutTrailDetail_doesNothing() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         }
 
         await store.send(._checkMilestoneProximity(45.0, 5.0))
@@ -518,8 +518,8 @@ struct RunFeatureTests {
     func milestoneTriggered_setsTTSMessageAndSendsSpeakMessage() async {
         let milestone = Self.makeMilestone(message: "Test message")
 
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.speech = SpeechClient(
                 speak: { _ in },
@@ -545,8 +545,8 @@ struct RunFeatureTests {
     func speakMessage_callsSpeechClientAndSendsTtsFinished() async {
         var spokenMessage: String?
 
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.speech = SpeechClient(
                 speak: { message in spokenMessage = message },
@@ -565,11 +565,11 @@ struct RunFeatureTests {
 
     @Test
     func ttsFinished_clearsTTSMessage() async {
-        var state = RunFeature.State(trailId: 1)
+        var state = RunStore.State(trailId: 1)
         state.currentTTSMessage = "Speaking..."
 
         let store = TestStore(initialState: state) {
-            RunFeature()
+            RunStore()
         }
 
         await store.send(.ttsFinished) {
@@ -581,12 +581,12 @@ struct RunFeatureTests {
 
     @Test
     func stopButtonTapped_sendsInternalStopActions() async {
-        var state = RunFeature.State(trailId: 1)
+        var state = RunStore.State(trailId: 1)
         state.isRunning = true
         state.currentTTSMessage = "Speaking"
 
         let store = TestStore(initialState: state) {
-            RunFeature()
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .authorizedWhenInUse },
@@ -619,8 +619,8 @@ struct RunFeatureTests {
     func stopTracking_callsLocationClient() async {
         var stopTrackingCalled = false
 
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .authorizedWhenInUse },
@@ -642,8 +642,8 @@ struct RunFeatureTests {
     func stopSpeech_callsSpeechClient() async {
         var stopSpeechCalled = false
 
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.speech = SpeechClient(
                 speak: { _ in },
@@ -663,8 +663,8 @@ struct RunFeatureTests {
     func dismiss_callsDismiss() async {
         var dismissCalled = false
 
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.dismiss = DismissEffect { dismissCalled = true }
         }
@@ -678,8 +678,8 @@ struct RunFeatureTests {
 
     @Test
     func backTapped_notRunning_justDismisses() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         } withDependencies: {
             $0.dismiss = DismissEffect { }
         }
@@ -693,11 +693,11 @@ struct RunFeatureTests {
         var stopTrackingCalled = false
         var stopSpeechCalled = false
 
-        var state = RunFeature.State(trailId: 1)
+        var state = RunStore.State(trailId: 1)
         state.isRunning = true
 
         let store = TestStore(initialState: state) {
-            RunFeature()
+            RunStore()
         } withDependencies: {
             $0.location = LocationClient(
                 authorizationStatus: { .authorizedWhenInUse },
@@ -727,8 +727,8 @@ struct RunFeatureTests {
 
     @Test
     func toggleDebugView_togglesState() async {
-        let store = TestStore(initialState: RunFeature.State(trailId: 1)) {
-            RunFeature()
+        let store = TestStore(initialState: RunStore.State(trailId: 1)) {
+            RunStore()
         }
 
         await store.send(.toggleDebugView) {

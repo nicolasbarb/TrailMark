@@ -5,7 +5,7 @@ import Sharing
 @testable import trailmark
 
 @MainActor
-struct TrailListFeatureTests {
+struct TrailListStoreTests {
 
     // MARK: - Test Data
 
@@ -29,8 +29,8 @@ struct TrailListFeatureTests {
     func trailsLoaded_updatesState() async {
         let trails = [Self.makeTrailListItem()]
 
-        let store = TestStore(initialState: TrailListFeature.State(isLoading: true)) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State(isLoading: true)) {
+            TrailListStore()
         }
 
         await store.send(.trailsLoaded(trails)) {
@@ -43,8 +43,8 @@ struct TrailListFeatureTests {
 
     @Test
     func premiumStatusChanged_updatesPremiumState() async {
-        let store = TestStore(initialState: TrailListFeature.State()) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State()) {
+            TrailListStore()
         }
         // @Shared state changes don't work well with exhaustive assertions
         store.exhaustivity = .off
@@ -56,11 +56,11 @@ struct TrailListFeatureTests {
 
     @Test
     func premiumStatusChanged_toFalse_showsExpiredAlert() async {
-        var state = TrailListFeature.State()
+        var state = TrailListStore.State()
         state.$isPremium.withLock { $0 = true }
 
         let store = TestStore(initialState: state) {
-            TrailListFeature()
+            TrailListStore()
         }
         // @Shared state changes don't work well with exhaustive assertions
         store.exhaustivity = .off
@@ -78,23 +78,23 @@ struct TrailListFeatureTests {
     func addButtonTapped_freeUserWithTrail_opensPaywall() async {
         let trails = [Self.makeTrailListItem()]
 
-        let store = TestStore(initialState: TrailListFeature.State(trails: trails, isPremium: false)) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State(trails: trails, isPremium: false)) {
+            TrailListStore()
         }
 
         await store.send(.addButtonTapped) {
-            $0.destination = .paywall(PaywallFeature.State())
+            $0.destination = .paywall(PaywallStore.State())
         }
     }
 
     @Test
     func addButtonTapped_freeUserNoTrails_opensImport() async {
-        let store = TestStore(initialState: TrailListFeature.State(trails: [], isPremium: false)) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State(trails: [], isPremium: false)) {
+            TrailListStore()
         }
 
         await store.send(.addButtonTapped) {
-            $0.destination = .importGPX(ImportFeature.State())
+            $0.destination = .importGPX(ImportStore.State())
         }
     }
 
@@ -102,12 +102,12 @@ struct TrailListFeatureTests {
     func addButtonTapped_premiumUser_opensImport() async {
         let trails = [Self.makeTrailListItem(), Self.makeTrailListItem(id: 2)]
 
-        let store = TestStore(initialState: TrailListFeature.State(trails: trails, isPremium: true)) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State(trails: trails, isPremium: true)) {
+            TrailListStore()
         }
 
         await store.send(.addButtonTapped) {
-            $0.destination = .importGPX(ImportFeature.State())
+            $0.destination = .importGPX(ImportStore.State())
         }
     }
 
@@ -117,12 +117,12 @@ struct TrailListFeatureTests {
     func editTrailTapped_opensEditor() async {
         let item = Self.makeTrailListItem(id: 42)
 
-        let store = TestStore(initialState: TrailListFeature.State()) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State()) {
+            TrailListStore()
         }
 
         await store.send(.editTrailTapped(item)) {
-            $0.destination = .editor(EditorFeature.State(trailId: 42))
+            $0.destination = .editor(EditorStore.State(trailId: 42))
         }
     }
 
@@ -132,12 +132,12 @@ struct TrailListFeatureTests {
     func startTrailTapped_opensRun() async {
         let item = Self.makeTrailListItem(id: 42)
 
-        let store = TestStore(initialState: TrailListFeature.State()) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State()) {
+            TrailListStore()
         }
 
         await store.send(.startTrailTapped(item)) {
-            $0.destination = .run(RunFeature.State(trailId: 42))
+            $0.destination = .run(RunStore.State(trailId: 42))
         }
     }
 
@@ -148,8 +148,8 @@ struct TrailListFeatureTests {
         let item = Self.makeTrailListItem(id: 42)
         var deleteCalledWithId: Int64?
 
-        let store = TestStore(initialState: TrailListFeature.State(trails: [item])) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State(trails: [item])) {
+            TrailListStore()
         } withDependencies: {
             $0.database = DatabaseClient(
                 fetchAllTrails: { [] },
@@ -174,8 +174,8 @@ struct TrailListFeatureTests {
 
     @Test
     func dismissExpiredAlert_hidesAlert() async {
-        let store = TestStore(initialState: TrailListFeature.State(showExpiredAlert: true)) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State(showExpiredAlert: true)) {
+            TrailListStore()
         }
 
         await store.send(.dismissExpiredAlert) {
@@ -187,13 +187,13 @@ struct TrailListFeatureTests {
 
     @Test
     func renewTapped_opensPaywall() async {
-        let store = TestStore(initialState: TrailListFeature.State(showExpiredAlert: true)) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State(showExpiredAlert: true)) {
+            TrailListStore()
         }
 
         await store.send(.renewTapped) {
             $0.showExpiredAlert = false
-            $0.destination = .paywall(PaywallFeature.State())
+            $0.destination = .paywall(PaywallStore.State())
         }
     }
 
@@ -201,12 +201,12 @@ struct TrailListFeatureTests {
 
     @Test
     func navigateToEditor_opensEditor() async {
-        let store = TestStore(initialState: TrailListFeature.State()) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State()) {
+            TrailListStore()
         }
 
         await store.send(.navigateToEditor(123)) {
-            $0.destination = .editor(EditorFeature.State(trailId: 123))
+            $0.destination = .editor(EditorStore.State(trailId: 123))
         }
     }
 
@@ -214,11 +214,11 @@ struct TrailListFeatureTests {
 
     @Test
     func incrementVisitCount_incrementsCounter() async {
-        var state = TrailListFeature.State()
+        var state = TrailListStore.State()
         state.$trailListVisitCount.withLock { $0 = 0 }
 
         let store = TestStore(initialState: state) {
-            TrailListFeature()
+            TrailListStore()
         }
         // @Shared state changes don't work well with exhaustive assertions
         store.exhaustivity = .off
@@ -230,11 +230,11 @@ struct TrailListFeatureTests {
 
     @Test
     func incrementVisitCount_incrementsFromExistingValue() async {
-        var state = TrailListFeature.State()
+        var state = TrailListStore.State()
         state.$trailListVisitCount.withLock { $0 = 5 }
 
         let store = TestStore(initialState: state) {
-            TrailListFeature()
+            TrailListStore()
         }
         store.exhaustivity = .off
 
@@ -247,25 +247,25 @@ struct TrailListFeatureTests {
 
     @Test
     func checkFirstVisitPaywall_firstVisit_showsPaywall() async {
-        var state = TrailListFeature.State()
+        var state = TrailListStore.State()
         state.$trailListVisitCount.withLock { $0 = 1 }
 
         let store = TestStore(initialState: state) {
-            TrailListFeature()
+            TrailListStore()
         }
 
         await store.send(._checkFirstVisitPaywall) {
-            $0.destination = .paywall(PaywallFeature.State())
+            $0.destination = .paywall(PaywallStore.State())
         }
     }
 
     @Test
     func checkFirstVisitPaywall_secondVisit_doesNotShowPaywall() async {
-        var state = TrailListFeature.State()
+        var state = TrailListStore.State()
         state.$trailListVisitCount.withLock { $0 = 2 }
 
         let store = TestStore(initialState: state) {
-            TrailListFeature()
+            TrailListStore()
         }
 
         await store.send(._checkFirstVisitPaywall)
@@ -274,11 +274,11 @@ struct TrailListFeatureTests {
 
     @Test
     func checkFirstVisitPaywall_zeroVisit_doesNotShowPaywall() async {
-        var state = TrailListFeature.State()
+        var state = TrailListStore.State()
         state.$trailListVisitCount.withLock { $0 = 0 }
 
         let store = TestStore(initialState: state) {
-            TrailListFeature()
+            TrailListStore()
         }
 
         await store.send(._checkFirstVisitPaywall)
@@ -291,8 +291,8 @@ struct TrailListFeatureTests {
     func loadTrails_fetchesAndSendsTrailsLoaded() async {
         let expectedTrails = [Self.makeTrailListItem(id: 1), Self.makeTrailListItem(id: 2)]
 
-        let store = TestStore(initialState: TrailListFeature.State()) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State()) {
+            TrailListStore()
         } withDependencies: {
             $0.database.fetchAllTrails = { expectedTrails }
         }
@@ -306,8 +306,8 @@ struct TrailListFeatureTests {
 
     @Test
     func loadTrails_emptyDatabase_sendsEmptyArray() async {
-        let store = TestStore(initialState: TrailListFeature.State(isLoading: true)) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State(isLoading: true)) {
+            TrailListStore()
         } withDependencies: {
             $0.database.fetchAllTrails = { [] }
         }
@@ -322,8 +322,8 @@ struct TrailListFeatureTests {
 
     @Test
     func startPremiumStream_emitsPremiumStatus() async {
-        let store = TestStore(initialState: TrailListFeature.State()) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State()) {
+            TrailListStore()
         } withDependencies: {
             $0.subscription.premiumStatusStream = {
                 AsyncStream { continuation in
@@ -343,8 +343,8 @@ struct TrailListFeatureTests {
 
     @Test
     func startPremiumStream_emitsMultipleUpdates() async {
-        let store = TestStore(initialState: TrailListFeature.State()) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State()) {
+            TrailListStore()
         } withDependencies: {
             $0.subscription.premiumStatusStream = {
                 AsyncStream { continuation in
@@ -370,8 +370,8 @@ struct TrailListFeatureTests {
     func onAppear_setsLoadingAndDispatchesInternalActions() async {
         let expectedTrails = [Self.makeTrailListItem()]
 
-        let store = TestStore(initialState: TrailListFeature.State()) {
-            TrailListFeature()
+        let store = TestStore(initialState: TrailListStore.State()) {
+            TrailListStore()
         } withDependencies: {
             $0.database.fetchAllTrails = { expectedTrails }
             $0.subscription.premiumStatusStream = {
@@ -399,18 +399,18 @@ struct TrailListFeatureTests {
 
         // Assert final state
         #expect(store.state.trailListVisitCount == 1)
-        #expect(store.state.destination == .paywall(PaywallFeature.State()))
+        #expect(store.state.destination == .paywall(PaywallStore.State()))
         #expect(store.state.trails == expectedTrails)
         #expect(store.state.isLoading == false)
     }
 
     @Test
     func onAppear_secondVisit_doesNotShowPaywall() async {
-        var state = TrailListFeature.State()
+        var state = TrailListStore.State()
         state.$trailListVisitCount.withLock { $0 = 1 }
 
         let store = TestStore(initialState: state) {
-            TrailListFeature()
+            TrailListStore()
         } withDependencies: {
             $0.database.fetchAllTrails = { [] }
             $0.subscription.premiumStatusStream = {

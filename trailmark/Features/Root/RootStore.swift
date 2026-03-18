@@ -2,7 +2,7 @@ import Foundation
 import ComposableArchitecture
 
 @Reducer
-struct RootFeature {
+struct RootStore {
     
     @ObservableState
     struct State: Equatable {
@@ -22,9 +22,9 @@ struct RootFeature {
                 print("[Root] initiate - hasCompletedOnboarding: \(state.hasCompletedOnboarding)")
                 print("[Root] initiate - path count before: \(state.path.count)")
                 if state.hasCompletedOnboarding {
-                    state.path.append(.trailList(TrailListFeature.State()))
+                    state.path.append(.trailList(TrailListStore.State()))
                 } else {
-                    state.path.append(.onboarding(OnboardingFeature.State()))
+                    state.path.append(.onboarding(OnboardingStore.State()))
                 }
                 print("[Root] initiate - path count after: \(state.path.count)")
                 return .none
@@ -34,7 +34,7 @@ struct RootFeature {
                 state.$hasCompletedOnboarding.withLock { $0 = true }
                 // Remplacer l'onboarding par la liste
 //                state.path.removeAll()
-                state.path.append(.trailList(TrailListFeature.State()))
+                state.path.append(.trailList(TrailListStore.State()))
                 return .none
 
             case .path:
@@ -51,18 +51,18 @@ struct RootFeature {
         
         @ObservableState
         enum State: Equatable {
-            case onboarding(OnboardingFeature.State)
-            case trailList(TrailListFeature.State)
+            case onboarding(OnboardingStore.State)
+            case trailList(TrailListStore.State)
         }
         
         enum Action: Equatable {
-            case onboarding(OnboardingFeature.Action)
-            case trailList(TrailListFeature.Action)
+            case onboarding(OnboardingStore.Action)
+            case trailList(TrailListStore.Action)
         }
         
         var body: some ReducerOf<Self> {
-            Scope(state: \.onboarding, action: \.onboarding) { OnboardingFeature() }
-            Scope(state: \.trailList, action: \.trailList) { TrailListFeature() }
+            Scope(state: \.onboarding, action: \.onboarding) { OnboardingStore() }
+            Scope(state: \.trailList, action: \.trailList) { TrailListStore() }
         }
     }
 }

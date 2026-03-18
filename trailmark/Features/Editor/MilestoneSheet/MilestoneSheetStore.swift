@@ -5,7 +5,7 @@ import CoreLocation
 // MARK: - MilestoneSheet Reducer
 
 @Reducer
-struct MilestoneSheetFeature {
+struct MilestoneSheetStore {
     @ObservableState
     struct State: Equatable, Sendable, Identifiable {
         var id: UUID = UUID()

@@ -1,8 +1,8 @@
 import SwiftUI
 import ComposableArchitecture
 
-struct TrailMetadataToolbar: View {
-    @Bindable var store: StoreOf<TrailMetadataFeature>
+struct TrailMetadataView: View {
+    @Bindable var store: StoreOf<TrailMetadataStore>
 
     var body: some View {
         // This view is empty — it only provides modifiers
@@ -46,11 +46,11 @@ struct TrailMetadataToolbar: View {
                 }
             }
             .overlay {
-                TrailMetadataToolbar(
+                TrailMetadataView(
                     store: Store(
-                        initialState: TrailMetadataFeature.State()
+                        initialState: TrailMetadataStore.State()
                     ) {
-                        TrailMetadataFeature()
+                        TrailMetadataStore()
                     }
                 )
             }

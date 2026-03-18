@@ -2,7 +2,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct RunView: View {
-    let store: StoreOf<RunFeature>
+    let store: StoreOf<RunStore>
 
     // Debug tap detection
     #if DEBUG
@@ -367,13 +367,13 @@ private enum PreviewData {
     NavigationStack {
         RunView(
             store: Store(
-                initialState: RunFeature.State(
+                initialState: RunStore.State(
                     trailId: 1,
                     trailDetail: PreviewData.trailDetail,
                     isRunning: false
                 )
             ) {
-                RunFeature()
+                RunStore()
             }
         )
     }
@@ -382,13 +382,13 @@ private enum PreviewData {
 #Preview("Guidage en cours") {
     RunView(
         store: Store(
-            initialState: RunFeature.State(
+            initialState: RunStore.State(
                 trailId: 1,
                 trailDetail: PreviewData.trailDetail,
                 isRunning: true
             )
         ) {
-            RunFeature()
+            RunStore()
         }
     )
 }
@@ -396,14 +396,14 @@ private enum PreviewData {
 #Preview("Avec annonce TTS") {
     RunView(
         store: Store(
-            initialState: RunFeature.State(
+            initialState: RunStore.State(
                 trailId: 1,
                 trailDetail: PreviewData.trailDetail,
                 isRunning: true,
                 currentTTSMessage: "Début de la montée vers le Col de Voza. Courage, 450 mètres de dénivelé positif."
             )
         ) {
-            RunFeature()
+            RunStore()
         }
     )
 }
@@ -411,14 +411,14 @@ private enum PreviewData {
 #Preview("Permission refusée") {
     RunView(
         store: Store(
-            initialState: RunFeature.State(
+            initialState: RunStore.State(
                 trailId: 1,
                 trailDetail: PreviewData.trailDetail,
                 isRunning: false,
                 authorizationDenied: true
             )
         ) {
-            RunFeature()
+            RunStore()
         }
     )
 }
@@ -426,7 +426,7 @@ private enum PreviewData {
 #Preview("Debug View") {
     RunView(
         store: Store(
-            initialState: RunFeature.State(
+            initialState: RunStore.State(
                 trailId: 1,
                 trailDetail: PreviewData.trailDetail,
                 isRunning: true,
@@ -439,7 +439,7 @@ private enum PreviewData {
                 locationUpdateCount: 42
             )
         ) {
-            RunFeature()
+            RunStore()
         }
     )
 }

@@ -2,7 +2,7 @@ import Foundation
 import ComposableArchitecture
 
 @Reducer
-struct TrailListFeature {
+struct TrailListStore {
     @ObservableState
     struct State: Equatable {
         var trails: [TrailListItem] = []
@@ -73,7 +73,7 @@ struct TrailListFeature {
 
             case ._checkFirstVisitPaywall:
                 if state.trailListVisitCount == 1 {
-                    state.destination = .paywall(PaywallFeature.State())
+                    state.destination = .paywall(PaywallStore.State())
                 }
                 return .none
 
@@ -120,7 +120,7 @@ struct TrailListFeature {
 
             case .renewTapped:
                 state.showExpiredAlert = false
-                state.destination = .paywall(PaywallFeature.State())
+                state.destination = .paywall(PaywallStore.State())
                 return .none
 
             #if DEBUG
@@ -136,20 +136,20 @@ struct TrailListFeature {
             case .addButtonTapped:
                 // Free users are limited to 1 trail
                 if !state.isPremium && state.trails.count >= 1 {
-                    state.destination = .paywall(PaywallFeature.State())
+                    state.destination = .paywall(PaywallStore.State())
                 } else {
-                    state.destination = .importGPX(ImportFeature.State())
+                    state.destination = .importGPX(ImportStore.State())
                 }
                 return .none
 
             case let .editTrailTapped(item):
                 guard let trailId = item.trail.id else { return .none }
-                state.destination = .editor(EditorFeature.State(trailId: trailId))
+                state.destination = .editor(EditorStore.State(trailId: trailId))
                 return .none
 
             case let .startTrailTapped(item):
                 guard let trailId = item.trail.id else { return .none }
-                state.destination = .run(RunFeature.State(trailId: trailId))
+                state.destination = .run(RunStore.State(trailId: trailId))
                 return .none
 
             case let .deleteTrailTapped(item):
@@ -166,11 +166,11 @@ struct TrailListFeature {
                 }
 
             case let .navigateToEditor(trailId):
-                state.destination = .editor(EditorFeature.State(trailId: trailId))
+                state.destination = .editor(EditorStore.State(trailId: trailId))
                 return .none
 
             case let .navigateToEditorWithPendingData(pendingData):
-                state.destination = .editor(EditorFeature.State(pendingData: pendingData))
+                state.destination = .editor(EditorStore.State(pendingData: pendingData))
                 return .none
 
             case .destination(.presented(.importGPX(.importCompleted(let pendingData)))):
@@ -210,31 +210,31 @@ struct TrailListFeature {
     struct Destination {
         @ObservableState
         enum State: Equatable {
-            case importGPX(ImportFeature.State)
-            case editor(EditorFeature.State)
-            case run(RunFeature.State)
-            case paywall(PaywallFeature.State)
+            case importGPX(ImportStore.State)
+            case editor(EditorStore.State)
+            case run(RunStore.State)
+            case paywall(PaywallStore.State)
         }
 
         enum Action: Equatable {
-            case importGPX(ImportFeature.Action)
-            case editor(EditorFeature.Action)
-            case run(RunFeature.Action)
-            case paywall(PaywallFeature.Action)
+            case importGPX(ImportStore.Action)
+            case editor(EditorStore.Action)
+            case run(RunStore.Action)
+            case paywall(PaywallStore.Action)
         }
 
         var body: some Reducer<State, Action> {
             Scope(state: \.importGPX, action: \.importGPX) {
-                ImportFeature()
+                ImportStore()
             }
             Scope(state: \.editor, action: \.editor) {
-                EditorFeature()
+                EditorStore()
             }
             Scope(state: \.run, action: \.run) {
-                RunFeature()
+                RunStore()
             }
             Scope(state: \.paywall, action: \.paywall) {
-                PaywallFeature()
+                PaywallStore()
             }
         }
     }

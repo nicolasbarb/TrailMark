@@ -3,7 +3,7 @@ import ComposableArchitecture
 import UniformTypeIdentifiers
 
 struct ImportView: View {
-    @Bindable var store: StoreOf<ImportFeature>
+    @Bindable var store: StoreOf<ImportStore>
 
     var body: some View {
         ZStack {
@@ -439,8 +439,8 @@ private struct ElevationProfilePreview: View {
 
 #Preview("Upload") {
     ImportView(
-        store: Store(initialState: ImportFeature.State()) {
-            ImportFeature()
+        store: Store(initialState: ImportStore.State()) {
+            ImportStore()
         }
     )
 }
@@ -448,7 +448,7 @@ private struct ElevationProfilePreview: View {
 #Preview("Result - Free") {
     ImportView(
         store: Store(
-            initialState: ImportFeature.State(
+            initialState: ImportStore.State(
                 phase: .result,
                 parsedTrail: Trail(
                     id: nil,
@@ -465,7 +465,7 @@ private struct ElevationProfilePreview: View {
                 isPremium: false
             )
         ) {
-            ImportFeature()
+            ImportStore()
         }
     )
 }
@@ -473,7 +473,7 @@ private struct ElevationProfilePreview: View {
 #Preview("Result - Premium") {
     ImportView(
         store: Store(
-            initialState: ImportFeature.State(
+            initialState: ImportStore.State(
                 phase: .result,
                 parsedTrail: Trail(
                     id: nil,
@@ -490,7 +490,7 @@ private struct ElevationProfilePreview: View {
                 isPremium: true
             )
         ) {
-            ImportFeature()
+            ImportStore()
         }
     )
 }

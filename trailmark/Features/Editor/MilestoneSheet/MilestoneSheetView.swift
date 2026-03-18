@@ -2,7 +2,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct MilestoneSheetView: View {
-    @Bindable var store: StoreOf<MilestoneSheetFeature>
+    @Bindable var store: StoreOf<MilestoneSheetStore>
     @Namespace private var typeIndicator
 
     var body: some View {
@@ -252,7 +252,7 @@ struct MilestoneSheetView: View {
 #Preview("Milestone Sheet") {
     MilestoneSheetView(
         store: Store(
-            initialState: MilestoneSheetFeature.State(
+            initialState: MilestoneSheetStore.State(
                 editingMilestone: nil,
                 pointIndex: 50,
                 latitude: 45.0641,
@@ -265,7 +265,7 @@ struct MilestoneSheetView: View {
                 autoMessage: "Montée. 1 virgule 8 kilomètres à 12 pourcent. 215 mètres de dénivelé positif."
             )
         ) {
-            MilestoneSheetFeature()
+            MilestoneSheetStore()
         }
     )
     .presentationBackground(TM.bgCard)
