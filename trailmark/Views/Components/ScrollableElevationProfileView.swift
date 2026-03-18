@@ -305,7 +305,7 @@ private struct SegmentBubbleOverlay: View {
                     let bubbleHeight: CGFloat = 36
                     let showBelow = dotY - bubbleHeight - 12 < paddingTop
 
-                    bubbleContent(segment: segment, slope: slope, showBelow: showBelow)
+                    bubbleContent(segment: segment, slope: slope, distance: trackPoints[currentIndex].distance, showBelow: showBelow)
                         .position(x: cursorX, y: showBelow ? dotY + 28 : dotY - 28)
                         .animation(.easeInOut(duration: 0.2), value: showBelow)
                 }
@@ -324,13 +324,14 @@ private struct SegmentBubbleOverlay: View {
         return (minEle, max(maxEle - minEle, 1))
     }
 
-    private func bubbleContent(segment: ProfileStatsData.SegmentData, slope: Int, showBelow: Bool = false) -> some View {
+    private func bubbleContent(segment: ProfileStatsData.SegmentData, slope: Int, distance: Double, showBelow: Bool = false) -> some View {
         VStack(spacing: 0) {
             // Triangle on top when below the dot
             if showBelow {
                 Image(systemName: "arrowtriangle.up.fill")
                     .font(.system(size: 8))
                     .foregroundStyle(.ultraThinMaterial)
+                    .offset(x: 25)
             }
 
             // Bubble
@@ -349,37 +350,20 @@ private struct SegmentBubbleOverlay: View {
                     .foregroundStyle(TM.textSecondary)
                 }
 
-//                // Segment distance (with path icon)
-//                HStack(spacing: 3) {
-//                    Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-//                        .font(.system(size: 9, weight: .bold))
-//                        .foregroundStyle(TM.textTertiary)
-//                    Text(formatDistance(segment.distance))
-//                        .font(.system(size: 11, weight: .bold, design: .monospaced))
-//                        .foregroundStyle(TM.textSecondary)
-//                }
-//
-//                // D+/- (with arrowtriangle icon)
-//                HStack(spacing: 3) {
-//                    Image(systemName: segment.type == .descente ? "arrowtriangle.down.fill" : "arrowtriangle.up.fill")
-//                        .font(.system(size: 8, weight: .bold))
-//                        .foregroundStyle(TM.textSecondary)
-//                    Text("\(segment.type == .descente ? "-" : "+")\(segment.elevationChange)m")
-//                        .font(.system(size: 11, weight: .bold, design: .monospaced))
-//                        .foregroundStyle(TM.textSecondary)
-//                }
+                // Cursor distance (km)
+                DistanceView(meters: distance)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .glassEffect(.regular, in: .capsule)
-//            .overlay(Capsule().stroke(segment.type.color.opacity(0.5), lineWidth: 1))
-//            .shadow(color: segment.type.color.opacity(0.25), radius: 4, x: 0, y: 2)
+            .overlay(Capsule().stroke(segment.type.color.opacity(0.5), lineWidth: 1))
 
             // Triangle on bottom when above the dot
             if !showBelow {
                 Image(systemName: "arrowtriangle.down.fill")
                     .font(.system(size: 8))
                     .foregroundStyle(.ultraThinMaterial)
+                    .offset(x: 25)
             }
         }
         .offset(x: -25)

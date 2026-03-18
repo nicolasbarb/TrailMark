@@ -48,7 +48,7 @@ struct SegmentPanelView: View {
                                 .font(.system(size: 9, weight: .bold, design: .monospaced))
                                 .foregroundStyle(.white)
                                 .frame(width: 16, height: 16)
-                                .background(segment.type.color, in: Circle())
+                                .background(TM.accent, in: Circle())
                                 .offset(x: 4, y: -4)
                         }
                     }

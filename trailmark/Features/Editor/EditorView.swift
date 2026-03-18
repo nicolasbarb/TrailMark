@@ -38,6 +38,7 @@ struct EditorView: View {
                     .tint(TM.accent)
             }
         }
+        .ignoresSafeArea(.keyboard)
         .toolbar {
             ToolbarItem(placement: .title) {
                 if let detail = store.trailDetail {
@@ -49,13 +50,15 @@ struct EditorView: View {
                     TrailStatsView(distanceKm: detail.distKm, dPlus: detail.trail.dPlus)
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Text("PRO")
-                    .font(.system(size: 9, weight: .bold, design: .monospaced))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 3)
-                    .background(TM.accent, in: RoundedRectangle(cornerRadius: 4))
+            if store.isPremium {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Text("PRO")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 3)
+                        .background(TM.accent, in: RoundedRectangle(cornerRadius: 4))
+                }
             }
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
             ToolbarItem(placement: .topBarTrailing) {
@@ -109,7 +112,7 @@ struct EditorView: View {
             item: $store.scope(state: \.milestoneSheet, action: \.milestoneSheet)
         ) { sheetStore in
             MilestoneSheetView(store: sheetStore)
-                .presentationDetents([.fraction(0.5), .large])
+                .presentationDetents([.medium, .large], selection: .constant(.large))
                 .presentationBackground(TM.bgCard)
                 .onDisappear {
                     highlightedMilestoneId = nil

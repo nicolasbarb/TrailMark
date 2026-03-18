@@ -254,39 +254,7 @@ struct EditorStore {
                 return .send(.elevationProfile(.delegate(.editMilestone(milestone))))
 
             case let .elevationProfile(.delegate(.editMilestone(milestone))):
-                var autoMessage: String? = nil
-                var personalMessage = milestone.message
-                if let detail = state.trailDetail {
-                    let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
-                    let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
-                        from: milestone.pointIndex,
-                        trackPoints: detail.trackPoints,
-                        terrainTypes: terrainTypes
-                    )
-                    autoMessage = AnnouncementBuilder.build(
-                        type: milestone.milestoneType,
-                        name: milestone.name,
-                        lookaheadStats: lookaheadStats
-                    )
-                    if let auto = autoMessage, personalMessage.hasPrefix(auto) {
-                        let remainder = String(personalMessage.dropFirst(auto.count))
-                            .trimmingCharacters(in: .whitespaces)
-                        personalMessage = remainder
-                    }
-                }
-
-                state.milestoneSheet = MilestoneSheetStore.State(
-                    editingMilestone: milestone,
-                    pointIndex: milestone.pointIndex,
-                    latitude: milestone.latitude,
-                    longitude: milestone.longitude,
-                    elevation: milestone.elevation,
-                    distance: milestone.distance,
-                    selectedType: milestone.milestoneType,
-                    personalMessage: personalMessage,
-                    name: milestone.name ?? "",
-                    autoMessage: autoMessage
-                )
+                state.milestoneSheet = buildMilestoneSheetState(for: milestone, trailDetail: state.trailDetail)
                 return .none
 
             case let .elevationProfile(.scrollPositionChanged(index)):
@@ -320,81 +288,57 @@ struct EditorStore {
                 return .none // View handles scrolling
 
             case let .segmentPanel(.delegate(.editMilestone(milestone))):
-                return .send(.elevationProfile(.delegate(.editMilestone(milestone))))
+                // Open milestone sheet inside the list sheet (nested)
+                let detail = state.trailDetail
+                state.segmentPanel.milestoneList?.milestoneSheet = buildMilestoneSheetState(for: milestone, trailDetail: detail)
+                return .none
+
+            // MARK: - MilestoneSheet from List (nested sheet)
+
+            case .segmentPanel(.milestoneList(.presented(.milestoneSheet(.presented(.typeSelected(let type)))))):
+                if let sheet = state.segmentPanel.milestoneList?.milestoneSheet, let detail = state.trailDetail {
+                    state.segmentPanel.milestoneList?.milestoneSheet?.autoMessage = recomputeAutoMessage(
+                        type: type, name: sheet.name, pointIndex: sheet.pointIndex, detail: detail
+                    )
+                }
+                return .none
+
+            case .segmentPanel(.milestoneList(.presented(.milestoneSheet(.presented(.saveButtonTapped))))):
+                guard let sheet = state.segmentPanel.milestoneList?.milestoneSheet else { return .none }
+                state.segmentPanel.milestoneList?.milestoneSheet = nil
+                return handleMilestoneSave(sheet: sheet, state: &state)
+
+            case .segmentPanel(.milestoneList(.presented(.milestoneSheet(.presented(.deleteButtonTapped))))):
+                guard let sheet = state.segmentPanel.milestoneList?.milestoneSheet else { return .none }
+                state.segmentPanel.milestoneList?.milestoneSheet = nil
+                return handleMilestoneDelete(sheet: sheet, state: &state)
+
+            case .segmentPanel(.milestoneList(.presented(.milestoneSheet(.presented(.dismissTapped))))):
+                state.segmentPanel.milestoneList?.milestoneSheet = nil
+                return .none
 
             case .segmentPanel:
                 return .none
 
-            // MARK: - MilestoneSheet
+            // MARK: - MilestoneSheet (direct from profile tap)
 
             case .milestoneSheet(.presented(.typeSelected(let type))):
                 if let sheet = state.milestoneSheet, let detail = state.trailDetail {
-                    let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
-                    let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
-                        from: sheet.pointIndex,
-                        trackPoints: detail.trackPoints,
-                        terrainTypes: terrainTypes
+                    state.milestoneSheet?.autoMessage = recomputeAutoMessage(
+                        type: type, name: sheet.name, pointIndex: sheet.pointIndex, detail: detail
                     )
-                    let autoMessage = AnnouncementBuilder.build(
-                        type: type,
-                        name: sheet.name.isEmpty ? nil : sheet.name,
-                        lookaheadStats: lookaheadStats
-                    )
-                    state.milestoneSheet?.autoMessage = autoMessage
                 }
                 return .none
 
             case .milestoneSheet(.presented(.saveButtonTapped)):
                 guard let sheet = state.milestoneSheet else { return .none }
-
-                let fullMessage = MilestoneSheetStore.buildFullMessage(
-                    autoMessage: sheet.autoMessage,
-                    personalMessage: sheet.personalMessage,
-                    includeAuto: state.isPremium
-                ) ?? sheet.selectedType.label
-                let name: String? = sheet.name.isEmpty ? nil : sheet.name
-                let currentTrailId = state.trailId ?? 0
-
                 state.milestoneSheet = nil
-
-                if let existingMilestone = sheet.editingMilestone,
-                   let milestoneId = existingMilestone.id {
-                    return .concatenate(
-                        .send(._updateMilestone(milestoneId, sheet.selectedType, fullMessage, name)),
-                        .send(._saveMilestones)
-                    )
-                } else {
-                    let milestone = Milestone(
-                        id: nil,
-                        trailId: currentTrailId,
-                        pointIndex: sheet.pointIndex,
-                        latitude: sheet.latitude,
-                        longitude: sheet.longitude,
-                        elevation: sheet.elevation,
-                        distance: sheet.distance,
-                        type: sheet.selectedType,
-                        message: fullMessage,
-                        name: name
-                    )
-                    return .concatenate(
-                        .send(._addMilestone(milestone)),
-                        .send(._saveMilestones)
-                    )
-                }
+                return handleMilestoneSave(sheet: sheet, state: &state)
 
             case .milestoneSheet(.presented(.deleteButtonTapped)):
-                guard let sheet = state.milestoneSheet,
-                      let editingMilestone = sheet.editingMilestone,
-                      let milestoneId = editingMilestone.id,
-                      let index = state.milestones.firstIndex(where: { $0.id == milestoneId }) else {
-                    state.milestoneSheet = nil
-                    return .none
-                }
+                guard let sheet = state.milestoneSheet else { return .none }
                 state.milestoneSheet = nil
-                return .concatenate(
-                    .send(._removeMilestoneAt(index)),
-                    .send(._saveMilestones)
-                )
+                return handleMilestoneDelete(sheet: sheet, state: &state)
 
             case .milestoneSheet(.presented(.dismissTapped)):
                 state.milestoneSheet = nil
@@ -438,5 +382,105 @@ struct EditorStore {
         if delta > 10 { return .montee }
         else if delta < -10 { return .descente }
         else { return .plat }
+    }
+
+    /// Build MilestoneSheetStore.State for editing an existing milestone
+    private func buildMilestoneSheetState(for milestone: Milestone, trailDetail: TrailDetail?) -> MilestoneSheetStore.State {
+        var autoMessage: String? = nil
+        var personalMessage = milestone.message
+        if let detail = trailDetail {
+            let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
+            let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
+                from: milestone.pointIndex,
+                trackPoints: detail.trackPoints,
+                terrainTypes: terrainTypes
+            )
+            autoMessage = AnnouncementBuilder.build(
+                type: milestone.milestoneType,
+                name: milestone.name,
+                lookaheadStats: lookaheadStats
+            )
+            if let auto = autoMessage, personalMessage.hasPrefix(auto) {
+                let remainder = String(personalMessage.dropFirst(auto.count))
+                    .trimmingCharacters(in: .whitespaces)
+                personalMessage = remainder
+            }
+        }
+        return MilestoneSheetStore.State(
+            editingMilestone: milestone,
+            pointIndex: milestone.pointIndex,
+            latitude: milestone.latitude,
+            longitude: milestone.longitude,
+            elevation: milestone.elevation,
+            distance: milestone.distance,
+            selectedType: milestone.milestoneType,
+            personalMessage: personalMessage,
+            name: milestone.name ?? "",
+            autoMessage: autoMessage
+        )
+    }
+
+    /// Recompute autoMessage when type changes
+    private func recomputeAutoMessage(type: MilestoneType, name: String, pointIndex: Int, detail: TrailDetail) -> String? {
+        let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
+        let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
+            from: pointIndex,
+            trackPoints: detail.trackPoints,
+            terrainTypes: terrainTypes
+        )
+        return AnnouncementBuilder.build(
+            type: type,
+            name: name.isEmpty ? nil : name,
+            lookaheadStats: lookaheadStats
+        )
+    }
+
+    /// Handle save from any MilestoneSheetStore
+    private func handleMilestoneSave(sheet: MilestoneSheetStore.State, state: inout State) -> Effect<Action> {
+        let fullMessage = MilestoneSheetStore.buildFullMessage(
+            autoMessage: sheet.autoMessage,
+            personalMessage: sheet.personalMessage,
+            includeAuto: state.isPremium
+        ) ?? sheet.selectedType.label
+        let name: String? = sheet.name.isEmpty ? nil : sheet.name
+        let currentTrailId = state.trailId ?? 0
+
+        if let existingMilestone = sheet.editingMilestone,
+           let milestoneId = existingMilestone.id {
+            return .concatenate(
+                .send(._updateMilestone(milestoneId, sheet.selectedType, fullMessage, name)),
+                .send(._saveMilestones)
+            )
+        } else {
+            let milestone = Milestone(
+                id: nil,
+                trailId: currentTrailId,
+                pointIndex: sheet.pointIndex,
+                latitude: sheet.latitude,
+                longitude: sheet.longitude,
+                elevation: sheet.elevation,
+                distance: sheet.distance,
+                type: sheet.selectedType,
+                message: fullMessage,
+                name: name
+            )
+            return .concatenate(
+                .send(._addMilestone(milestone)),
+                .send(._saveMilestones)
+            )
+        }
+    }
+
+    /// Handle delete from any MilestoneSheetStore
+    private func handleMilestoneDelete(sheet: MilestoneSheetStore.State, state: inout State) -> Effect<Action> {
+        guard let editingMilestone = sheet.editingMilestone,
+              let milestoneId = editingMilestone.id,
+              let index = state.milestones.firstIndex(where: { $0.id == milestoneId }) else {
+            return .none
+        }
+        return .concatenate(
+            .send(._removeMilestoneAt(index)),
+            .send(._saveMilestones)
+        )
     }
 }
