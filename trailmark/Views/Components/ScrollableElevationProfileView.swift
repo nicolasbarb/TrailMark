@@ -331,7 +331,6 @@ private struct SegmentBubbleOverlay: View {
                 Image(systemName: "arrowtriangle.up.fill")
                     .font(.system(size: 8))
                     .foregroundStyle(.ultraThinMaterial)
-                    .offset(x: 50)
             }
 
             // Bubble
@@ -350,39 +349,40 @@ private struct SegmentBubbleOverlay: View {
                     .foregroundStyle(TM.textSecondary)
                 }
 
-                // Segment distance (with path icon)
-                HStack(spacing: 3) {
-                    Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(TM.textTertiary)
-                    Text(formatDistance(segment.distance))
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
-                        .foregroundStyle(TM.textSecondary)
-                }
-
-                // D+/- (with arrowtriangle icon)
-                HStack(spacing: 3) {
-                    Image(systemName: segment.type == .descente ? "arrowtriangle.down.fill" : "arrowtriangle.up.fill")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(TM.textSecondary)
-                    Text("\(segment.type == .descente ? "-" : "+")\(segment.elevationChange)m")
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
-                        .foregroundStyle(TM.textSecondary)
-                }
+//                // Segment distance (with path icon)
+//                HStack(spacing: 3) {
+//                    Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+//                        .font(.system(size: 9, weight: .bold))
+//                        .foregroundStyle(TM.textTertiary)
+//                    Text(formatDistance(segment.distance))
+//                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+//                        .foregroundStyle(TM.textSecondary)
+//                }
+//
+//                // D+/- (with arrowtriangle icon)
+//                HStack(spacing: 3) {
+//                    Image(systemName: segment.type == .descente ? "arrowtriangle.down.fill" : "arrowtriangle.up.fill")
+//                        .font(.system(size: 8, weight: .bold))
+//                        .foregroundStyle(TM.textSecondary)
+//                    Text("\(segment.type == .descente ? "-" : "+")\(segment.elevationChange)m")
+//                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+//                        .foregroundStyle(TM.textSecondary)
+//                }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .glassEffect(.regular, in: .capsule)
+//            .overlay(Capsule().stroke(segment.type.color.opacity(0.5), lineWidth: 1))
+//            .shadow(color: segment.type.color.opacity(0.25), radius: 4, x: 0, y: 2)
 
             // Triangle on bottom when above the dot
             if !showBelow {
                 Image(systemName: "arrowtriangle.down.fill")
                     .font(.system(size: 8))
                     .foregroundStyle(.ultraThinMaterial)
-                    .offset(x: 50)
             }
         }
-        .offset(x: -50)
+        .offset(x: -25)
     }
 
     private func formatDistance(_ distance: Double) -> String {

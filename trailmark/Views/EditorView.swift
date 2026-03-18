@@ -76,10 +76,35 @@ struct EditorView: View {
                         .padding(.horizontal, 12)
                         .allowsHitTesting(false)
                     }
-                    .containerRelativeFrame(.vertical) { height, _ in height * 0.5 }
+//                    .containerRelativeFrame(.vertical) { height, _ in height * 0.5 }
+                    
+//                    Spacer()
 
                     // Milestone carousel (fills remaining space)
-                    ProfileStatsWrapper(
+//                    ProfileStatsWrapper(
+//                        scrollIndexHolder: scrollIndexHolder,
+//                        statsData: profileStatsData,
+//                        milestones: store.milestones,
+//                        onGoToMilestone: { milestone in
+//                            scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
+//                        },
+//                        onEditMilestone: { milestone in
+//                            highlightedMilestoneId = milestone.id
+//                            Haptic.medium.trigger()
+//                            store.send(.editMilestone(milestone))
+//                        },
+//                        onScrolledToMilestone: { milestone in
+//                            scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
+//                        }
+//                    )
+//                    .padding(.bottom, 12)
+
+                    // Add milestone button (glass, bottom)
+//                    addMilestoneButton
+//                        .padding(.horizontal, 16)
+//                        .padding(.bottom, 16)
+                    
+                    SegmentInfoWrapper(
                         scrollIndexHolder: scrollIndexHolder,
                         statsData: profileStatsData,
                         milestones: store.milestones,
@@ -91,16 +116,11 @@ struct EditorView: View {
                             Haptic.medium.trigger()
                             store.send(.editMilestone(milestone))
                         },
-                        onScrolledToMilestone: { milestone in
-                            scrollTarget = ScrollTarget(index: milestone.pointIndex, animated: true)
+                        onAddMilestone: {
+                            Haptic.medium.trigger()
+                            store.send(.profileTapped(scrollIndexHolder.index))
                         }
                     )
-                    .padding(.bottom, 12)
-
-                    // Add milestone button (glass, bottom)
-                    addMilestoneButton
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
                 }
             } else {
                 ProgressView()
@@ -118,19 +138,49 @@ struct EditorView: View {
                     TrailStatsView(distanceKm: detail.distKm, dPlus: detail.trail.dPlus)
                 }
             }
-            ToolbarItem(placement: .primaryAction) {
-                Button("Renommer", systemImage: "square.and.pencil") {
-                    Haptic.light.trigger()
-                    store.send(.renameButtonTapped)
+//            ToolbarItem(placement: .primaryAction) {
+//                Button("Renommer", systemImage: "square.and.pencil") {
+//                    Haptic.light.trigger()
+//                    store.send(.renameButtonTapped)
+//                }
+//            }
+//            ToolbarItem(placement: .destructiveAction) {
+//                Button("Supprimer", systemImage: "trash", role: .destructive) {
+//                    Haptic.warning.trigger()
+//                    store.send(.deleteTrailButtonTapped)
+//                }
+//                .tint(Color.red)
+//            }
+//            if store.isPremium {
+                ToolbarItem(placement: .topBarTrailing) {
+
+                    Text("PRO")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 3)
+                        .background(TM.accent, in: RoundedRectangle(cornerRadius: 4))
                 }
-            }
-            ToolbarSpacer(.fixed, placement: .primaryAction)
-            ToolbarItem(placement: .destructiveAction) {
-                Button("Supprimer", systemImage: "trash", role: .destructive) {
-                    Haptic.warning.trigger()
-                    store.send(.deleteTrailButtonTapped)
+//                .sharedBackgroundVisibility(.hidden)
+//            }
+            ToolbarSpacer(.fixed, placement: .topBarTrailing)
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button("Renommer le fichier", systemImage: "square.and.pencil") {
+                        Haptic.light.trigger()
+                        store.send(.renameButtonTapped) }
+                    Button("Supprimer le fichier", systemImage: "trash", role: .destructive) {
+                        Haptic.warning.trigger()
+                        store.send(.deleteTrailButtonTapped)
+                    }
+//                    Button("Signaler un bug", systemImage: "ladybug") {
+//                        Haptic.light.trigger()
+//                        store.send(.deleteTrailButtonTapped)
+//                    }
+                } label: {
+                    Image(systemName: "ellipsis")
                 }
-                .tint(Color.red)
+                
             }
         }
         .toolbarRole(.editor)
@@ -653,6 +703,176 @@ private struct DistanceOverlayWrapper: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .glassEffect(.regular, in: .capsule)
+        }
+    }
+}
+
+/// Only this view re-renders when scrollIndexHolder.index changes.
+private struct SegmentInfoWrapper: View {
+    let scrollIndexHolder: ScrollIndexHolder
+    let statsData: ProfileStatsData?
+    let milestones: [Milestone]
+    var onGoToMilestone: ((Milestone) -> Void)?
+    var onEditMilestone: ((Milestone) -> Void)?
+    var onAddMilestone: (() -> Void)?
+
+    private var currentSegment: ProfileStatsData.SegmentData? {
+        guard let stats = statsData else { return nil }
+        let idx = scrollIndexHolder.index
+        guard idx < stats.segmentIndices.count else { return nil }
+        let segmentIdx = stats.segmentIndices[idx]
+        guard segmentIdx < stats.segments.count else { return nil }
+        return stats.segments[segmentIdx]
+    }
+
+    @State private var showMilestonesList = false
+
+    private var segmentMilestones: [Milestone] {
+        guard let segment = currentSegment else { return [] }
+        return milestones.filter { $0.pointIndex >= segment.startIndex && $0.pointIndex <= segment.endIndex }
+    }
+
+    var body: some View {
+        if let segment = currentSegment {
+            VStack(alignment: .leading, spacing: 10) {
+                // Titre + repères count + actions
+                HStack(alignment: .center) {
+                    Text("Segment")
+                        .font(.headline)
+                        .foregroundStyle(TM.textPrimary)
+
+                    Spacer()
+
+                    HStack(spacing: 8) {
+                        if !segmentMilestones.isEmpty {
+                            Button {
+                                showMilestonesList = true
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "mappin.and.ellipse")
+                                        .font(.system(size: 11, weight: .bold))
+                                    Text("\(segmentMilestones.count)")
+                                        .font(.subheadline.weight(.semibold))
+                                }
+                                .foregroundStyle(segment.type.color)
+                            }
+                        } else {
+                            HStack(spacing: 4) {
+                                Image(systemName: "mappin.and.ellipse")
+                                    .font(.system(size: 11, weight: .bold))
+                                Text("0")
+                                    .font(.subheadline.weight(.semibold))
+                            }
+                            .foregroundStyle(TM.textTertiary)
+                        }
+
+                        Button {
+                            onAddMilestone?()
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(TM.accent)
+                        }
+                    }
+                }
+
+                Divider()
+
+                // Type / distance / dénivelé
+                HStack(spacing: 0) {
+                    // Type
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Type")
+                            .font(.caption)
+                            .foregroundStyle(TM.textTertiary)
+                        HStack(spacing: 4) {
+                            Image(systemName: segment.type.systemImage)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(segment.type.color)
+                            Text(segment.type.label)
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(TM.textPrimary)
+                        }
+                    }
+
+                    Divider()
+                        .padding(.horizontal, 12)
+
+                    // Distance
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Distance")
+                            .font(.caption)
+                            .foregroundStyle(TM.textTertiary)
+                        Text(formatDistance(segment.distance))
+                            .font(.system(.body, design: .monospaced, weight: .semibold))
+                            .foregroundStyle(TM.textPrimary)
+                    }
+
+                    Divider()
+                        .padding(.horizontal, 12)
+
+                    // Dénivelé
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Dénivelé")
+                            .font(.caption)
+                            .foregroundStyle(TM.textTertiary)
+                        Text("\(segment.type == .descente ? "-" : "+")\(segment.elevationChange) m")
+                            .font(.system(.body, design: .monospaced, weight: .semibold))
+                            .foregroundStyle(TM.textPrimary)
+                    }
+                }
+                .frame(maxHeight: 36)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .fixedSize(horizontal: false, vertical: true)
+            .sheet(isPresented: $showMilestonesList) {
+                NavigationStack {
+                    List(segmentMilestones) { milestone in
+                        Button {
+                            showMilestonesList = false
+                            onGoToMilestone?(milestone)
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: milestone.milestoneType.systemImage)
+                                    .foregroundStyle(milestone.milestoneType.color)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    if let name = milestone.name, !name.isEmpty {
+                                        Text(name)
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(TM.textPrimary)
+                                    }
+                                    Text(milestone.milestoneType.label)
+                                        .font(.caption)
+                                        .foregroundStyle(TM.textTertiary)
+                                }
+                                Spacer()
+                                Text(formatDistance(milestone.distance))
+                                    .font(.system(.caption, design: .monospaced))
+                                    .foregroundStyle(TM.textSecondary)
+                            }
+                        }
+                    }
+                    .navigationTitle("Repères du segment")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(role: .close) {
+                                showMilestonesList = false
+                            }
+                        }
+                    }
+                }
+                .presentationDetents([.medium])
+            }
+        }
+    }
+
+    private func formatDistance(_ distance: Double) -> String {
+        if distance >= 1000 {
+            return String(format: "%.1f km", distance / 1000)
+        } else {
+            return "\(Int(distance))m"
         }
     }
 }
