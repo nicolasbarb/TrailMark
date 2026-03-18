@@ -4,7 +4,7 @@ import RevenueCat
 import RevenueCatUI
 
 struct PaywallContainerView: View {
-    @Bindable var store: StoreOf<PaywallFeature>
+    @Bindable var store: StoreOf<PaywallStore>
 
     var body: some View {
         RevenueCatUI.PaywallView(displayCloseButton: true)
@@ -19,8 +19,8 @@ struct PaywallContainerView: View {
 
 #Preview {
     PaywallContainerView(
-        store: Store(initialState: PaywallFeature.State()) {
-            PaywallFeature()
+        store: Store(initialState: PaywallStore.State()) {
+            PaywallStore()
         }
     )
 }

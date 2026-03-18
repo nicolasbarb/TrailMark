@@ -4,7 +4,7 @@ import ComposableArchitecture
 @testable import trailmark
 
 @MainActor
-struct ImportFeatureTests {
+struct ImportStoreTests {
 
     // MARK: - Test Data
 
@@ -59,8 +59,8 @@ struct ImportFeatureTests {
 
     @Test
     func uploadZoneTapped_showsFilePicker() async {
-        let store = TestStore(initialState: ImportFeature.State()) {
-            ImportFeature()
+        let store = TestStore(initialState: ImportStore.State()) {
+            ImportStore()
         }
 
         await store.send(.uploadZoneTapped) {
@@ -71,8 +71,8 @@ struct ImportFeatureTests {
 
     @Test
     func uploadZoneTapped_clearsError() async {
-        let store = TestStore(initialState: ImportFeature.State(error: "Previous error")) {
-            ImportFeature()
+        let store = TestStore(initialState: ImportStore.State(error: "Previous error")) {
+            ImportStore()
         }
 
         await store.send(.uploadZoneTapped) {
@@ -83,8 +83,8 @@ struct ImportFeatureTests {
 
     @Test
     func filePickerDismissed_hidesFilePicker() async {
-        let store = TestStore(initialState: ImportFeature.State(isShowingFilePicker: true)) {
-            ImportFeature()
+        let store = TestStore(initialState: ImportStore.State(isShowingFilePicker: true)) {
+            ImportStore()
         }
 
         await store.send(.filePickerDismissed) {
@@ -94,8 +94,8 @@ struct ImportFeatureTests {
 
     @Test
     func fileSelected_transitionsToAnalyzing() async {
-        let store = TestStore(initialState: ImportFeature.State()) {
-            ImportFeature()
+        let store = TestStore(initialState: ImportStore.State()) {
+            ImportStore()
         }
 
         await store.send(.fileSelected("/path/to/file.gpx")) {
@@ -115,8 +115,8 @@ struct ImportFeatureTests {
         let trackPoints = Self.makeTrackPoints()
         let milestones = Self.makeMilestones()
 
-        let store = TestStore(initialState: ImportFeature.State(phase: .analyzing)) {
-            ImportFeature()
+        let store = TestStore(initialState: ImportStore.State(phase: .analyzing)) {
+            ImportStore()
         }
 
         await store.send(.analysisCompleted(trail, trackPoints, milestones)) {
@@ -132,8 +132,8 @@ struct ImportFeatureTests {
         let trail = Self.makeTrail()
         let trackPoints = Self.makeTrackPoints()
 
-        let store = TestStore(initialState: ImportFeature.State(phase: .analyzing)) {
-            ImportFeature()
+        let store = TestStore(initialState: ImportStore.State(phase: .analyzing)) {
+            ImportStore()
         }
 
         await store.send(.analysisCompleted(trail, trackPoints, [])) {
@@ -146,8 +146,8 @@ struct ImportFeatureTests {
 
     @Test
     func importFailed_returnsToUpload() async {
-        let store = TestStore(initialState: ImportFeature.State(phase: .analyzing)) {
-            ImportFeature()
+        let store = TestStore(initialState: ImportStore.State(phase: .analyzing)) {
+            ImportStore()
         }
 
         await store.send(.importFailed("Failed to parse GPX")) {
@@ -165,14 +165,14 @@ struct ImportFeatureTests {
         let milestones = Self.makeMilestones()
 
         let store = TestStore(
-            initialState: ImportFeature.State(
+            initialState: ImportStore.State(
                 phase: .result,
                 parsedTrail: trail,
                 parsedTrackPoints: trackPoints,
                 detectedMilestones: milestones
             )
         ) {
-            ImportFeature()
+            ImportStore()
         }
 
         let expectedPendingData = PendingTrailData(
@@ -192,14 +192,14 @@ struct ImportFeatureTests {
         let milestones = Self.makeMilestones()
 
         let store = TestStore(
-            initialState: ImportFeature.State(
+            initialState: ImportStore.State(
                 phase: .result,
                 parsedTrail: trail,
                 parsedTrackPoints: trackPoints,
                 detectedMilestones: milestones
             )
         ) {
-            ImportFeature()
+            ImportStore()
         }
 
         let expectedPendingData = PendingTrailData(
@@ -218,14 +218,14 @@ struct ImportFeatureTests {
         let trackPoints = Self.makeTrackPoints()
 
         let store = TestStore(
-            initialState: ImportFeature.State(
+            initialState: ImportStore.State(
                 phase: .result,
                 parsedTrail: trail,
                 parsedTrackPoints: trackPoints,
                 detectedMilestones: []
             )
         ) {
-            ImportFeature()
+            ImportStore()
         }
 
         let expectedPendingData = PendingTrailData(
@@ -240,8 +240,8 @@ struct ImportFeatureTests {
 
     @Test
     func dismissTapped_callsDismiss() async {
-        let store = TestStore(initialState: ImportFeature.State()) {
-            ImportFeature()
+        let store = TestStore(initialState: ImportStore.State()) {
+            ImportStore()
         } withDependencies: {
             $0.dismiss = DismissEffect { }
         }
@@ -258,18 +258,18 @@ struct ImportFeatureTests {
         let milestones = Self.makeMilestones()
 
         let store = TestStore(
-            initialState: ImportFeature.State(
+            initialState: ImportStore.State(
                 phase: .result,
                 parsedTrail: trail,
                 parsedTrackPoints: trackPoints,
                 detectedMilestones: milestones
             )
         ) {
-            ImportFeature()
+            ImportStore()
         }
 
         await store.send(.unlockTapped) {
-            $0.paywall = PaywallFeature.State()
+            $0.paywall = PaywallStore.State()
         }
     }
 
@@ -280,15 +280,15 @@ struct ImportFeatureTests {
         let milestones = Self.makeMilestones()
 
         let store = TestStore(
-            initialState: ImportFeature.State(
+            initialState: ImportStore.State(
                 phase: .result,
                 parsedTrail: trail,
                 parsedTrackPoints: trackPoints,
                 detectedMilestones: milestones,
-                paywall: PaywallFeature.State()
+                paywall: PaywallStore.State()
             )
         ) {
-            ImportFeature()
+            ImportStore()
         }
         // @Shared state changes don't work well with exhaustive assertions
         store.exhaustivity = .off
@@ -307,15 +307,15 @@ struct ImportFeatureTests {
         let milestones = Self.makeMilestones()
 
         let store = TestStore(
-            initialState: ImportFeature.State(
+            initialState: ImportStore.State(
                 phase: .result,
                 parsedTrail: trail,
                 parsedTrackPoints: trackPoints,
                 detectedMilestones: milestones,
-                paywall: PaywallFeature.State()
+                paywall: PaywallStore.State()
             )
         ) {
-            ImportFeature()
+            ImportStore()
         }
         // @Shared state changes don't work well with exhaustive assertions
         store.exhaustivity = .off
@@ -330,12 +330,12 @@ struct ImportFeatureTests {
     @Test
     func paywallDismiss_closesPaywall() async {
         let store = TestStore(
-            initialState: ImportFeature.State(
+            initialState: ImportStore.State(
                 phase: .result,
-                paywall: PaywallFeature.State()
+                paywall: PaywallStore.State()
             )
         ) {
-            ImportFeature()
+            ImportStore()
         }
 
         await store.send(.paywall(.dismiss)) {

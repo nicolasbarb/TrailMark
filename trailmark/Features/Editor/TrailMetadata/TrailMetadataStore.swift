@@ -2,7 +2,7 @@ import Foundation
 import ComposableArchitecture
 
 @Reducer
-struct TrailMetadataFeature {
+struct TrailMetadataStore {
     @ObservableState
     struct State: Equatable, Sendable {
         var isRenamingTrail = false

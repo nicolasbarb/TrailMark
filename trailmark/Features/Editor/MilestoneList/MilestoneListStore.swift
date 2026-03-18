@@ -2,7 +2,7 @@ import Foundation
 import ComposableArchitecture
 
 @Reducer
-struct MilestoneListFeature {
+struct MilestoneListStore {
     @ObservableState
     struct State: Equatable, Sendable {
         // Milestones are passed from parent, not @Shared

@@ -2,18 +2,18 @@ import Foundation
 import ComposableArchitecture
 
 @Reducer
-struct SegmentPanelFeature {
+struct SegmentPanelStore {
     @ObservableState
     struct State: Equatable, Sendable {
         var currentScrollIndex: Int = 0
-        @Presents var milestoneList: MilestoneListFeature.State?
+        @Presents var milestoneList: MilestoneListStore.State?
     }
 
     enum Action: Equatable {
         case scrollIndexChanged(Int)
         case addMilestoneTapped
         case listMilestonesTapped
-        case milestoneList(PresentationAction<MilestoneListFeature.Action>)
+        case milestoneList(PresentationAction<MilestoneListStore.Action>)
 
         enum Delegate: Equatable {
             case addMilestoneTapped
@@ -34,7 +34,7 @@ struct SegmentPanelFeature {
                 return .send(.delegate(.addMilestoneTapped))
 
             case .listMilestonesTapped:
-                state.milestoneList = MilestoneListFeature.State()
+                state.milestoneList = MilestoneListStore.State()
                 return .none
 
             case let .milestoneList(.presented(.delegate(.goToMilestone(milestone)))):
@@ -51,7 +51,7 @@ struct SegmentPanelFeature {
             }
         }
         .ifLet(\.$milestoneList, action: \.milestoneList) {
-            MilestoneListFeature()
+            MilestoneListStore()
         }
     }
 }

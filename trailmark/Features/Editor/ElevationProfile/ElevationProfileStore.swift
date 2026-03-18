@@ -2,7 +2,7 @@ import Foundation
 import ComposableArchitecture
 
 @Reducer
-struct ElevationProfileFeature {
+struct ElevationProfileStore {
     @ObservableState
     struct State: Equatable, Sendable {
         var cursorPointIndex: Int?

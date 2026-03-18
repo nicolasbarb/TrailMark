@@ -2,7 +2,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct TrailListView: View {
-    @Bindable var store: StoreOf<TrailListFeature>
+    @Bindable var store: StoreOf<TrailListStore>
 
     var body: some View {
         ZStack {
@@ -273,8 +273,8 @@ private struct TrailCard: View {
 #Preview("Liste vide") {
     NavigationStack {
         TrailListView(
-            store: Store(initialState: TrailListFeature.State()) {
-                TrailListFeature()
+            store: Store(initialState: TrailListStore.State()) {
+                TrailListStore()
             }
         )
     }
@@ -284,7 +284,7 @@ private struct TrailCard: View {
     NavigationStack {
         TrailListView(
             store: Store(
-                initialState: TrailListFeature.State(
+                initialState: TrailListStore.State(
                     trails: [
                         TrailListItem(
                             trail: Trail(
@@ -329,7 +329,7 @@ private struct TrailCard: View {
                     ]
                 )
             ) {
-                TrailListFeature()
+                TrailListStore()
             }
         )
     }
