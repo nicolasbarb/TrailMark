@@ -5,11 +5,12 @@ import ComposableArchitecture
 struct MilestoneListStore {
     @ObservableState
     struct State: Equatable, Sendable {
-        // Milestones are passed from parent, not @Shared
+        @Presents var milestoneSheet: MilestoneSheetStore.State?
     }
 
     enum Action: Equatable {
         case milestoneTapped(Milestone)
+        case milestoneSheet(PresentationAction<MilestoneSheetStore.Action>)
 
         enum Delegate: Equatable {
             case goToMilestone(Milestone)
@@ -22,14 +23,21 @@ struct MilestoneListStore {
         Reduce { state, action in
             switch action {
             case let .milestoneTapped(milestone):
+                // Delegate to parent to compute autoMessage and set sheet state
                 return .merge(
                     .send(.delegate(.goToMilestone(milestone))),
                     .send(.delegate(.editMilestone(milestone)))
                 )
 
+            case .milestoneSheet:
+                return .none
+
             case .delegate:
                 return .none
             }
+        }
+        .ifLet(\.$milestoneSheet, action: \.milestoneSheet) {
+            MilestoneSheetStore()
         }
     }
 }
