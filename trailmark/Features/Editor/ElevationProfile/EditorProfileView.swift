@@ -61,7 +61,7 @@ struct EditorProfileView: View {
                         statsData: statsData
                     )
                     Spacer()
-                    DistanceOverlayWrapper(
+                    AltitudeOverlayWrapper(
                         scrollIndexHolder: scrollIndexHolder,
                         statsData: statsData
                     )
@@ -112,7 +112,7 @@ private struct StatsOverlayWrapper: View {
     }
 }
 
-private struct DistanceOverlayWrapper: View {
+private struct AltitudeOverlayWrapper: View {
     let scrollIndexHolder: ScrollIndexHolder
     let statsData: ProfileStatsData?
 
@@ -120,24 +120,16 @@ private struct DistanceOverlayWrapper: View {
         if let stats = statsData,
            scrollIndexHolder.index < stats.trackPoints.count {
             let point = stats.trackPoints[scrollIndexHolder.index]
-            HStack(spacing: 8) {
-                DistanceView(meters: point.distance)
-
-                Rectangle()
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 0.5, height: 16)
-
-                HStack(spacing: 4) {
-                    Image(systemName: "mountain.2.fill")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(TM.textTertiary)
-                    Text("\(Int(point.elevation))")
-                        .font(.system(.caption2, design: .monospaced, weight: .bold))
-                        .foregroundStyle(TM.textSecondary)
-                    Text("M")
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(TM.textTertiary)
-                }
+            HStack(spacing: 4) {
+                Image(systemName: "mountain.2.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(TM.textTertiary)
+                Text("\(Int(point.elevation))")
+                    .font(.system(.caption2, design: .monospaced, weight: .bold))
+                    .foregroundStyle(TM.textSecondary)
+                Text("M")
+                    .font(.system(.caption2, design: .monospaced))
+                    .foregroundStyle(TM.textTertiary)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
