@@ -289,6 +289,11 @@ struct EditorStore {
                 )
                 return .none
 
+            case let .elevationProfile(.scrollPositionChanged(index)):
+                // Sync scroll position to segment panel
+                state.segmentPanel.currentScrollIndex = index
+                return .none
+
             case .elevationProfile:
                 return .none
 
