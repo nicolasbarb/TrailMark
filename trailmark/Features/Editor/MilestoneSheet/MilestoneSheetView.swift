@@ -9,49 +9,18 @@ struct MilestoneSheetView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    sectionLabel("TYPE")
-
-                    typeCardsSelector(selectedType: store.selectedType)
-                        .padding(.top, 8)
-
-                    // MARK: - Message Section
-                    if store.autoMessage != nil {
+                    switch store.effectiveStep {
+                    case .discovery:
+                        // Étape 1 : Discovery — juste le message analysé + choix
                         discoveryCard
-                            .padding(.top, 14)
 
-                        sectionLabel(store.isPremium ? "COMPLÉMENT PERSONNEL" : "VOTRE MESSAGE")
-                            .padding(.top, 14)
-
-                        messageTextField(
-                            placeholder: store.isPremium ? "Ajouter un complément\u{2026}" : "Écrire votre annonce\u{2026}"
-                        )
-                        .padding(.top, 8)
-                    } else {
-                        sectionLabel("MESSAGE TTS")
-                            .padding(.top, 14)
-
-                        messageTextField(placeholder: messagePlaceholder)
-                            .padding(.top, 8)
+                    case .editing:
+                        // Étape 2 : Formulaire complet
+                        editingForm
                     }
-
-                    listenButton
-                        .padding(.top, 12)
-
-                    sectionLabel("NOM (OPTIONNEL)")
-                        .padding(.top, 14)
-
-                    TextField("ex: Col de la Croix", text: $store.name)
-                        .font(.body)
-                        .foregroundStyle(TM.textPrimary)
-                        .padding(12)
-                        .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(TM.border, lineWidth: 1)
-                        }
-                        .padding(.top, 8)
                 }
                 .padding(20)
+                .animation(.spring(duration: 0.35), value: store.effectiveStep)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -103,7 +72,7 @@ struct MilestoneSheetView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(TM.accent)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("TrailMark a analysé ce segment")
+                    Text("PaceMark a analysé ce segment")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(TM.textPrimary)
                     Text("Annonce générée pour vous")
@@ -138,6 +107,60 @@ struct MilestoneSheetView: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(TM.accent.opacity(0.15), lineWidth: 1)
         }
+    }
+
+    // MARK: - Editing Form (Step 2)
+
+    @ViewBuilder
+    private var editingForm: some View {
+        sectionLabel("TYPE")
+
+        typeCardsSelector(selectedType: store.selectedType)
+            .padding(.top, 8)
+
+        // Message section
+        if store.useAutoAnnouncement, let autoMessage = store.autoMessage {
+            sectionLabel("ANNONCE GÉNÉRÉE")
+                .padding(.top, 14)
+
+            Text(autoMessage)
+                .font(.body)
+                .foregroundStyle(TM.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(TM.bgSecondary, in: RoundedRectangle(cornerRadius: 10))
+                .padding(.top, 8)
+
+            sectionLabel("COMPLÉMENT PERSONNEL")
+                .padding(.top, 14)
+        } else {
+            sectionLabel("VOTRE MESSAGE")
+                .padding(.top, 14)
+        }
+
+        messageTextField(
+            placeholder: store.useAutoAnnouncement
+                ? "Ajouter un complément\u{2026}"
+                : messagePlaceholder
+        )
+        .padding(.top, 8)
+
+        listenButton
+            .padding(.top, 12)
+
+        sectionLabel("NOM (OPTIONNEL)")
+            .padding(.top, 14)
+
+        TextField("ex: Col de la Croix", text: $store.name)
+            .font(.body)
+            .foregroundStyle(TM.textPrimary)
+            .padding(12)
+            .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
+            .overlay {
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(TM.border, lineWidth: 1)
+            }
+            .padding(.top, 8)
     }
 
     // MARK: - Choice Buttons

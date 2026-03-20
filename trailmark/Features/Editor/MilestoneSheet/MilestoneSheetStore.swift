@@ -6,6 +6,11 @@ import CoreLocation
 
 @Reducer
 struct MilestoneSheetStore {
+    enum Step: Equatable, Sendable {
+        case discovery
+        case editing
+    }
+
     @ObservableState
     struct State: Equatable, Sendable, Identifiable {
         var id: UUID = UUID()
@@ -20,10 +25,17 @@ struct MilestoneSheetStore {
         var name: String
         var autoMessage: String? = nil
         var useAutoAnnouncement = false
+        var step: Step = .discovery
         var isPlayingPreview = false
         @Shared(.inMemory("isPremium")) var isPremium = false
 
         var isEditing: Bool { editingMilestone != nil }
+
+        // Si pas d'autoMessage ou en mode édition, aller directement à l'étape editing
+        var effectiveStep: Step {
+            if autoMessage == nil || isEditing { return .editing }
+            return step
+        }
     }
 
     static func buildFullMessage(
@@ -73,9 +85,11 @@ struct MilestoneSheetStore {
                 return .none
             case .useAutoMessage:
                 state.useAutoAnnouncement = true
+                state.step = .editing
                 return .none
             case .writeOwnMessage:
                 state.useAutoAnnouncement = false
+                state.step = .editing
                 return .none
             case .dismissTapped:
                 speech.stop()
