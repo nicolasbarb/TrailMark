@@ -18,6 +18,8 @@
     <!-- API Keys (injected from Secrets.xcconfig) -->
     <key>RevenueCatAPIKey</key>
     <string>$(REVENUECAT_API_KEY)</string>
+    <key>TelemetryDeckAppID</key>
+    <string>$(TELEMETRY_DECK_APP_ID)</string>
 
     <!-- Export Compliance -->
     <key>ITSAppUsesNonExemptEncryption</key>
