@@ -53,6 +53,8 @@ struct TrailListStore {
     @Dependency(\.storeKit) var storeKit
 
     var body: some Reducer<State, Action> {
+        TrailListAnalyticsReducer()
+
         Reduce { state, action in
             switch action {
             case .onAppear:
