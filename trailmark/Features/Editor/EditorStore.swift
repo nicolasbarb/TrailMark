@@ -87,6 +87,8 @@ struct EditorStore {
             SegmentPanelStore()
         }
 
+        EditorAnalyticsReducer()
+
         Reduce { state, action in
             switch action {
 
