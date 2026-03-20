@@ -9,76 +9,34 @@ struct MilestoneSheetView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Type selector (horizontal cards from Approach 3)
                     sectionLabel("TYPE")
 
                     typeCardsSelector(selectedType: store.selectedType)
                         .padding(.top, 8)
 
-                    // MARK: - Message Section (conditional layout)
-                    if let autoMessage = store.autoMessage {
-                        // montee/descente: auto block + personal complement
-                        HStack(spacing: 6) {
-                            sectionLabel("ANNONCE VOCALE")
-                            proBadge
-                        }
-                        .padding(.top, 14)
-
-                        // Auto-generated text block (read-only)
-                        Text(autoMessage)
-                            .font(.body)
-                            .foregroundStyle(TM.textPrimary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-                            .background(TM.bgSecondary, in: RoundedRectangle(cornerRadius: 10))
-                            .opacity(store.isPremium ? 1 : 0.7)
-                            .padding(.top, 8)
-
-                        sectionLabel("COMPLEMENT PERSO")
+                    // MARK: - Message Section
+                    if store.autoMessage != nil {
+                        discoveryCard
                             .padding(.top, 14)
 
-                        TextField(
-                            "Ajouter un message personnel\u{2026}",
-                            text: $store.personalMessage,
-                            axis: .vertical
-                        )
-                        .lineLimit(3...5)
-                        .font(.body)
-                        .foregroundStyle(TM.textPrimary)
-                        .padding(12)
-                        .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(TM.border, lineWidth: 1)
+                        sectionLabel(store.isPremium ? "COMPLÉMENT PERSONNEL" : "VOTRE MESSAGE")
+                            .padding(.top, 14)
+
+                        messageTextField(
+                            placeholder: store.isPremium ? "Ajouter un complément\u{2026}" : "Écrire votre annonce\u{2026}"
                         )
                         .padding(.top, 8)
                     } else {
-                        // Non montee/descente: plain message field
                         sectionLabel("MESSAGE TTS")
                             .padding(.top, 14)
 
-                        TextField(
-                            messagePlaceholder,
-                            text: $store.personalMessage,
-                            axis: .vertical
-                        )
-                        .lineLimit(3...5)
-                        .font(.body)
-                        .foregroundStyle(TM.textPrimary)
-                        .padding(12)
-                        .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(TM.border, lineWidth: 1)
-                        )
-                        .padding(.top, 8)
+                        messageTextField(placeholder: messagePlaceholder)
+                            .padding(.top, 8)
                     }
 
-                    // Full-width listen button
                     listenButton
                         .padding(.top, 12)
 
-                    // Name
                     sectionLabel("NOM (OPTIONNEL)")
                         .padding(.top, 14)
 
@@ -87,12 +45,11 @@ struct MilestoneSheetView: View {
                         .foregroundStyle(TM.textPrimary)
                         .padding(12)
                         .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
-                        .overlay(
+                        .overlay {
                             RoundedRectangle(cornerRadius: 10)
                                 .stroke(TM.border, lineWidth: 1)
-                        )
+                        }
                         .padding(.top, 8)
-
                 }
                 .padding(20)
             }
@@ -136,7 +93,110 @@ struct MilestoneSheetView: View {
         }
     }
 
-    // MARK: - Section Label
+    // MARK: - Discovery Card
+
+    private var discoveryCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(TM.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("TrailMark a analysé ce segment")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(TM.textPrimary)
+                    Text("Annonce générée pour vous")
+                        .font(.caption)
+                        .foregroundStyle(TM.textTertiary)
+                }
+            }
+
+            // Auto-generated text
+            if let autoMessage = store.autoMessage {
+                Text(autoMessage)
+                    .font(.body)
+                    .foregroundStyle(TM.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(TM.bgPrimary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+            }
+
+            // Choice buttons
+            choiceButtons
+        }
+        .padding(14)
+        .background(
+            LinearGradient(
+                colors: [TM.accent.opacity(0.08), TM.bgSecondary],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 14)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(TM.accent.opacity(0.15), lineWidth: 1)
+        }
+    }
+
+    // MARK: - Choice Buttons
+
+    private var choiceButtons: some View {
+        HStack(spacing: 10) {
+            if store.isPremium {
+                Button {
+                    withAnimation(.spring(duration: 0.3)) {
+                        _ = store.send(.useAutoMessage)
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Utiliser")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(TM.accent, in: RoundedRectangle(cornerRadius: 10))
+                }
+            } else {
+                Button {
+                    // TODO: trigger paywall
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.open.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Débloquer")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(TM.accent, in: RoundedRectangle(cornerRadius: 10))
+                }
+            }
+
+            Button {
+                withAnimation(.spring(duration: 0.3)) {
+                    _ = store.send(.writeOwnMessage)
+                }
+            } label: {
+                Text("Écrire moi-même")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(TM.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(TM.border, lineWidth: 1)
+                    }
+            }
+        }
+    }
+
+    // MARK: - Helpers
 
     private func sectionLabel(_ text: String) -> some View {
         Text(text)
@@ -144,8 +204,6 @@ struct MilestoneSheetView: View {
             .tracking(1)
             .foregroundStyle(TM.textMuted)
     }
-
-    // MARK: - PRO Badge
 
     private var proBadge: some View {
         HStack(spacing: 4) {
@@ -163,7 +221,22 @@ struct MilestoneSheetView: View {
         .background(TM.accent, in: RoundedRectangle(cornerRadius: 4))
     }
 
-    // MARK: - Listen Button
+    private func messageTextField(placeholder: String) -> some View {
+        TextField(
+            placeholder,
+            text: $store.personalMessage,
+            axis: .vertical
+        )
+        .lineLimit(3...5)
+        .font(.body)
+        .foregroundStyle(TM.textPrimary)
+        .padding(12)
+        .background(TM.bgPrimary, in: RoundedRectangle(cornerRadius: 10))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(TM.border, lineWidth: 1)
+        }
+    }
 
     private var isListenDisabled: Bool {
         (store.autoMessage ?? "").isEmpty && store.personalMessage.isEmpty
@@ -187,16 +260,14 @@ struct MilestoneSheetView: View {
             .foregroundStyle(isListenDisabled ? TM.textMuted : TM.accent)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
-            .overlay(
+            .overlay {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(isListenDisabled ? TM.border : TM.accent, lineWidth: 1)
-            )
+            }
         }
         .disabled(isListenDisabled)
         .accessibilityLabel(store.isPlayingPreview ? "Arrêter la lecture" : "Écouter l'annonce")
     }
-
-    // MARK: - Message Placeholder
 
     private var messagePlaceholder: String {
         switch store.selectedType {
@@ -207,8 +278,6 @@ struct MilestoneSheetView: View {
         case .montee, .descente: "Ajouter un message personnel\u{2026}"
         }
     }
-
-    // MARK: - Type Selector
 
     private func typeCardsSelector(selectedType: MilestoneType) -> some View {
         HStack(spacing: 0) {
@@ -248,6 +317,8 @@ struct MilestoneSheetView: View {
         .glassEffect(.regular, in: .rect(cornerRadius: 14))
     }
 }
+
+// MARK: - Preview
 
 #Preview("Milestone Sheet") {
     MilestoneSheetView(

@@ -19,6 +19,7 @@ struct MilestoneSheetStore {
         var personalMessage: String
         var name: String
         var autoMessage: String? = nil
+        var useAutoAnnouncement = false
         var isPlayingPreview = false
         @Shared(.inMemory("isPremium")) var isPremium = false
 
@@ -46,6 +47,8 @@ struct MilestoneSheetStore {
         case saveButtonTapped
         case deleteButtonTapped
         case dismissTapped
+        case useAutoMessage
+        case writeOwnMessage
         case previewTTSTapped
         case stopTTSTapped
         case ttsFinished
@@ -67,6 +70,12 @@ struct MilestoneSheetStore {
             case .saveButtonTapped:
                 return .none
             case .deleteButtonTapped:
+                return .none
+            case .useAutoMessage:
+                state.useAutoAnnouncement = true
+                return .none
+            case .writeOwnMessage:
+                state.useAutoAnnouncement = false
                 return .none
             case .dismissTapped:
                 speech.stop()

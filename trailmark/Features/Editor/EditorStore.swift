@@ -440,7 +440,7 @@ struct EditorStore {
         let fullMessage = MilestoneSheetStore.buildFullMessage(
             autoMessage: sheet.autoMessage,
             personalMessage: sheet.personalMessage,
-            includeAuto: state.isPremium
+            includeAuto: sheet.useAutoAnnouncement
         ) ?? sheet.selectedType.label
         let name: String? = sheet.name.isEmpty ? nil : sheet.name
         let currentTrailId = state.trailId ?? 0
