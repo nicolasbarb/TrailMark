@@ -43,6 +43,8 @@ struct OnboardingStore {
     // MARK: - Reducer
 
     var body: some Reducer<State, Action> {
+        OnboardingAnalyticsReducer()
+
         Reduce { state, action in
             switch action {
             case .introCompleted:
