@@ -52,6 +52,8 @@ struct ImportStore {
     @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
+        ImportAnalyticsReducer()
+
         Reduce { state, action in
             switch action {
             // MARK: - Upload Phase
