@@ -127,9 +127,10 @@ extension DatabaseClient: DependencyKey {
                         .order { col in col.createdAt.desc() }
                         .fetchAll(db)
 
-                    return try trails.map { trail in
+                    return try trails.compactMap { trail in
+                        guard let trailId = trail.id else { return nil }
                         let count = try Milestone
-                            .where { col in col.trailId == trail.id }
+                            .where { col in col.trailId.eq(trailId) }
                             .fetchCount(db)
                         return TrailListItem(trail: trail, milestoneCount: count)
                     }
@@ -137,16 +138,16 @@ extension DatabaseClient: DependencyKey {
             },
             fetchTrailDetail: { trailId in
                 try await database.read { db in
-                    let trailQuery = Trail.where { col in col.id == trailId }
+                    let trailQuery = Trail.where { col in col.id.eq(trailId) }
                     guard let trail = try trailQuery.fetchOne(db) else {
                         return nil
                     }
                     let trackPoints = try TrackPoint
-                        .where { col in col.trailId == trailId }
+                        .where { col in col.trailId.eq(trailId) }
                         .order { col in col.index.asc() }
                         .fetchAll(db)
                     let milestones = try Milestone
-                        .where { col in col.trailId == trailId }
+                        .where { col in col.trailId.eq(trailId) }
                         .order { col in col.distance.asc() }
                         .fetchAll(db)
                     return TrailDetail(trail: trail, trackPoints: trackPoints, milestones: milestones)
@@ -195,7 +196,7 @@ extension DatabaseClient: DependencyKey {
             deleteTrail: { trailId in
                 try await database.write { db in
                     try Trail.delete()
-                        .where { col in col.id == trailId }
+                        .where { col in col.id.eq(trailId) }
                         .execute(db)
                 }
             },
@@ -203,7 +204,7 @@ extension DatabaseClient: DependencyKey {
                 try await database.write { db in
                     // Delete all existing milestones for this trail
                     try Milestone.delete()
-                        .where { col in col.trailId == trailId }
+                        .where { col in col.trailId.eq(trailId) }
                         .execute(db)
 
                     // Insert new milestones and collect IDs
@@ -243,7 +244,7 @@ extension DatabaseClient: DependencyKey {
             updateTrailName: { trailId, newName in
                 try await database.write { db in
                     try Trail.update { $0.name = newName }
-                        .where { $0.id == trailId }
+                        .where { $0.id.eq(trailId) }
                         .execute(db)
                 }
             }
@@ -278,9 +279,10 @@ extension DatabaseClient: DependencyKey {
                         .order { col in col.createdAt.desc() }
                         .fetchAll(db)
 
-                    return try trails.map { trail in
+                    return try trails.compactMap { trail in
+                        guard let trailId = trail.id else { return nil }
                         let count = try Milestone
-                            .where { col in col.trailId == trail.id }
+                            .where { col in col.trailId.eq(trailId) }
                             .fetchCount(db)
                         return TrailListItem(trail: trail, milestoneCount: count)
                     }
@@ -288,16 +290,16 @@ extension DatabaseClient: DependencyKey {
             },
             fetchTrailDetail: { trailId in
                 try await database.read { db in
-                    let trailQuery = Trail.where { col in col.id == trailId }
+                    let trailQuery = Trail.where { col in col.id.eq(trailId) }
                     guard let trail = try trailQuery.fetchOne(db) else {
                         return nil
                     }
                     let trackPoints = try TrackPoint
-                        .where { col in col.trailId == trailId }
+                        .where { col in col.trailId.eq(trailId) }
                         .order { col in col.index.asc() }
                         .fetchAll(db)
                     let milestones = try Milestone
-                        .where { col in col.trailId == trailId }
+                        .where { col in col.trailId.eq(trailId) }
                         .order { col in col.distance.asc() }
                         .fetchAll(db)
                     return TrailDetail(trail: trail, trackPoints: trackPoints, milestones: milestones)
@@ -343,14 +345,14 @@ extension DatabaseClient: DependencyKey {
             deleteTrail: { trailId in
                 try await database.write { db in
                     try Trail.delete()
-                        .where { col in col.id == trailId }
+                        .where { col in col.id.eq(trailId) }
                         .execute(db)
                 }
             },
             saveMilestones: { trailId, milestones in
                 try await database.write { db in
                     try Milestone.delete()
-                        .where { col in col.trailId == trailId }
+                        .where { col in col.trailId.eq(trailId) }
                         .execute(db)
 
                     var saved: [Milestone] = []
@@ -389,7 +391,7 @@ extension DatabaseClient: DependencyKey {
             updateTrailName: { trailId, newName in
                 try await database.write { db in
                     try Trail.update { $0.name = newName }
-                        .where { $0.id == trailId }
+                        .where { $0.id.eq(trailId) }
                         .execute(db)
                 }
             }
