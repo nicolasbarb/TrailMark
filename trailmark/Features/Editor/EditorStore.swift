@@ -298,7 +298,7 @@ struct EditorStore {
             case .segmentPanel(.milestoneList(.presented(.milestoneSheet(.presented(.typeSelected(let type)))))):
                 if let sheet = state.segmentPanel.milestoneList?.milestoneSheet, let detail = state.trailDetail {
                     state.segmentPanel.milestoneList?.milestoneSheet?.autoMessage = recomputeAutoMessage(
-                        type: type, name: sheet.name, pointIndex: sheet.pointIndex, detail: detail
+                        type: type, name: sheet.edit.name, pointIndex: sheet.pointIndex, detail: detail
                     )
                 }
                 return .none
@@ -325,7 +325,7 @@ struct EditorStore {
             case .milestoneSheet(.presented(.typeSelected(let type))):
                 if let sheet = state.milestoneSheet, let detail = state.trailDetail {
                     state.milestoneSheet?.autoMessage = recomputeAutoMessage(
-                        type: type, name: sheet.name, pointIndex: sheet.pointIndex, detail: detail
+                        type: type, name: sheet.edit.name, pointIndex: sheet.pointIndex, detail: detail
                     )
                 }
                 return .none
@@ -437,16 +437,17 @@ struct EditorStore {
 
     /// Handle save from any MilestoneSheetStore
     private func handleMilestoneSave(sheet: MilestoneSheetStore.State, state: inout State) -> Effect<Action> {
-        let fullMessage = sheet.personalMessage.isEmpty
-            ? sheet.selectedType.label
-            : sheet.personalMessage
-        let name: String? = sheet.name.isEmpty ? nil : sheet.name
+        let edit = sheet.edit
+        let fullMessage = edit.personalMessage.isEmpty
+            ? edit.selectedType.label
+            : edit.personalMessage
+        let name: String? = edit.name.isEmpty ? nil : edit.name
         let currentTrailId = state.trailId ?? 0
 
         if let existingMilestone = sheet.editingMilestone,
            let milestoneId = existingMilestone.id {
             return .concatenate(
-                .send(._updateMilestone(milestoneId, sheet.selectedType, fullMessage, name)),
+                .send(._updateMilestone(milestoneId, edit.selectedType, fullMessage, name)),
                 .send(._saveMilestones)
             )
         } else {
@@ -458,7 +459,7 @@ struct EditorStore {
                 longitude: sheet.longitude,
                 elevation: sheet.elevation,
                 distance: sheet.distance,
-                type: sheet.selectedType,
+                type: edit.selectedType,
                 message: fullMessage,
                 name: name
             )

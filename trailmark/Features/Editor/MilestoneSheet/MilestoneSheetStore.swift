@@ -1,13 +1,10 @@
 import Foundation
 import ComposableArchitecture
-import CoreLocation
-
-// MARK: - MilestoneSheet Reducer
 
 @Reducer
 struct MilestoneSheetStore {
     enum Step: Equatable, Sendable {
-        case discovery
+        case announcementPreview
         case editing
     }
 
@@ -20,106 +17,117 @@ struct MilestoneSheetStore {
         var longitude: Double
         var elevation: Double
         var distance: Double
-        var selectedType: MilestoneType
-        var personalMessage: String
-        var name: String
-        var autoMessage: String? = nil
-        var useAutoAnnouncement = false
-        var step: Step = .discovery
-        var isPlayingPreview = false
-        @Shared(.inMemory("isPremium")) var isPremium = false
+        var autoMessage: String?
+        var step: Step = .announcementPreview
+
+        // Child states
+        var announcementPreview: AnnouncementPreviewStore.State?
+        var edit: MilestoneEditStore.State
 
         var isEditing: Bool { editingMilestone != nil }
 
-        // Si pas d'autoMessage ou en mode édition, aller directement à l'étape editing
         var effectiveStep: Step {
             if autoMessage == nil || isEditing { return .editing }
             return step
         }
+
+        init(
+            editingMilestone: Milestone? = nil,
+            pointIndex: Int,
+            latitude: Double,
+            longitude: Double,
+            elevation: Double,
+            distance: Double,
+            selectedType: MilestoneType,
+            personalMessage: String,
+            name: String,
+            autoMessage: String? = nil,
+            useAutoAnnouncement: Bool = false,
+            step: Step = .announcementPreview
+        ) {
+            self.editingMilestone = editingMilestone
+            self.pointIndex = pointIndex
+            self.latitude = latitude
+            self.longitude = longitude
+            self.elevation = elevation
+            self.distance = distance
+            self.autoMessage = autoMessage
+            self.step = step
+
+            // Init child states
+            if let autoMessage {
+                self.announcementPreview = AnnouncementPreviewStore.State(autoMessage: autoMessage)
+            }
+            self.edit = MilestoneEditStore.State(
+                selectedType: selectedType,
+                personalMessage: useAutoAnnouncement ? (autoMessage ?? "") : personalMessage,
+                name: name,
+                isEditing: editingMilestone != nil,
+                distance: distance,
+                elevation: elevation
+            )
+        }
     }
 
-    static func buildFullMessage(
-        autoMessage: String?,
-        personalMessage: String,
-        includeAuto: Bool
-    ) -> String? {
-        var parts: [String] = []
-        if includeAuto, let auto = autoMessage, !auto.isEmpty {
-            parts.append(auto)
-        }
-        if !personalMessage.isEmpty {
-            parts.append(personalMessage)
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: " ")
-    }
+    enum Action: Equatable {
+        case announcementPreview(AnnouncementPreviewStore.Action)
+        case edit(MilestoneEditStore.Action)
 
-    enum Action: BindableAction, Equatable {
-        case binding(BindingAction<State>)
-        case typeSelected(MilestoneType)
+        // Forwarded from parent (EditorStore intercepts these)
         case saveButtonTapped
         case deleteButtonTapped
         case dismissTapped
-        case useAutoMessage
-        case writeOwnMessage
-        case previewTTSTapped
-        case stopTTSTapped
-        case ttsFinished
+        case typeSelected(MilestoneType)
     }
 
-    @Dependency(\.speech) var speech
-
-    private enum CancelID { case ttsPreview }
-
     var body: some Reducer<State, Action> {
-        BindingReducer()
+        Scope(state: \.edit, action: \.edit) {
+            MilestoneEditStore()
+        }
+
         Reduce { state, action in
             switch action {
-            case .binding:
-                return .none
-            case .typeSelected(let type):
-                state.selectedType = type
-                return .none
-            case .saveButtonTapped:
-                return .none
-            case .deleteButtonTapped:
-                return .none
-            case .useAutoMessage:
-                state.useAutoAnnouncement = true
-                if let auto = state.autoMessage {
-                    state.personalMessage = auto
-                }
+            // MARK: - AnnouncementPreview delegates
+            case let .announcementPreview(.delegate(.choseAutoMessage(message))):
+                state.edit.personalMessage = message
                 state.step = .editing
                 return .none
-            case .writeOwnMessage:
-                state.useAutoAnnouncement = false
-                state.personalMessage = ""
+
+            case .announcementPreview(.delegate(.choseWriteOwn)):
+                state.edit.personalMessage = ""
                 state.step = .editing
                 return .none
-            case .dismissTapped:
-                speech.stop()
-                return .cancel(id: CancelID.ttsPreview)
-            case .previewTTSTapped:
-                guard !(state.autoMessage ?? "").isEmpty || !state.personalMessage.isEmpty else { return .none }
-                state.isPlayingPreview = true
-                let fullMessage = Self.buildFullMessage(
-                    autoMessage: state.autoMessage,
-                    personalMessage: state.personalMessage,
-                    includeAuto: true
-                )!
-                return .run { send in
-                    try? speech.configureAudioSession()
-                    await speech.speak(fullMessage)
-                    await send(.ttsFinished)
-                }
-                .cancellable(id: CancelID.ttsPreview)
-            case .stopTTSTapped:
-                state.isPlayingPreview = false
-                speech.stop()
-                return .cancel(id: CancelID.ttsPreview)
-            case .ttsFinished:
-                state.isPlayingPreview = false
+
+            case .announcementPreview(.delegate(.unlockRequested)):
+                // TODO: trigger paywall via parent
+                return .none
+
+            case .announcementPreview:
+                return .none
+
+            // MARK: - Edit forwarding
+            case .edit(.saveButtonTapped):
+                return .send(.saveButtonTapped)
+
+            case .edit(.deleteButtonTapped):
+                return .send(.deleteButtonTapped)
+
+            case .edit(.dismissTapped):
+                return .send(.dismissTapped)
+
+            case let .edit(.typeSelected(type)):
+                return .send(.typeSelected(type))
+
+            case .edit:
+                return .none
+
+            // MARK: - Parent-facing actions (handled by EditorStore)
+            case .saveButtonTapped, .deleteButtonTapped, .dismissTapped, .typeSelected:
                 return .none
             }
+        }
+        .ifLet(\.announcementPreview, action: \.announcementPreview) {
+            AnnouncementPreviewStore()
         }
     }
 }
