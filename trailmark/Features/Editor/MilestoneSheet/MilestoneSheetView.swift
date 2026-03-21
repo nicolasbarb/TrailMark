@@ -3,7 +3,12 @@ import ComposableArchitecture
 
 struct MilestoneSheetView: View {
     @Bindable var store: StoreOf<MilestoneSheetStore>
-    @State private var selectedDetent: PresentationDetent = .fraction(0.44)
+    @State private var selectedDetent: PresentationDetent
+
+    init(store: StoreOf<MilestoneSheetStore>) {
+        self.store = store
+        self._selectedDetent = State(initialValue: store.effectiveStep == .announcementPreview ? .fraction(0.35) : .large)
+    }
 
     var body: some View {
         NavigationStack {
@@ -27,17 +32,17 @@ struct MilestoneSheetView: View {
                     }
                 }
             }
-            .presentationDetents([.fraction(0.44), .large], selection: $selectedDetent)
+            .presentationDetents([.fraction(0.35), .large], selection: $selectedDetent)
             .presentationBackground(store.effectiveStep == .announcementPreview ? .clear : TM.bgCard)
             .presentationDragIndicator(.hidden)
             .interactiveDismissDisabled(store.effectiveStep == .editing)
             .onChange(of: store.effectiveStep) { _, newStep in
                 withAnimation(.spring(duration: 0.4)) {
-                    selectedDetent = newStep == .announcementPreview ? .fraction(0.44) : .large
+                    selectedDetent = newStep == .announcementPreview ? .fraction(0.35) : .large
                 }
             }
             .onChange(of: selectedDetent) { _, newDetent in
-                let expected: PresentationDetent = store.effectiveStep == .announcementPreview ? .fraction(0.44) : .large
+                let expected: PresentationDetent = store.effectiveStep == .announcementPreview ? .fraction(0.35) : .large
                 if newDetent != expected {
                     selectedDetent = expected
                 }
@@ -80,6 +85,11 @@ struct MilestoneSheetView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(
+                item: $store.scope(state: \.paywall, action: \.paywall)
+            ) { paywallStore in
+                PaywallContainerView(store: paywallStore)
+            }
         }
     }
 }

@@ -76,7 +76,7 @@ private final class Speaker: NSObject, AVSpeechSynthesizerDelegate, @unchecked S
             utterance.voice = AVSpeechSynthesisVoice(language: "fr-FR")
             utterance.rate = 0.9 * AVSpeechUtteranceDefaultSpeechRate
             utterance.pitchMultiplier = 1.0
-            utterance.preUtteranceDelay = 0.1
+            utterance.preUtteranceDelay = 0.0
             utterance.postUtteranceDelay = 0.2
 
             synthesizer.speak(utterance)
