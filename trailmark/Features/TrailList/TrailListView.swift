@@ -3,11 +3,11 @@ import ComposableArchitecture
 
 struct TrailListView: View {
     @Bindable var store: StoreOf<TrailListStore>
-
+    
     var body: some View {
         ZStack {
             TM.bgPrimary.ignoresSafeArea()
-
+            
             if store.trails.isEmpty && !store.isLoading {
                 emptyState
             } else {
@@ -15,20 +15,15 @@ struct TrailListView: View {
             }
         }
         .toolbar {
-
+            
             if store.isPremium {
                 ToolbarItem(placement: .primaryAction) {
-
-                    Text("PRO")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 3)
-                        .background(TM.accent, in: RoundedRectangle(cornerRadius: 4))
+                    ProBadge()
                 }
-                .sharedBackgroundVisibility(.hidden)
             }
-
+            
+            ToolbarSpacer(.fixed, placement: .primaryAction)
+            
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     Haptic.medium.trigger()
@@ -37,7 +32,7 @@ struct TrailListView: View {
                     Image(systemName: "plus")
                 }
             }
-
+            
             ToolbarItem(placement: .secondaryAction) {
                 Link(destination: URL(string: "mailto:nicolas.barb.pro@gmail.com?subject=Retour%20PaceMark")!) {
                     Label("Donner un retour", systemImage: "ellipsis")
@@ -89,25 +84,25 @@ struct TrailListView: View {
             Text("Votre abonnement Premium a expiré. Renouvelez pour continuer à créer des parcours illimités.")
         }
     }
-
+    
     // MARK: - Empty State
-
+    
     private var emptyState: some View {
         VStack(spacing: 12) {
             Spacer()
-
+            
             Text("🏔️")
                 .font(.system(size: 40))
-
+            
             Text("Aucun parcours")
                 .font(.headline)
                 .foregroundStyle(TM.textSecondary)
-
+            
             Text("Importe ton premier GPX\net prépare ta stratégie de course.")
                 .font(.caption)
                 .foregroundStyle(TM.textMuted)
                 .multilineTextAlignment(.center)
-
+            
             Button {
                 Haptic.medium.trigger()
                 store.send(.addButtonTapped)
@@ -115,13 +110,13 @@ struct TrailListView: View {
                 Text("Importer un GPX")
             }
             .primaryButton(size: .large, width: .fitted, shape: .capsule)
-
+            
             Spacer()
         }
     }
-
+    
     // MARK: - Trail List
-
+    
     private var trailList: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
@@ -151,9 +146,9 @@ private struct TrailCard: View {
     let onEdit: () -> Void
     let onStart: () -> Void
     let onUnlock: () -> Void
-
+    
     private var trail: Trail { item.trail }
-
+    
     var body: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 12) {
@@ -162,12 +157,12 @@ private struct TrailCard: View {
                     Text(trail.name)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(TM.textPrimary)
-
+                    
                     Text(trail.createdAtDate.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption2)
                         .foregroundStyle(TM.textMuted)
                 }
-
+                
                 // Stats
                 HStack(spacing: 0) {
                     statColumn(
@@ -175,28 +170,28 @@ private struct TrailCard: View {
                         unit: "km",
                         label: "Distance"
                     )
-
+                    
                     Divider()
                         .frame(width: 1, height: 24)
                         .background(TM.border)
-
+                    
                     statColumn(
                         value: "\(trail.dPlus)",
                         unit: "m",
                         label: "D+"
                     )
-
+                    
                     Divider()
                         .frame(width: 1, height: 24)
                         .background(TM.border)
-
+                    
                     statColumn(
                         value: "\(item.milestoneCount)",
                         unit: nil,
                         label: "Repères"
                     )
                 }
-
+                
                 // Action buttons
                 if isLocked {
                     Button {
@@ -227,7 +222,7 @@ private struct TrailCard: View {
                             }
                         }
                         .secondaryButton(size: .regular, width: .flexible, shape: .roundedRectangle(radius: 10))
-
+                        
                         Button {
                             Haptic.heavy.trigger()
                             onStart()
@@ -249,7 +244,7 @@ private struct TrailCard: View {
         .background(TM.bgSecondary)
         .containerShape(.rect(cornerRadius: 18, style: .continuous))
     }
-
+    
     private func statColumn(value: String, unit: String?, label: String) -> some View {
         VStack(spacing: 2) {
             HStack(spacing: 2) {
