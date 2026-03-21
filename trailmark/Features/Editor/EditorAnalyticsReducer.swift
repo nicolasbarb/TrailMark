@@ -26,13 +26,13 @@ struct EditorAnalyticsReducer: Reducer {
             if sheet.editingMilestone != nil {
                 return .run { [telemetry] _ in
                     telemetry.signal("Milestone.edited", [
-                        "type": sheet.selectedType.rawValue
+                        "type": sheet.edit.selectedType.rawValue
                     ])
                 }
             } else {
                 return .run { [telemetry, count = state.milestones.count] _ in
                     telemetry.signal("Milestone.added", [
-                        "type": sheet.selectedType.rawValue,
+                        "type": sheet.edit.selectedType.rawValue,
                         "totalCount": "\(count + 1)"
                     ])
                 }
@@ -45,7 +45,7 @@ struct EditorAnalyticsReducer: Reducer {
                 ])
             }
 
-        case .milestoneSheet(.presented(.previewTTSTapped)):
+        case .milestoneSheet(.presented(.edit(.previewTTSTapped))):
             return .run { [telemetry] _ in
                 telemetry.signal("Milestone.ttsPreview", [:])
             }
