@@ -28,6 +28,7 @@ struct TrailMarkApp: App {
            telemetryAppID != "your_telemetry_deck_app_id_here" {
             let config = TelemetryDeck.Config(appID: telemetryAppID)
             TelemetryDeck.initialize(config: config)
+            TelemetryClient.markConfigured()
         }
     }
 

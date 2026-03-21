@@ -11,9 +11,16 @@ struct TelemetryClient: Sendable {
 // MARK: - DependencyKey
 
 extension TelemetryClient: DependencyKey {
+    private nonisolated(unsafe) static var _isConfigured = false
+
+    static func markConfigured() {
+        _isConfigured = true
+    }
+
     static var liveValue: TelemetryClient {
         TelemetryClient(
             signal: { name, parameters in
+                guard _isConfigured else { return }
                 TelemetryDeck.signal(name, parameters: parameters)
             }
         )
