@@ -12,10 +12,32 @@ def asc_api_key
   )
 end
 
-# agvtool overwrites Info.plist with hardcoded values — restore build settings variables
-def restore_infoplist_variables
-  sh("plutil -replace CFBundleShortVersionString -string '$(MARKETING_VERSION)' ../Info.plist")
-  sh("plutil -replace CFBundleVersion -string '$(CURRENT_PROJECT_VERSION)' ../Info.plist")
+PBXPROJ_PATH = File.expand_path("../trailmark.xcodeproj/project.pbxproj", __dir__)
+
+# Update MARKETING_VERSION directly in pbxproj.
+# agvtool is broken with GENERATE_INFOPLIST_FILE = YES (confuses "YES" for a plist path)
+# and fails to update the build setting, leaving the IPA with the old version.
+def set_marketing_version(version)
+  text = File.read(PBXPROJ_PATH)
+  count = text.gsub!(/MARKETING_VERSION = [^;]*;/, "MARKETING_VERSION = #{version};")
+  UI.user_error!("No MARKETING_VERSION found in pbxproj") unless count
+  File.write(PBXPROJ_PATH, text)
+end
+
+# Update CURRENT_PROJECT_VERSION directly in pbxproj (same agvtool issue).
+def set_build_number(build)
+  text = File.read(PBXPROJ_PATH)
+  count = text.gsub!(/CURRENT_PROJECT_VERSION = [^;]*;/, "CURRENT_PROJECT_VERSION = #{build};")
+  UI.user_error!("No CURRENT_PROJECT_VERSION found in pbxproj") unless count
+  File.write(PBXPROJ_PATH, text)
+end
+
+# Read current MARKETING_VERSION from pbxproj.
+def read_marketing_version
+  text = File.read(PBXPROJ_PATH)
+  match = text.match(/MARKETING_VERSION = ([^;]*);/)
+  UI.user_error!("No MARKETING_VERSION found in pbxproj") unless match
+  match[1].strip
 end
 
 platform :ios do
@@ -70,10 +92,7 @@ platform :ios do
 
     # --- Version bump + App Store Connect version creation ---
     if is_new_version
-      current_version = get_version_number(
-        xcodeproj: "trailmark.xcodeproj",
-        target: "trailmark"
-      )
+      current_version = read_marketing_version
 
       version_parts = current_version.split('.')
       major = version_parts[0].to_i
@@ -94,11 +113,7 @@ platform :ios do
 
       new_version = "#{major}.#{minor}.#{patch}"
 
-      increment_version_number(
-        xcodeproj: "trailmark.xcodeproj",
-        version_number: new_version
-      )
-
+      set_marketing_version(new_version)
       UI.success("✅ Version incrémentée de #{current_version} à #{new_version}")
 
       # Create release branch from main
@@ -119,12 +134,8 @@ platform :ios do
       UI.success("✅ Version #{new_version} créée sur App Store Connect")
 
       # Reset build number to 1 for the new version
-      increment_build_number(
-        xcodeproj: "trailmark.xcodeproj",
-        build_number: 1
-      )
-
-      restore_infoplist_variables
+      set_build_number(1)
+      lane_context[SharedValues::BUILD_NUMBER] = "1"
     else
       # No bump: increment build number based on latest TestFlight build
       latest_build = latest_testflight_build_number(
@@ -133,12 +144,9 @@ platform :ios do
         initial_build_number: 0
       )
 
-      increment_build_number(
-        xcodeproj: "trailmark.xcodeproj",
-        build_number: latest_build + 1
-      )
-
-      restore_infoplist_variables
+      new_build = latest_build + 1
+      set_build_number(new_build)
+      lane_context[SharedValues::BUILD_NUMBER] = new_build.to_s
     end
 
     # Setup certificates and provisioning profiles
@@ -186,7 +194,7 @@ platform :ios do
     )
 
     # Commit version and build number changes
-    version = get_version_number(xcodeproj: "trailmark.xcodeproj")
+    version = read_marketing_version
     build = lane_context[SharedValues::BUILD_NUMBER]
 
     commit_version_bump(
