@@ -36,6 +36,9 @@ struct MilestoneEditView: View {
                 .padding(.top, 8)
         }
         .padding(16)
+        .onAppear {
+            store.send(.onAppear)
+        }
     }
 
     // MARK: - Helpers

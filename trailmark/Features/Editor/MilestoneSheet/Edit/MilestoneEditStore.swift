@@ -16,6 +16,7 @@ struct MilestoneEditStore {
 
     enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
+        case onAppear
         case typeSelected(MilestoneType)
         case saveButtonTapped
         case deleteButtonTapped
@@ -35,6 +36,10 @@ struct MilestoneEditStore {
             switch action {
             case .binding:
                 return .none
+            case .onAppear:
+                return .run { [speech] _ in
+                    try? speech.configureAudioSession()
+                }
             case let .typeSelected(type):
                 state.selectedType = type
                 return .none
@@ -50,7 +55,6 @@ struct MilestoneEditStore {
                 state.isPlayingPreview = true
                 let message = state.personalMessage
                 return .run { send in
-                    try? speech.configureAudioSession()
                     await speech.speak(message)
                     await send(.ttsFinished)
                 }

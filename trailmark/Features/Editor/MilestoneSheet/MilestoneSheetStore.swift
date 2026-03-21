@@ -19,10 +19,12 @@ struct MilestoneSheetStore {
         var distance: Double
         var autoMessage: String?
         var step: Step = .announcementPreview
+        @Shared(.inMemory("isPremium")) var isPremium = false
 
         // Child states
         var announcementPreview: AnnouncementPreviewStore.State?
         var edit: MilestoneEditStore.State
+        @Presents var paywall: PaywallStore.State?
 
         var isEditing: Bool { editingMilestone != nil }
 
@@ -72,6 +74,7 @@ struct MilestoneSheetStore {
     enum Action: Equatable {
         case announcementPreview(AnnouncementPreviewStore.Action)
         case edit(MilestoneEditStore.Action)
+        case paywall(PresentationAction<PaywallStore.Action>)
 
         // Forwarded from parent (EditorStore intercepts these)
         case saveButtonTapped
@@ -99,7 +102,20 @@ struct MilestoneSheetStore {
                 return .none
 
             case .announcementPreview(.delegate(.unlockRequested)):
-                // TODO: trigger paywall via parent
+                state.paywall = PaywallStore.State()
+                return .none
+
+            case .paywall(.presented(.purchaseCompleted)),
+                 .paywall(.presented(.restoreCompleted)):
+                state.$isPremium.withLock { $0 = true }
+                state.paywall = nil
+                return .none
+
+            case .paywall(.dismiss):
+                state.paywall = nil
+                return .none
+
+            case .paywall:
                 return .none
 
             case .announcementPreview:
@@ -128,6 +144,9 @@ struct MilestoneSheetStore {
         }
         .ifLet(\.announcementPreview, action: \.announcementPreview) {
             AnnouncementPreviewStore()
+        }
+        .ifLet(\.$paywall, action: \.paywall) {
+            PaywallStore()
         }
     }
 }
