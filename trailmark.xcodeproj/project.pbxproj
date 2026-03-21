@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3F0D150B2F6EC50E0023FB15 /* TelemetryDeck in Frameworks */ = {isa = PBXBuildFile; productRef = 3F0D150A2F6EC50E0023FB15 /* TelemetryDeck */; };
 		3F95E3922F446A860004B7A7 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3912F446A860004B7A7 /* ComposableArchitecture */; };
 		3F95E3942F446A860004B7A7 /* SQLiteData in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3932F446A860004B7A7 /* SQLiteData */; };
 		3F95E3962F446A860004B7A7 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3952F446A860004B7A7 /* RevenueCat */; };
@@ -64,6 +65,7 @@
 				3F95E3942F446A860004B7A7 /* SQLiteData in Frameworks */,
 				3F95E3922F446A860004B7A7 /* ComposableArchitecture in Frameworks */,
 				3F95E3962F446A860004B7A7 /* RevenueCat in Frameworks */,
+				3F0D150B2F6EC50E0023FB15 /* TelemetryDeck in Frameworks */,
 				3F95E3982F446A860004B7A7 /* RevenueCatUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -138,6 +140,7 @@
 				3F95E3932F446A860004B7A7 /* SQLiteData */,
 				3F95E3952F446A860004B7A7 /* RevenueCat */,
 				3F95E3972F446A860004B7A7 /* RevenueCatUI */,
+				3F0D150A2F6EC50E0023FB15 /* TelemetryDeck */,
 			);
 			productName = trailmark;
 			productReference = 3F7872A02F445DC200FB9399 /* trailmark.app */;
@@ -225,6 +228,7 @@
 				3F7872FA2F4466D300FB9399 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				3F7872FB2F44673F00FB9399 /* XCRemoteSwiftPackageReference "sqlite-data" */,
 				3F7872FC2F44680000FB9399 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				3F0D15092F6EC50E0023FB15 /* XCRemoteSwiftPackageReference "SwiftSDK" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3F7872A12F445DC200FB9399 /* Products */;
@@ -630,6 +634,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		3F0D15092F6EC50E0023FB15 /* XCRemoteSwiftPackageReference "SwiftSDK" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/TelemetryDeck/SwiftSDK";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.12.0;
+			};
+		};
 		3F7872FA2F4466D300FB9399 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
@@ -657,6 +669,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		3F0D150A2F6EC50E0023FB15 /* TelemetryDeck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3F0D15092F6EC50E0023FB15 /* XCRemoteSwiftPackageReference "SwiftSDK" */;
+			productName = TelemetryDeck;
+		};
 		3F95E3912F446A860004B7A7 /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 3F7872FA2F4466D300FB9399 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
