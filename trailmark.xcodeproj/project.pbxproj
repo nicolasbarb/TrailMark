@@ -8,11 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		3F0D150B2F6EC50E0023FB15 /* TelemetryDeck in Frameworks */ = {isa = PBXBuildFile; productRef = 3F0D150A2F6EC50E0023FB15 /* TelemetryDeck */; };
-		3FA1B0012F7D00000023FB15 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 3FA1B0002F7D00000023FB15 /* Sentry */; };
 		3F95E3922F446A860004B7A7 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3912F446A860004B7A7 /* ComposableArchitecture */; };
 		3F95E3942F446A860004B7A7 /* SQLiteData in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3932F446A860004B7A7 /* SQLiteData */; };
 		3F95E3962F446A860004B7A7 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3952F446A860004B7A7 /* RevenueCat */; };
 		3F95E3982F446A860004B7A7 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3972F446A860004B7A7 /* RevenueCatUI */; };
+		3FA1B0012F7D00000023FB15 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 3FA1B0002F7D00000023FB15 /* Sentry */; };
 		3FF6D58B2F5C886800C70143 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 3FF6D58A2F5C886800C70143 /* Secrets.xcconfig */; };
 /* End PBXBuildFile section */
 

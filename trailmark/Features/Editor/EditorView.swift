@@ -52,7 +52,12 @@ struct EditorView: View {
             }
             if store.isPremium {
                 ToolbarItem(placement: .topBarTrailing) {
-                    ProBadge()
+                    Button {
+                        Haptic.light.trigger()
+                        store.send(.proBadgeTapped)
+                    } label: {
+                        ProBadge()
+                    }
                 }
             }
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
@@ -115,6 +120,11 @@ struct EditorView: View {
             item: $store.scope(state: \.paywall, action: \.paywall)
         ) { paywallStore in
             PaywallContainerView(store: paywallStore)
+        }
+        .fullScreenCover(
+            item: $store.scope(state: \.subscriptionInfo, action: \.subscriptionInfo)
+        ) { subscriptionInfoStore in
+            SubscriptionInfoView(store: subscriptionInfoStore)
         }
     }
 }

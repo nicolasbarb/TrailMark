@@ -26,6 +26,7 @@ struct TrailListStore {
         case trailDeleted
         case navigateToEditor(Int64)
         case navigateToEditorWithPendingData(PendingTrailData)
+        case proBadgeTapped
         case dismissExpiredAlert
         case renewTapped
         case destination(PresentationAction<Destination.Action>)
@@ -114,6 +115,10 @@ struct TrailListStore {
                 if wasExpired {
                     state.showExpiredAlert = true
                 }
+                return .none
+
+            case .proBadgeTapped:
+                state.destination = .subscriptionInfo(SubscriptionInfoStore.State())
                 return .none
 
             case .dismissExpiredAlert:
@@ -216,6 +221,7 @@ struct TrailListStore {
             case editor(EditorStore.State)
             case run(RunStore.State)
             case paywall(PaywallStore.State)
+            case subscriptionInfo(SubscriptionInfoStore.State)
         }
 
         enum Action: Equatable {
@@ -223,6 +229,7 @@ struct TrailListStore {
             case editor(EditorStore.Action)
             case run(RunStore.Action)
             case paywall(PaywallStore.Action)
+            case subscriptionInfo(SubscriptionInfoStore.Action)
         }
 
         var body: some Reducer<State, Action> {
@@ -237,6 +244,9 @@ struct TrailListStore {
             }
             Scope(state: \.paywall, action: \.paywall) {
                 PaywallStore()
+            }
+            Scope(state: \.subscriptionInfo, action: \.subscriptionInfo) {
+                SubscriptionInfoStore()
             }
         }
     }

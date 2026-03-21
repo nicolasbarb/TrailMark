@@ -18,7 +18,12 @@ struct TrailListView: View {
             
             if store.isPremium {
                 ToolbarItem(placement: .primaryAction) {
-                    ProBadge()
+                    Button {
+                        Haptic.light.trigger()
+                        store.send(.proBadgeTapped)
+                    } label: {
+                        ProBadge()
+                    }
                 }
             }
             
@@ -64,6 +69,11 @@ struct TrailListView: View {
             item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)
         ) { paywallStore in
             PaywallContainerView(store: paywallStore)
+        }
+        .fullScreenCover(
+            item: $store.scope(state: \.destination?.subscriptionInfo, action: \.destination.subscriptionInfo)
+        ) { subscriptionInfoStore in
+            SubscriptionInfoView(store: subscriptionInfoStore)
         }
         .alert(
             "Abonnement expiré",

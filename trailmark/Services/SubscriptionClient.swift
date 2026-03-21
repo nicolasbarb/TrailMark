@@ -11,6 +11,22 @@ struct SubscriptionClient: Sendable {
     var fetchOfferings: @Sendable () async throws -> [SubscriptionPackage]
     var purchase: @Sendable (SubscriptionPackage) async throws -> Bool
     var restorePurchases: @Sendable () async throws -> Bool
+    var fetchSubscriptionInfo: @Sendable () async -> SubscriptionInfo?
+}
+
+// MARK: - SubscriptionInfo
+
+struct SubscriptionInfo: Equatable, Sendable {
+    let productIdentifier: String
+    let planType: PlanType
+    let expirationDate: Date?
+    let willRenew: Bool
+
+    enum PlanType: String, Equatable, Sendable {
+        case monthly
+        case annual
+        case unknown
+    }
 }
 
 // MARK: - SubscriptionPackage
@@ -53,6 +69,9 @@ extension SubscriptionClient: DependencyKey {
             },
             restorePurchases: {
                 try await manager.restorePurchases()
+            },
+            fetchSubscriptionInfo: {
+                await manager.fetchSubscriptionInfo()
             }
         )
     }
@@ -64,7 +83,8 @@ extension SubscriptionClient: DependencyKey {
             premiumStatusStream: { AsyncStream { $0.yield(false) } },
             fetchOfferings: { [] },
             purchase: { _ in true },
-            restorePurchases: { false }
+            restorePurchases: { false },
+            fetchSubscriptionInfo: { nil }
         )
     }
 
@@ -90,7 +110,15 @@ extension SubscriptionClient: DependencyKey {
                 ]
             },
             purchase: { _ in true },
-            restorePurchases: { false }
+            restorePurchases: { false },
+            fetchSubscriptionInfo: {
+                SubscriptionInfo(
+                    productIdentifier: "com.pacemark.trailmark.annual",
+                    planType: .annual,
+                    expirationDate: Date().addingTimeInterval(86400 * 180),
+                    willRenew: true
+                )
+            }
         )
     }
 }
@@ -206,6 +234,35 @@ private final class SubscriptionManager: NSObject, @unchecked Sendable {
     func restorePurchases() async throws -> Bool {
         let customerInfo = try await Purchases.shared.restorePurchases()
         return customerInfo.entitlements[Self.premiumEntitlementID]?.isActive == true
+    }
+
+    func fetchSubscriptionInfo() async -> SubscriptionInfo? {
+        do {
+            let customerInfo = try await Purchases.shared.customerInfo()
+            guard let entitlement = customerInfo.entitlements[Self.premiumEntitlementID],
+                  entitlement.isActive else {
+                return nil
+            }
+
+            let planType: SubscriptionInfo.PlanType
+            let productId = entitlement.productIdentifier
+            if productId.contains("annual") || productId.contains("yearly") {
+                planType = .annual
+            } else if productId.contains("monthly") {
+                planType = .monthly
+            } else {
+                planType = .unknown
+            }
+
+            return SubscriptionInfo(
+                productIdentifier: productId,
+                planType: planType,
+                expirationDate: entitlement.expirationDate,
+                willRenew: entitlement.willRenew
+            )
+        } catch {
+            return nil
+        }
     }
 }
 

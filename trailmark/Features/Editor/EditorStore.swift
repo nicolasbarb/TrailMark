@@ -34,6 +34,7 @@ struct EditorStore {
         // Presentations
         @Presents var milestoneSheet: MilestoneSheetStore.State?
         @Presents var paywall: PaywallStore.State?
+        @Presents var subscriptionInfo: SubscriptionInfoStore.State?
 
         // Init pour un trail existant
         init(trailId: Int64) {
@@ -56,6 +57,8 @@ struct EditorStore {
         case savingCompleted([Milestone])
 
         // Child features
+        case proBadgeTapped
+
         case elevationProfile(ElevationProfileStore.Action)
         case trailMetadata(TrailMetadataStore.Action)
         case segmentPanel(SegmentPanelStore.Action)
@@ -63,6 +66,7 @@ struct EditorStore {
         // Presentations
         case milestoneSheet(PresentationAction<MilestoneSheetStore.Action>)
         case paywall(PresentationAction<PaywallStore.Action>)
+        case subscriptionInfo(PresentationAction<SubscriptionInfoStore.Action>)
 
         // Internal
         case _loadTrailDetail
@@ -93,6 +97,10 @@ struct EditorStore {
             switch action {
 
             // MARK: - Lifecycle
+
+            case .proBadgeTapped:
+                state.subscriptionInfo = SubscriptionInfoStore.State()
+                return .none
 
             case .onAppear:
                 if state.trailId != nil {
@@ -362,6 +370,11 @@ struct EditorStore {
 
             case .paywall:
                 return .none
+
+            // MARK: - Subscription Info
+
+            case .subscriptionInfo:
+                return .none
             }
         }
         .ifLet(\.$milestoneSheet, action: \.milestoneSheet) {
@@ -369,6 +382,9 @@ struct EditorStore {
         }
         .ifLet(\.$paywall, action: \.paywall) {
             PaywallStore()
+        }
+        .ifLet(\.$subscriptionInfo, action: \.subscriptionInfo) {
+            SubscriptionInfoStore()
         }
     }
 
