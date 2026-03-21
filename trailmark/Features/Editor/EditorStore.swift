@@ -386,26 +386,6 @@ struct EditorStore {
 
     /// Build MilestoneSheetStore.State for editing an existing milestone
     private func buildMilestoneSheetState(for milestone: Milestone, trailDetail: TrailDetail?) -> MilestoneSheetStore.State {
-        var autoMessage: String? = nil
-        var personalMessage = milestone.message
-        if let detail = trailDetail {
-            let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
-            let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
-                from: milestone.pointIndex,
-                trackPoints: detail.trackPoints,
-                terrainTypes: terrainTypes
-            )
-            autoMessage = AnnouncementBuilder.build(
-                type: milestone.milestoneType,
-                name: milestone.name,
-                lookaheadStats: lookaheadStats
-            )
-            if let auto = autoMessage, personalMessage.hasPrefix(auto) {
-                let remainder = String(personalMessage.dropFirst(auto.count))
-                    .trimmingCharacters(in: .whitespaces)
-                personalMessage = remainder
-            }
-        }
         return MilestoneSheetStore.State(
             editingMilestone: milestone,
             pointIndex: milestone.pointIndex,
@@ -414,9 +394,8 @@ struct EditorStore {
             elevation: milestone.elevation,
             distance: milestone.distance,
             selectedType: milestone.milestoneType,
-            personalMessage: personalMessage,
-            name: milestone.name ?? "",
-            autoMessage: autoMessage
+            personalMessage: milestone.message,
+            name: milestone.name ?? ""
         )
     }
 

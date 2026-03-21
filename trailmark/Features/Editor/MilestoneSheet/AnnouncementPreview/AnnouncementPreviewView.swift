@@ -37,22 +37,23 @@ struct AnnouncementPreviewView: View {
                             .padding(8)
                     }
                 }
+                .padding(.bottom, 12)
 
             // Choice buttons
             VStack(spacing: 8) {
                 if store.isPremium {
-                    Button("Utiliser", systemImage: "checkmark.circle.fill") {
+                    Button("Utiliser") {
                         store.send(.useAutoMessage)
                     }
                     .primaryButton(size: .large, width: .flexible, shape: .capsule)
                 } else {
-                    Button("Débloquer", systemImage: "lock.open.fill") {
+                    Button("Débloquer avec PRO", systemImage: "lock.fill") {
                         store.send(.unlockTapped)
                     }
                     .primaryButton(size: .large, width: .flexible, shape: .capsule)
                 }
 
-                Button("Écrire moi-même") {
+                Button("Écrire manuellement") {
                     store.send(.writeOwnMessage)
                 }
                 .tertiaryButton(size: .large, tint: TM.textSecondary)
