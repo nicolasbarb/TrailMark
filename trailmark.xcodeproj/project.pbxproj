@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3F0D150B2F6EC50E0023FB15 /* TelemetryDeck in Frameworks */ = {isa = PBXBuildFile; productRef = 3F0D150A2F6EC50E0023FB15 /* TelemetryDeck */; };
+		3FA1B0012F7D00000023FB15 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 3FA1B0002F7D00000023FB15 /* Sentry */; };
 		3F95E3922F446A860004B7A7 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3912F446A860004B7A7 /* ComposableArchitecture */; };
 		3F95E3942F446A860004B7A7 /* SQLiteData in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3932F446A860004B7A7 /* SQLiteData */; };
 		3F95E3962F446A860004B7A7 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 3F95E3952F446A860004B7A7 /* RevenueCat */; };
@@ -66,6 +67,7 @@
 				3F95E3922F446A860004B7A7 /* ComposableArchitecture in Frameworks */,
 				3F95E3962F446A860004B7A7 /* RevenueCat in Frameworks */,
 				3F0D150B2F6EC50E0023FB15 /* TelemetryDeck in Frameworks */,
+				3FA1B0012F7D00000023FB15 /* Sentry in Frameworks */,
 				3F95E3982F446A860004B7A7 /* RevenueCatUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -141,6 +143,7 @@
 				3F95E3952F446A860004B7A7 /* RevenueCat */,
 				3F95E3972F446A860004B7A7 /* RevenueCatUI */,
 				3F0D150A2F6EC50E0023FB15 /* TelemetryDeck */,
+				3FA1B0002F7D00000023FB15 /* Sentry */,
 			);
 			productName = trailmark;
 			productReference = 3F7872A02F445DC200FB9399 /* trailmark.app */;
@@ -229,6 +232,7 @@
 				3F7872FB2F44673F00FB9399 /* XCRemoteSwiftPackageReference "sqlite-data" */,
 				3F7872FC2F44680000FB9399 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 				3F0D15092F6EC50E0023FB15 /* XCRemoteSwiftPackageReference "SwiftSDK" */,
+				3FA1AFFF2F7D00000023FB15 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3F7872A12F445DC200FB9399 /* Products */;
@@ -666,6 +670,14 @@
 				minimumVersion = 5.0.0;
 			};
 		};
+		3FA1AFFF2F7D00000023FB15 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.49.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -693,6 +705,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3F7872FC2F44680000FB9399 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
 			productName = RevenueCatUI;
+		};
+		3FA1B0002F7D00000023FB15 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3FA1AFFF2F7D00000023FB15 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

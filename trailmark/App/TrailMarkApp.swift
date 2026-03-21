@@ -2,6 +2,7 @@ import SwiftUI
 import ComposableArchitecture
 import Dependencies
 import RevenueCat
+import Sentry
 import TelemetryDeck
 
 @main
@@ -21,6 +22,21 @@ struct TrailMarkApp: App {
             fatalError("Missing RevenueCatAPIKey — copy Secrets.xcconfig.template to Secrets.xcconfig and fill in your key")
         }
         Purchases.configure(withAPIKey: apiKey)
+
+        // Configure Sentry
+        if let sentryDSN = Bundle.main.object(forInfoDictionaryKey: "SentryDSN") as? String,
+           !sentryDSN.isEmpty,
+           sentryDSN != "your_sentry_dsn_here" {
+            SentrySDK.start { options in
+                options.dsn = sentryDSN
+                #if DEBUG
+                options.environment = "debug"
+                options.debug = true
+                #else
+                options.environment = "production"
+                #endif
+            }
+        }
 
         // Configure TelemetryDeck
         if let telemetryAppID = Bundle.main.object(forInfoDictionaryKey: "TelemetryDeckAppID") as? String,
