@@ -14,7 +14,7 @@ enum AnnouncementBuilder {
         name: String?,
         lookaheadStats: ElevationProfileAnalyzer.LookaheadStats?
     ) -> String? {
-        guard type == .montee || type == .descente else { return nil }
+        guard type == .montee || type == .descente || type == .plat else { return nil }
         guard let stats = lookaheadStats else { return nil }
 
         var parts: [String] = []
@@ -28,17 +28,20 @@ enum AnnouncementBuilder {
 
         // Segment distance + slope
         let distanceStr = formatDistance(stats.distance)
-        let slopePercent = Int((abs(stats.averageSlope) * 100).rounded())
-        parts.append("\(distanceStr) à \(slopePercent) pourcent")
 
-        // Elevation gain/loss
         switch type {
         case .montee:
+            let slopePercent = Int((abs(stats.averageSlope) * 100).rounded())
+            parts.append("\(distanceStr) à \(slopePercent) pourcent")
             let dPlus = Int(stats.elevationGain)
             parts.append("\(dPlus) mètres de dénivelé positif")
         case .descente:
+            let slopePercent = Int((abs(stats.averageSlope) * 100).rounded())
+            parts.append("\(distanceStr) à \(slopePercent) pourcent")
             let dMinus = Int(stats.elevationLoss)
             parts.append("\(dMinus) mètres de dénivelé négatif")
+        case .plat:
+            parts.append("\(distanceStr)")
         default:
             break
         }

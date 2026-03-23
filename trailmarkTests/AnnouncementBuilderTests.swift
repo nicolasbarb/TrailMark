@@ -118,10 +118,10 @@ struct AnnouncementBuilderTests {
         #expect(!message.contains("virgule"))
     }
 
-    // MARK: - Non-climb/descent types return nil
+    // MARK: - Plat
 
     @Test
-    func nonClimbDescentType_returnsNil() {
+    func plat_generatesCorrectMessage() throws {
         let stats = ElevationProfileAnalyzer.LookaheadStats(
             terrainType: .flat,
             distance: 2000,
@@ -136,7 +136,60 @@ struct AnnouncementBuilderTests {
             lookaheadStats: stats
         )
 
-        #expect(result == nil)
+        let message = try #require(result)
+        #expect(message.contains("Plat"))
+        #expect(message.contains("2 kilomètres"))
+        #expect(!message.contains("pourcent"))
+        #expect(!message.contains("dénivelé"))
+    }
+
+    @Test
+    func plat_withName_includesName() throws {
+        let stats = ElevationProfileAnalyzer.LookaheadStats(
+            terrainType: .flat,
+            distance: 800,
+            elevationGain: 5,
+            elevationLoss: 3,
+            averageSlope: 0.002
+        )
+
+        let result = AnnouncementBuilder.build(
+            type: .plat,
+            name: "Plateau des Glières",
+            lookaheadStats: stats
+        )
+
+        let message = try #require(result)
+        #expect(message.contains("Plateau des Glières"))
+        #expect(message.contains("800 mètres"))
+    }
+
+    // MARK: - Non terrain types return nil
+
+    @Test
+    func danger_returnsNil() {
+        let stats = ElevationProfileAnalyzer.LookaheadStats(
+            terrainType: .flat,
+            distance: 2000,
+            elevationGain: 10,
+            elevationLoss: 5,
+            averageSlope: 0.005
+        )
+
+        #expect(AnnouncementBuilder.build(type: .danger, name: nil, lookaheadStats: stats) == nil)
+    }
+
+    @Test
+    func info_returnsNil() {
+        let stats = ElevationProfileAnalyzer.LookaheadStats(
+            terrainType: .flat,
+            distance: 2000,
+            elevationGain: 10,
+            elevationLoss: 5,
+            averageSlope: 0.005
+        )
+
+        #expect(AnnouncementBuilder.build(type: .info, name: nil, lookaheadStats: stats) == nil)
     }
 
     @Test
