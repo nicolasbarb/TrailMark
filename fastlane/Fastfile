@@ -215,6 +215,14 @@ platform :ios do
         local_branch: "release/#{version}",
         tags: true
       )
+
+      # Cherry-pick version bump into main
+      bump_sha = sh("git rev-parse HEAD").strip
+      sh("git checkout main")
+      sh("git pull origin main")
+      sh("git cherry-pick #{bump_sha}")
+      push_to_git_remote(local_branch: "main")
+      sh("git checkout release/#{version}")
     else
       push_to_git_remote
     end
