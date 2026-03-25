@@ -1,23 +1,52 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "NSLocationWhenInUseUsageDescription" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "PaceMark"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "trailmark"
+          }
+        }
+      }
+    },
+    "GPX File" : {
+
+    },
+    "NSLocationAlwaysAndWhenInUseUsageDescription" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PaceMark uses GPS to detect your position and trigger voice announcements at milestones."
+            "value" : "PaceMark needs background GPS to guide you by voice during your run, even when the phone is in your pocket."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PaceMark utilise le GPS pour détecter votre position et déclencher les annonces vocales aux jalons."
+            "value" : "PaceMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course, même quand le téléphone est dans votre poche."
           }
         }
       }
     },
     "NSLocationAlwaysUsageDescription" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -33,18 +62,19 @@
         }
       }
     },
-    "NSLocationAlwaysAndWhenInUseUsageDescription" : {
+    "NSLocationWhenInUseUsageDescription" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PaceMark needs background GPS to guide you by voice during your run, even when the phone is in your pocket."
+            "value" : "PaceMark uses GPS to detect your position and trigger voice announcements at milestones."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PaceMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course, même quand le téléphone est dans votre poche."
+            "value" : "PaceMark utilise le GPS pour détecter votre position et déclencher les annonces vocales aux jalons."
           }
         }
       }
