@@ -50,7 +50,7 @@ struct MilestoneSheetView: View {
             .toolbar(store.effectiveStep == .editing ? .visible : .hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Fermer", systemImage: "xmark", role: .cancel) {
+                    Button("common.close", systemImage: "xmark", role: .cancel) {
                         Haptic.light.trigger()
                         store.send(.dismissTapped)
                     }
@@ -58,7 +58,7 @@ struct MilestoneSheetView: View {
 
                 ToolbarItem(placement: .principal) {
                     VStack(spacing: 2) {
-                        Text(store.isEditing ? "Modifier" : "Nouveau repère")
+                        Text(store.isEditing ? String(localized: "editor.milestoneSheet.editTitle") : String(localized: "editor.milestoneSheet.newTitle"))
                             .font(.headline)
                         PointStatsView(distanceMeters: store.distance, altitudeMeters: store.elevation)
                     }
@@ -66,7 +66,7 @@ struct MilestoneSheetView: View {
 
                 if store.isEditing {
                     ToolbarItem(placement: .destructiveAction) {
-                        Button("Supprimer", systemImage: "trash", role: .destructive) {
+                        Button("common.delete", systemImage: "trash", role: .destructive) {
                             Haptic.warning.trigger()
                             store.send(.deleteButtonTapped)
                         }
@@ -77,7 +77,7 @@ struct MilestoneSheetView: View {
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Valider", systemImage: "checkmark") {
+                    Button("common.confirm", systemImage: "checkmark") {
                         Haptic.success.trigger()
                         store.send(.saveButtonTapped)
                     }

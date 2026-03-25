@@ -17,7 +17,7 @@ struct SubscriptionInfoView: View {
                     subscriptionContent(store.subscriptionInfo)
                 }
             }
-            .navigationTitle("Mon abonnement")
+            .navigationTitle("subscriptionInfo.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -60,15 +60,15 @@ struct SubscriptionInfoView: View {
                             let willRenew = info?.willRenew ?? false
                             infoRow(
                                 icon: willRenew ? "arrow.triangle.2.circlepath" : "calendar",
-                                label: willRenew ? "Prochain renouvellement" : "Expire le",
+                                label: willRenew ? String(localized: "subscriptionInfo.nextRenewal") : String(localized: "subscriptionInfo.expiresOn"),
                                 value: expirationDate.formatted(date: .long, time: .omitted)
                             )
                         }
 
                         infoRow(
                             icon: "checkmark.seal.fill",
-                            label: "Statut",
-                            value: info?.willRenew == false ? "Non renouvelable" : "Actif"
+                            label: String(localized: "subscriptionInfo.status"),
+                            value: info?.willRenew == false ? String(localized: "subscriptionInfo.statusNotRenewing") : String(localized: "subscriptionInfo.statusActive")
                         )
                     }
                 }
@@ -82,7 +82,7 @@ struct SubscriptionInfoView: View {
                     Haptic.light.trigger()
                     store.send(.manageSubscriptionTapped)
                 } label: {
-                    Text("Gérer l'abonnement")
+                    Text("subscriptionInfo.manageButton")
                 }
                 .secondaryButton(size: .large, width: .flexible, shape: .capsule)
             }
@@ -118,9 +118,9 @@ struct SubscriptionInfoView: View {
 private extension SubscriptionInfo.PlanType {
     var displayName: String {
         switch self {
-        case .monthly: "Abonnement mensuel"
-        case .annual: "Abonnement annuel"
-        case .unknown: "Abonnement Premium"
+        case .monthly: String(localized: "subscriptionInfo.monthlyPlan")
+        case .annual: String(localized: "subscriptionInfo.yearlyPlan")
+        case .unknown: String(localized: "subscriptionInfo.premiumPlan")
         }
     }
 }

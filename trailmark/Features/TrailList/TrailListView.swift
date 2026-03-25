@@ -50,7 +50,7 @@ struct TrailListView: View {
             }
         }
         .toolbarRole(.editor)
-        .navigationTitle(Text("Mes parcours"))
+        .navigationTitle(Text("trailList.title"))
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
             store.send(.onAppear)
@@ -86,22 +86,22 @@ struct TrailListView: View {
             SubscriptionInfoView(store: subscriptionInfoStore)
         }
         .alert(
-            "Abonnement expiré",
+            "trailList.expiredAlert.title",
             isPresented: Binding(
                 get: { store.showExpiredAlert },
                 set: { if !$0 { store.send(.dismissExpiredAlert) } }
             )
         ) {
-            Button("Renouveler") {
+            Button("trailList.expiredAlert.renewButton") {
                 Haptic.medium.trigger()
                 store.send(.renewTapped)
             }
-            Button("Plus tard", role: .cancel) {
+            Button("common.later", role: .cancel) {
                 Haptic.light.trigger()
                 store.send(.dismissExpiredAlert)
             }
         } message: {
-            Text("Votre abonnement Premium a expiré. Renouvelez pour continuer à créer des parcours illimités.")
+            Text("trailList.expiredAlert.message")
         }
     }
     
@@ -114,11 +114,11 @@ struct TrailListView: View {
             Text("🏔️")
                 .font(.system(size: 40))
             
-            Text("Aucun parcours")
+            Text("trailList.emptyState.title")
                 .font(.headline)
                 .foregroundStyle(TM.textSecondary)
-            
-            Text("Importe ton premier GPX\net prépare ta stratégie de course.")
+
+            Text("trailList.emptyState.description")
                 .font(.caption)
                 .foregroundStyle(TM.textMuted)
                 .multilineTextAlignment(.center)
@@ -127,7 +127,7 @@ struct TrailListView: View {
                 Haptic.medium.trigger()
                 store.send(.addButtonTapped)
             } label: {
-                Text("Importer un GPX")
+                Text("trailList.importButton")
             }
             .primaryButton(size: .large, width: .fitted, shape: .capsule)
             
@@ -208,7 +208,7 @@ private struct TrailCard: View {
                     statColumn(
                         value: "\(item.milestoneCount)",
                         unit: nil,
-                        label: "Repères"
+                        label: String(localized: "trailList.milestones")
                     )
                 }
                 
@@ -219,7 +219,7 @@ private struct TrailCard: View {
                         onUnlock()
                     } label: {
                         Label {
-                            Text("Débloquer avec PRO")
+                            Text("common.unlockWithPro")
                                 .font(.caption.weight(.medium))
                         } icon: {
                             Image(systemName: "lock.fill")
@@ -234,7 +234,7 @@ private struct TrailCard: View {
                             onEdit()
                         } label: {
                             Label {
-                                Text("Editer")
+                                Text("common.edit")
                                     .font(.caption.weight(.medium))
                             } icon: {
                                 Image(systemName: "pencil")
@@ -248,7 +248,7 @@ private struct TrailCard: View {
                             onStart()
                         } label: {
                             Label {
-                                Text("Démarrer")
+                                Text("trailList.startButton")
                                     .font(.caption.weight(.medium))
                             } icon: {
                                 Image(systemName: "play.fill")

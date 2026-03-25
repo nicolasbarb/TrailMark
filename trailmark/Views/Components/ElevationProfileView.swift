@@ -35,14 +35,14 @@ struct ElevationProfileView: View {
                 VStack(spacing: 0) {
                     // Mini header
                     HStack {
-                        Text("PROFIL")
+                        Text("profile.header")
                             .font(.system(.caption2, design: .monospaced, weight: .semibold))
                             .tracking(1)
                             .foregroundStyle(TM.textMuted)
 
                         Spacer()
 
-                        Text("Tap = repère")
+                        Text("profile.tapHint")
                             .font(.system(size: 9))
                             .foregroundStyle(TM.textMuted)
                     }

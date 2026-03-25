@@ -10,18 +10,18 @@ struct TrailMetadataView: View {
             .frame(width: 0, height: 0)
             .alert($store.scope(state: \.alert, action: \.alert))
             .alert(
-                "Renommer le parcours",
+                "editor.renameAlert.title",
                 isPresented: Binding(
                     get: { store.isRenamingTrail },
                     set: { if !$0 { store.send(.renameCancelled) } }
                 )
             ) {
-                TextField("Nom du parcours", text: $store.editedTrailName)
-                Button("Annuler", role: .cancel) {
+                TextField("editor.renameAlert.placeholder", text: $store.editedTrailName)
+                Button("common.cancel", role: .cancel) {
                     Haptic.light.trigger()
                     store.send(.renameCancelled)
                 }
-                Button("Renommer") {
+                Button("common.rename") {
                     Haptic.medium.trigger()
                     store.send(.renameConfirmed)
                 }

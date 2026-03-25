@@ -12,10 +12,10 @@ struct AnnouncementPreviewView: View {
                     .font(.system(size: 26, weight: .semibold))
                     .foregroundStyle(TM.accent)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("PaceMark a analysé le terrain")
+                    Text("editor.announcementPreview.header")
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(TM.textPrimary)
-                    Text("Annonce générée pour vous")
+                    Text("editor.announcementPreview.subheader")
                         .font(.subheadline)
                         .foregroundStyle(TM.textTertiary)
                 }
@@ -42,18 +42,18 @@ struct AnnouncementPreviewView: View {
             // Choice buttons
             VStack(spacing: 8) {
                 if store.isPremium {
-                    Button("Utiliser") {
+                    Button("editor.announcementPreview.useButton") {
                         store.send(.useAutoMessage)
                     }
                     .primaryButton(size: .large, width: .flexible, shape: .capsule)
                 } else {
-                    Button("Débloquer avec PRO", systemImage: "lock.fill") {
+                    Button("common.unlockWithPro", systemImage: "lock.fill") {
                         store.send(.unlockTapped)
                     }
                     .primaryButton(size: .large, width: .flexible, shape: .capsule)
                 }
 
-                Button("Écrire manuellement") {
+                Button("editor.announcementPreview.writeManually") {
                     store.send(.writeOwnMessage)
                 }
                 .tertiaryButton(size: .large, tint: TM.textSecondary)

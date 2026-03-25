@@ -70,16 +70,16 @@ struct TrailMetadataStore {
 
             case .deleteTrailButtonTapped:
                 state.alert = AlertState {
-                    TextState("Supprimer ce parcours ?")
+                    TextState(String(localized: "editor.deleteAlert.title"))
                 } actions: {
                     ButtonState(role: .cancel) {
-                        TextState("Annuler")
+                        TextState(String(localized: "common.cancel"))
                     }
                     ButtonState(role: .destructive, action: .confirmDelete) {
-                        TextState("Supprimer")
+                        TextState(String(localized: "common.delete"))
                     }
                 } message: {
-                    TextState("Cette action supprimera définitivement le parcours et tous ses repères.")
+                    TextState(String(localized: "editor.deleteAlert.message"))
                 }
                 return .none
 

@@ -147,7 +147,7 @@ struct RunView: View {
                     .foregroundStyle(TM.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("\(detail.distKm) km · \(detail.trail.dPlus)m D+ · \(detail.milestoneCount) repères")
+                Text("run.preRun.info \(detail.distKm) \(detail.trail.dPlus) \(detail.milestoneCount)")
                     .font(.caption)
                     .foregroundStyle(TM.textMuted)
             }
@@ -158,11 +158,11 @@ struct RunView: View {
 
             // Instructions
             VStack(spacing: 8) {
-                Text("Lancer le guidage")
+                Text("run.preRun.title")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(TM.textPrimary)
 
-                Text("Rangez le téléphone dans votre poche.\nLes repères seront annoncés vocalement.")
+                Text("run.preRun.instruction")
                     .font(.caption)
                     .foregroundStyle(TM.textMuted)
                     .multilineTextAlignment(.center)
@@ -209,7 +209,7 @@ struct RunView: View {
         HStack(spacing: 8) {
             Image(systemName: "location.slash")
                 .foregroundStyle(TM.danger)
-            Text("Accès à la localisation refusé. Activez-le dans les réglages.")
+            Text("run.permission.denied")
                 .font(.caption)
                 .foregroundStyle(TM.danger)
         }
@@ -242,7 +242,7 @@ struct RunView: View {
 
             // Text
             VStack(spacing: 8) {
-                Text("Guidage en cours")
+                Text("run.running.title")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(TM.textPrimary)
 
@@ -250,7 +250,7 @@ struct RunView: View {
                     .font(.subheadline)
                     .foregroundStyle(TM.textMuted)
 
-                Text("Les repères sont annoncés automatiquement\npar GPS. Vous pouvez ranger le téléphone.")
+                Text("run.running.instruction")
                     .font(.caption)
                     .foregroundStyle(TM.textMuted)
                     .multilineTextAlignment(.center)
@@ -277,7 +277,7 @@ struct RunView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "stop.fill")
                         .font(.caption)
-                    Text("Arrêter le guidage")
+                    Text("run.running.stopButton")
                         .font(.subheadline.weight(.semibold))
                 }
                 .foregroundStyle(.white)

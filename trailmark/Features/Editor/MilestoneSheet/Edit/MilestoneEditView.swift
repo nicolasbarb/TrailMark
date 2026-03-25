@@ -7,12 +7,12 @@ struct MilestoneEditView: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            sectionLabel("TYPE")
+            sectionLabel(String(localized: "editor.milestoneEdit.typeSection"))
 
             typeCardsSelector(selectedType: store.selectedType)
                 .padding(.top, 8)
 
-            sectionLabel("ANNONCE VOCALE")
+            sectionLabel(String(localized: "editor.milestoneEdit.messageSection"))
                 .padding(.top, 14)
 
             messageTextField(placeholder: messagePlaceholder)
@@ -21,10 +21,10 @@ struct MilestoneEditView: View {
             listenButton
                 .padding(.top, 12)
 
-            sectionLabel("NOM (OPTIONNEL)")
+            sectionLabel(String(localized: "editor.milestoneEdit.nameSection"))
                 .padding(.top, 14)
 
-            TextField("ex: Col de la Croix", text: $store.name)
+            TextField("editor.milestoneEdit.namePlaceholder", text: $store.name)
                 .font(.body)
                 .foregroundStyle(TM.textPrimary)
                 .padding(12)
@@ -72,7 +72,7 @@ struct MilestoneEditView: View {
     }
 
     private var listenButton: some View {
-        Button(store.isPlayingPreview ? "Arrêter" : "Écouter", systemImage: store.isPlayingPreview ? "stop.fill" : "speaker.wave.2.fill") {
+        Button(store.isPlayingPreview ? String(localized: "common.stop") : String(localized: "common.listen"), systemImage: store.isPlayingPreview ? "stop.fill" : "speaker.wave.2.fill") {
             Haptic.light.trigger()
             if store.isPlayingPreview {
                 store.send(.stopTTSTapped)
@@ -82,16 +82,16 @@ struct MilestoneEditView: View {
         }
         .secondaryButton(size: .large, width: .flexible, shape: .capsule)
         .disabled(isListenDisabled)
-        .accessibilityLabel(store.isPlayingPreview ? "Arrêter la lecture" : "Écouter l'annonce")
+        .accessibilityLabel(store.isPlayingPreview ? String(localized: "editor.milestoneEdit.stopAccessibility") : String(localized: "editor.milestoneEdit.listenAccessibility"))
     }
 
     private var messagePlaceholder: String {
         switch store.selectedType {
-        case .aidStation: "ex: Ravitaillement, prenez à gauche\u{2026}"
-        case .danger: "ex: Attention, passage technique\u{2026}"
-        case .info: "ex: Belle vue sur la vallée\u{2026}"
-        case .flat: "ex: Portion plate, relancez\u{2026}"
-        case .climb, .descent: "Votre annonce vocale\u{2026}"
+        case .aidStation: String(localized: "editor.milestoneEdit.messagePlaceholder.aidStation")
+        case .danger: String(localized: "editor.milestoneEdit.messagePlaceholder.danger")
+        case .info: String(localized: "editor.milestoneEdit.messagePlaceholder.info")
+        case .flat: String(localized: "editor.milestoneEdit.messagePlaceholder.flat")
+        case .climb, .descent: String(localized: "editor.milestoneEdit.messagePlaceholder.default")
         }
     }
 
