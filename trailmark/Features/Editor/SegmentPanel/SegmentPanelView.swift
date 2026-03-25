@@ -70,7 +70,7 @@ struct SegmentPanelView: View {
                             Text("Dénivelé")
                                 .font(.caption2)
                                 .foregroundStyle(TM.textTertiary)
-                            Text("\(segment.type == .descente ? "-" : "+")\(segment.elevationChange) m")
+                            Text("\(segment.type == .descent ? "-" : "+")\(segment.elevationChange) m")
                                 .font(.system(.title3, design: .monospaced, weight: .bold))
                                 .foregroundStyle(TM.textPrimary)
                         }

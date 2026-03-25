@@ -54,10 +54,10 @@ enum TM {
 extension MilestoneType {
     var color: Color {
         switch self {
-        case .montee: return .orange
-        case .descente: return .cyan
-        case .plat: return .green
-        case .ravito: return .purple
+        case .climb: return .orange
+        case .descent: return .cyan
+        case .flat: return .green
+        case .aidStation: return .purple
         case .danger: return .red
         case .info: return .blue
         }
@@ -65,10 +65,10 @@ extension MilestoneType {
 
     var icon: String {
         switch self {
-        case .montee: return "△"
-        case .descente: return "▽"
-        case .plat: return "─"
-        case .ravito: return "◉"
+        case .climb: return "△"
+        case .descent: return "▽"
+        case .flat: return "─"
+        case .aidStation: return "◉"
         case .danger: return "⚠"
         case .info: return "ℹ"
         }
@@ -76,10 +76,10 @@ extension MilestoneType {
 
     var systemImage: String {
         switch self {
-        case .montee: return "arrow.up.right"
-        case .descente: return "arrow.down.right"
-        case .plat: return "minus"
-        case .ravito: return "fork.knife"
+        case .climb: return "arrow.up.right"
+        case .descent: return "arrow.down.right"
+        case .flat: return "minus"
+        case .aidStation: return "fork.knife"
         case .danger: return "exclamationmark.triangle.fill"
         case .info: return "info.circle.fill"
         }
@@ -87,10 +87,10 @@ extension MilestoneType {
 
     var label: String {
         switch self {
-        case .montee: return "Montée"
-        case .descente: return "Descente"
-        case .plat: return "Plat"
-        case .ravito: return "Ravito"
+        case .climb: return "Climb"
+        case .descent: return "Descent"
+        case .flat: return "Flat"
+        case .aidStation: return "Aid station"
         case .danger: return "Danger"
         case .info: return "Info"
         }

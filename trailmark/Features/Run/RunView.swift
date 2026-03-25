@@ -340,7 +340,7 @@ private enum PreviewData {
             longitude: 6.87,
             elevation: 1200,
             distance: 5000,
-            type: .montee,
+            type: .climb,
             message: "Début de la montée vers le Col de Voza"
         ),
         Milestone(
@@ -351,7 +351,7 @@ private enum PreviewData {
             longitude: 6.88,
             elevation: 1650,
             distance: 10000,
-            type: .ravito,
+            type: .aidStation,
             message: "Ravitaillement aux Contamines dans 500 mètres"
         ),
     ]

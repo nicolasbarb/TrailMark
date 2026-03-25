@@ -459,8 +459,8 @@ private struct ElevationProfilePreview: View {
                 ),
                 parsedTrackPoints: [],
                 detectedMilestones: [
-                    Milestone(trailId: 0, pointIndex: 0, latitude: 0, longitude: 0, elevation: 100, distance: 0, type: .montee, message: "Test"),
-                    Milestone(trailId: 0, pointIndex: 100, latitude: 0, longitude: 0, elevation: 500, distance: 5000, type: .descente, message: "Test")
+                    Milestone(trailId: 0, pointIndex: 0, latitude: 0, longitude: 0, elevation: 100, distance: 0, type: .climb, message: "Test"),
+                    Milestone(trailId: 0, pointIndex: 100, latitude: 0, longitude: 0, elevation: 500, distance: 5000, type: .descent, message: "Test")
                 ],
                 isPremium: false
             )
@@ -484,8 +484,8 @@ private struct ElevationProfilePreview: View {
                 ),
                 parsedTrackPoints: [],
                 detectedMilestones: [
-                    Milestone(trailId: 0, pointIndex: 0, latitude: 0, longitude: 0, elevation: 100, distance: 0, type: .montee, message: "Test"),
-                    Milestone(trailId: 0, pointIndex: 100, latitude: 0, longitude: 0, elevation: 500, distance: 5000, type: .descente, message: "Test")
+                    Milestone(trailId: 0, pointIndex: 0, latitude: 0, longitude: 0, elevation: 100, distance: 0, type: .climb, message: "Test"),
+                    Milestone(trailId: 0, pointIndex: 100, latitude: 0, longitude: 0, elevation: 500, distance: 5000, type: .descent, message: "Test")
                 ],
                 isPremium: true
             )

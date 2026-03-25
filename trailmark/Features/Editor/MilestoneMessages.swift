@@ -190,7 +190,7 @@ enum MilestoneMessages {
     /// Utile pour pré-remplir le champ message lors de la création d'un repère.
     static func defaultMessage(for type: MilestoneType, variant: DefaultVariant = .short) -> String {
         switch type {
-        case .montee:
+        case .climb:
             switch variant {
             case .short: return monteeShort.randomElement() ?? monteeShort[0]
             case .detailed: return monteeDetailed.randomElement() ?? monteeDetailed[0]
@@ -198,7 +198,7 @@ enum MilestoneMessages {
             case .energy: return monteeEnergy.randomElement() ?? monteeEnergy[0]
             }
 
-        case .descente:
+        case .descent:
             switch variant {
             case .short: return descenteShort.randomElement() ?? descenteShort[0]
             case .detailed: return descenteDetailed.randomElement() ?? descenteDetailed[0]
@@ -206,7 +206,7 @@ enum MilestoneMessages {
             case .energy: return descenteRecovery.randomElement() ?? descenteRecovery[0]
             }
 
-        case .plat:
+        case .flat:
             switch variant {
             case .short: return platShort.randomElement() ?? platShort[0]
             case .detailed: return platDetailed.randomElement() ?? platDetailed[0]
@@ -214,7 +214,7 @@ enum MilestoneMessages {
             case .energy: return platRecovery.randomElement() ?? platRecovery[0]
             }
 
-        case .ravito:
+        case .aidStation:
             switch variant {
             case .short: return ravitoShort.randomElement() ?? ravitoShort[0]
             case .detailed: return ravitoDetailed.randomElement() ?? ravitoDetailed[0]

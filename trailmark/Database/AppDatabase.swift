@@ -99,6 +99,16 @@ private var migrator: DatabaseMigrator {
             """)
     }
 
+    migrator.registerMigration("v2") { db in
+        try db.execute(sql: """
+            UPDATE milestone SET type = 'climb' WHERE type = 'montee';
+            UPDATE milestone SET type = 'descent' WHERE type = 'descente';
+            UPDATE milestone SET type = 'flat' WHERE type = 'plat';
+            UPDATE milestone SET type = 'aidStation' WHERE type = 'ravito';
+            """)
+        // 'danger' and 'info' stay the same
+    }
+
     return migrator
 }
 

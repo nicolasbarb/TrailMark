@@ -777,12 +777,12 @@ struct ElevationStatsOverlay: View {
     var body: some View {
         HStack(spacing: 8) {
             // D+
-            statItem(value: "+\(dPlus)", unit: "m", color: MilestoneType.montee.color, icon: "arrowtriangle.up.fill")
+            statItem(value: "+\(dPlus)", unit: "m", color: MilestoneType.climb.color, icon: "arrowtriangle.up.fill")
 
             divider
 
             // D-
-            statItem(value: "-\(dMinus)", unit: "m", color: MilestoneType.descente.color, icon: "arrowtriangle.down.fill")
+            statItem(value: "-\(dMinus)", unit: "m", color: MilestoneType.descent.color, icon: "arrowtriangle.down.fill")
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)

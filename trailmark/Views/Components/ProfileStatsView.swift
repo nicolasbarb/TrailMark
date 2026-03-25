@@ -85,9 +85,9 @@ final class ProfileStatsData {
 
             let milestoneType: MilestoneType
             switch segmentType {
-            case .climbing: milestoneType = .montee
-            case .descending: milestoneType = .descente
-            case .flat: milestoneType = .plat
+            case .climbing: milestoneType = .climb
+            case .descending: milestoneType = .descent
+            case .flat: milestoneType = .flat
             }
 
             let segment = SegmentData(
@@ -180,7 +180,7 @@ struct ProfileStatsView: View {
             VStack(spacing: 20) {
                 // Stacked milestone type icons as decoration
                 HStack(spacing: 8) {
-                    ForEach([MilestoneType.montee, .descente, .ravito, .danger, .info], id: \.self) { type in
+                    ForEach([MilestoneType.climb, .descent, .aidStation, .danger, .info], id: \.self) { type in
                         Image(systemName: type.systemImage)
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(type.color.opacity(0.5))
@@ -242,7 +242,7 @@ struct ProfileStatsView: View {
             // Right: Stats (receipt style)
             VStack(spacing: 6) {
                 statRow("SEGMENT", value: formatSegmentDistance(segment.distance))
-                statRow("D\(segment.type == .descente ? "−" : "+")", value: "\(segment.elevationChange)m")
+                statRow("D\(segment.type == .descent ? "−" : "+")", value: "\(segment.elevationChange)m")
                 statRow("PENTE MOY", value: "\(segment.avgSlopePercent)%", valueColor: segment.type.color)
             }
             .padding(.horizontal, 14)

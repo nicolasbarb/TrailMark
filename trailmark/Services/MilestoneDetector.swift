@@ -67,7 +67,7 @@ enum MilestoneDetector {
                     longitude: startPoint.longitude,
                     elevation: startPoint.elevation,
                     distance: startPoint.distance,
-                    type: .montee,
+                    type: .climb,
                     message: message
                 )
                 milestones.append(milestone)
@@ -88,7 +88,7 @@ enum MilestoneDetector {
                     longitude: startPoint.longitude,
                     elevation: startPoint.elevation,
                     distance: startPoint.distance,
-                    type: .descente,
+                    type: .descent,
                     message: message
                 )
                 milestones.append(milestone)

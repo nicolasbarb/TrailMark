@@ -393,13 +393,13 @@ struct EditorStore {
     static func detectMilestoneType(at index: Int, trackPoints: [TrackPoint]) -> MilestoneType {
         let lookAhead = 20
         let futureIndex = min(index + lookAhead, trackPoints.count - 1)
-        guard futureIndex > index else { return .plat }
+        guard futureIndex > index else { return .flat }
         let currentElevation = trackPoints[index].elevation
         let futureElevation = trackPoints[futureIndex].elevation
         let delta = futureElevation - currentElevation
-        if delta > 10 { return .montee }
-        else if delta < -10 { return .descente }
-        else { return .plat }
+        if delta > 10 { return .climb }
+        else if delta < -10 { return .descent }
+        else { return .flat }
     }
 
     /// Build MilestoneSheetStore.State for editing an existing milestone

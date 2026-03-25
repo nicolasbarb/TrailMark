@@ -8,9 +8,9 @@ enum TerrainType: Equatable {
 
     var color: Color {
         switch self {
-        case .climbing: return MilestoneType.montee.color
-        case .descending: return MilestoneType.descente.color
-        case .flat: return MilestoneType.plat.color
+        case .climbing: return MilestoneType.climb.color
+        case .descending: return MilestoneType.descent.color
+        case .flat: return MilestoneType.flat.color
         }
     }
 

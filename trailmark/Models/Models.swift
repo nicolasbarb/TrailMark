@@ -79,10 +79,10 @@ struct TrackPoint: Hashable, Identifiable, Sendable {
 // MARK: - MilestoneType
 
 enum MilestoneType: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
-    case montee
-    case descente
-    case plat
-    case ravito
+    case climb
+    case descent
+    case flat
+    case aidStation
     case danger
     case info
 }

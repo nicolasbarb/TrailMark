@@ -112,9 +112,9 @@ private struct MilestoneRow: View {
             MilestoneListStore()
         },
         milestones: [
-            Milestone(id: 1, trailId: 1, pointIndex: 120, latitude: 45.06, longitude: 6.40, elevation: 850, distance: 1200, type: .montee, message: "Début de la montée", name: "Montée du Col"),
-            Milestone(id: 2, trailId: 1, pointIndex: 350, latitude: 45.07, longitude: 6.41, elevation: 1420, distance: 3500, type: .descente, message: "Descente technique", name: "Descente Nord"),
-            Milestone(id: 3, trailId: 1, pointIndex: 500, latitude: 45.08, longitude: 6.42, elevation: 980, distance: 5100, type: .ravito, message: "Ravitaillement, prenez à gauche"),
+            Milestone(id: 1, trailId: 1, pointIndex: 120, latitude: 45.06, longitude: 6.40, elevation: 850, distance: 1200, type: .climb, message: "Début de la montée", name: "Montée du Col"),
+            Milestone(id: 2, trailId: 1, pointIndex: 350, latitude: 45.07, longitude: 6.41, elevation: 1420, distance: 3500, type: .descent, message: "Descente technique", name: "Descente Nord"),
+            Milestone(id: 3, trailId: 1, pointIndex: 500, latitude: 45.08, longitude: 6.42, elevation: 980, distance: 5100, type: .aidStation, message: "Ravitaillement, prenez à gauche"),
             Milestone(id: 4, trailId: 1, pointIndex: 620, latitude: 45.09, longitude: 6.43, elevation: 1100, distance: 6800, type: .danger, message: "Passage technique exposé", name: "Crête"),
             Milestone(id: 5, trailId: 1, pointIndex: 800, latitude: 45.10, longitude: 6.44, elevation: 750, distance: 9200, type: .info, message: "Belle vue sur la vallée", name: "Belvédère"),
         ]

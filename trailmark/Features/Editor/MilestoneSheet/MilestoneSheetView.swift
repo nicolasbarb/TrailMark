@@ -104,7 +104,7 @@ private let previewAutoMessage = "Montée. 1 virgule 8 kilomètres à 12 pourcen
             store: Store(
                 initialState: MilestoneSheetStore.State(
                     pointIndex: 50, latitude: 45.0641, longitude: 6.4078,
-                    elevation: 2350, distance: 3500, selectedType: .montee,
+                    elevation: 2350, distance: 3500, selectedType: .climb,
                     personalMessage: "", name: "",
                     autoMessage: previewAutoMessage
                 )
@@ -119,7 +119,7 @@ private let previewAutoMessage = "Montée. 1 virgule 8 kilomètres à 12 pourcen
             store: Store(
                 initialState: MilestoneSheetStore.State(
                     pointIndex: 50, latitude: 45.0641, longitude: 6.4078,
-                    elevation: 2350, distance: 3500, selectedType: .montee,
+                    elevation: 2350, distance: 3500, selectedType: .climb,
                     personalMessage: "", name: "",
                     autoMessage: previewAutoMessage
                 )
@@ -134,7 +134,7 @@ private let previewAutoMessage = "Montée. 1 virgule 8 kilomètres à 12 pourcen
             store: Store(
                 initialState: MilestoneSheetStore.State(
                     pointIndex: 50, latitude: 45.0641, longitude: 6.4078,
-                    elevation: 2350, distance: 3500, selectedType: .montee,
+                    elevation: 2350, distance: 3500, selectedType: .climb,
                     personalMessage: previewAutoMessage, name: "",
                     autoMessage: previewAutoMessage,
                     useAutoAnnouncement: true,
@@ -151,7 +151,7 @@ private let previewAutoMessage = "Montée. 1 virgule 8 kilomètres à 12 pourcen
             store: Store(
                 initialState: MilestoneSheetStore.State(
                     pointIndex: 50, latitude: 45.0641, longitude: 6.4078,
-                    elevation: 2350, distance: 3500, selectedType: .montee,
+                    elevation: 2350, distance: 3500, selectedType: .climb,
                     personalMessage: "", name: "",
                     autoMessage: previewAutoMessage,
                     step: .editing

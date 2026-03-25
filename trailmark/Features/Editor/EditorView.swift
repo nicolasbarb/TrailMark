@@ -171,7 +171,7 @@ private enum PreviewData {
     static func milestones(from points: [TrackPoint]) -> [Milestone] {
         guard points.count > 500 else { return [] }
         return [
-            Milestone(id: 1, trailId: 1, pointIndex: 200, latitude: points[200].latitude, longitude: points[200].longitude, elevation: points[200].elevation, distance: points[200].distance, type: .montee, message: "Début de la montée vers le Mont Thou", name: "Montée Thou"),
+            Milestone(id: 1, trailId: 1, pointIndex: 200, latitude: points[200].latitude, longitude: points[200].longitude, elevation: points[200].elevation, distance: points[200].distance, type: .climb, message: "Début de la montée vers le Mont Thou", name: "Montée Thou"),
             Milestone(id: 2, trailId: 1, pointIndex: 500, latitude: points[500].latitude, longitude: points[500].longitude, elevation: points[500].elevation, distance: points[500].distance, type: .info, message: "Sommet du Mont Thou, belle vue !", name: "Mont Thou"),
         ]
     }

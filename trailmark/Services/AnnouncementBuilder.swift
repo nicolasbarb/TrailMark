@@ -8,13 +8,13 @@ enum AnnouncementBuilder {
     ///   - type: The milestone type
     ///   - name: Optional name (e.g., "Col de la Croix")
     ///   - lookaheadStats: Terrain zone stats from the milestone forward
-    /// - Returns: A TTS-ready French string, or nil if type is not montee/descente or stats are nil
+    /// - Returns: A TTS-ready French string, or nil if type is not climb/descent/flat or stats are nil
     static func build(
         type: MilestoneType,
         name: String?,
         lookaheadStats: ElevationProfileAnalyzer.LookaheadStats?
     ) -> String? {
-        guard type == .montee || type == .descente || type == .plat else { return nil }
+        guard type == .climb || type == .descent || type == .flat else { return nil }
         guard let stats = lookaheadStats else { return nil }
 
         var parts: [String] = []
@@ -30,17 +30,17 @@ enum AnnouncementBuilder {
         let distanceStr = formatDistance(stats.distance)
 
         switch type {
-        case .montee:
+        case .climb:
             let slopePercent = Int((abs(stats.averageSlope) * 100).rounded())
             parts.append("\(distanceStr) à \(slopePercent) pourcent")
             let dPlus = Int(stats.elevationGain)
             parts.append("\(dPlus) mètres de dénivelé positif")
-        case .descente:
+        case .descent:
             let slopePercent = Int((abs(stats.averageSlope) * 100).rounded())
             parts.append("\(distanceStr) à \(slopePercent) pourcent")
             let dMinus = Int(stats.elevationLoss)
             parts.append("\(dMinus) mètres de dénivelé négatif")
-        case .plat:
+        case .flat:
             parts.append("\(distanceStr)")
         default:
             break

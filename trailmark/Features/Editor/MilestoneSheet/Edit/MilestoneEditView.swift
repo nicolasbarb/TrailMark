@@ -87,11 +87,11 @@ struct MilestoneEditView: View {
 
     private var messagePlaceholder: String {
         switch store.selectedType {
-        case .ravito: "ex: Ravitaillement, prenez à gauche\u{2026}"
+        case .aidStation: "ex: Ravitaillement, prenez à gauche\u{2026}"
         case .danger: "ex: Attention, passage technique\u{2026}"
         case .info: "ex: Belle vue sur la vallée\u{2026}"
-        case .plat: "ex: Portion plate, relancez\u{2026}"
-        case .montee, .descente: "Votre annonce vocale\u{2026}"
+        case .flat: "ex: Portion plate, relancez\u{2026}"
+        case .climb, .descent: "Votre annonce vocale\u{2026}"
         }
     }
 
@@ -140,7 +140,7 @@ struct MilestoneEditView: View {
     MilestoneEditView(
         store: Store(
             initialState: MilestoneEditStore.State(
-                selectedType: .montee,
+                selectedType: .climb,
                 personalMessage: "Montée. 1 virgule 8 kilomètres à 12 pourcent.",
                 name: "",
                 isEditing: false,
