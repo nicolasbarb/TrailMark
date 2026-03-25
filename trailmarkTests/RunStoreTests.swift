@@ -51,7 +51,7 @@ struct RunStoreTests {
             longitude: longitude,
             elevation: 100,
             distance: 0,
-            type: .montee,
+            type: .climb,
             message: message,
             name: nil
         )

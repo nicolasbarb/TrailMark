@@ -41,7 +41,7 @@ struct EditorStoreTests {
         trailId: Int64 = 1,
         pointIndex: Int = 0,
         distance: Double = 0,
-        type: MilestoneType = .montee,
+        type: MilestoneType = .climb,
         message: String = "Test milestone",
         name: String? = nil
     ) -> Milestone {
@@ -319,7 +319,7 @@ struct EditorStoreTests {
 
     @Test
     func _updateMilestone_updatesExistingMilestone() async {
-        let milestone = Self.makeMilestone(id: 1, type: .montee, message: "Old message", name: nil)
+        let milestone = Self.makeMilestone(id: 1, type: .climb, message: "Old message", name: nil)
 
         var state = EditorStore.State(trailId: 1)
         state.milestones = [milestone]
@@ -328,8 +328,8 @@ struct EditorStoreTests {
             EditorStore()
         }
 
-        await store.send(._updateMilestone(1, .descente, "New message", "Col")) {
-            $0.milestones[0].type = MilestoneType.descente.rawValue
+        await store.send(._updateMilestone(1, .descent, "New message", "Col")) {
+            $0.milestones[0].type = MilestoneType.descent.rawValue
             $0.milestones[0].message = "New message"
             $0.milestones[0].name = "Col"
         }
@@ -346,7 +346,7 @@ struct EditorStoreTests {
             EditorStore()
         }
 
-        await store.send(._updateMilestone(999, .plat, "Test", nil))
+        await store.send(._updateMilestone(999, .flat, "Test", nil))
         // State should remain unchanged
     }
 
@@ -802,7 +802,7 @@ struct EditorStoreTests {
         #expect(store.state.milestoneSheet?.longitude == 5.0)
         #expect(store.state.milestoneSheet?.elevation == 100)
         #expect(store.state.milestoneSheet?.distance == 0)
-        #expect(store.state.milestoneSheet?.selectedType == .plat)
+        #expect(store.state.milestoneSheet?.selectedType == .flat)
         #expect(store.state.milestoneSheet?.personalMessage == "")
         #expect(store.state.milestoneSheet?.name == "")
     }
@@ -830,7 +830,7 @@ struct EditorStoreTests {
             id: 1,
             pointIndex: 5,
             distance: 500,
-            type: .descente,
+            type: .descent,
             message: "Descente technique",
             name: "Col de la Croix"
         )
@@ -853,7 +853,7 @@ struct EditorStoreTests {
         #expect(store.state.milestoneSheet?.longitude == 5.0)
         #expect(store.state.milestoneSheet?.elevation == 100)
         #expect(store.state.milestoneSheet?.distance == 500)
-        #expect(store.state.milestoneSheet?.selectedType == .descente)
+        #expect(store.state.milestoneSheet?.selectedType == .descent)
         #expect(store.state.milestoneSheet?.personalMessage == "Descente technique")
         #expect(store.state.milestoneSheet?.name == "Col de la Croix")
     }
@@ -872,7 +872,7 @@ struct EditorStoreTests {
             longitude: 5.5,
             elevation: 200,
             distance: 1000,
-            selectedType: .montee,
+            selectedType: .climb,
             personalMessage: "Debut montee",
             name: "Col"
         )
@@ -898,7 +898,7 @@ struct EditorStoreTests {
             longitude: 5.5,
             elevation: 200,
             distance: 1000,
-            type: .montee,
+            type: .climb,
             message: "Debut montee",
             name: "Col"
         )
@@ -926,7 +926,7 @@ struct EditorStoreTests {
             id: 1,
             pointIndex: 10,
             distance: 1000,
-            type: .montee,
+            type: .climb,
             message: "Old message"
         )
 
@@ -940,7 +940,7 @@ struct EditorStoreTests {
             longitude: 5.0,
             elevation: 100,
             distance: 1000,
-            selectedType: .descente,
+            selectedType: .descent,
             personalMessage: "New message",
             name: "Summit"
         )
@@ -962,8 +962,8 @@ struct EditorStoreTests {
             $0.milestoneSheet = nil
         }
 
-        await store.receive(._updateMilestone(1, .descente, "New message", "Summit")) {
-            $0.milestones[0].type = MilestoneType.descente.rawValue
+        await store.receive(._updateMilestone(1, .descent, "New message", "Summit")) {
+            $0.milestones[0].type = MilestoneType.descent.rawValue
             $0.milestones[0].message = "New message"
             $0.milestones[0].name = "Summit"
         }
@@ -987,7 +987,7 @@ struct EditorStoreTests {
             longitude: 5.0,
             elevation: 100,
             distance: 0,
-            selectedType: .plat,
+            selectedType: .flat,
             personalMessage: "",
             name: ""
         )
@@ -1147,7 +1147,7 @@ struct EditorStoreTests {
             longitude: 5.0,
             elevation: 100,
             distance: 0,
-            selectedType: .montee,
+            selectedType: .climb,
             personalMessage: "Attention virage",
             name: "",
             autoMessage: "Montee. 2 kilometres."
@@ -1187,7 +1187,7 @@ struct EditorStoreTests {
             longitude: 5.0,
             elevation: 100,
             distance: 0,
-            selectedType: .montee,
+            selectedType: .climb,
             personalMessage: "Test",
             name: ""
         )
@@ -1225,7 +1225,7 @@ struct EditorStoreTests {
             longitude: 5.5,
             elevation: 200,
             distance: 1000,
-            selectedType: .montee,
+            selectedType: .climb,
             personalMessage: "Attention virage",
             name: "",
             autoMessage: "Montee. 2 kilometres."
@@ -1256,7 +1256,7 @@ struct EditorStoreTests {
             longitude: 5.5,
             elevation: 200,
             distance: 1000,
-            type: .montee,
+            type: .climb,
             message: "Montee. 2 kilometres. Attention virage",
             name: nil
         )
@@ -1283,7 +1283,7 @@ struct EditorStoreTests {
             longitude: 5.5,
             elevation: 200,
             distance: 1000,
-            selectedType: .montee,
+            selectedType: .climb,
             personalMessage: "Mon message",
             name: "",
             autoMessage: "Montee. 2 kilometres."
@@ -1314,7 +1314,7 @@ struct EditorStoreTests {
             longitude: 5.5,
             elevation: 200,
             distance: 1000,
-            type: .montee,
+            type: .climb,
             message: "Mon message",
             name: nil
         )
@@ -1341,7 +1341,7 @@ struct EditorStoreTests {
             longitude: 5.5,
             elevation: 200,
             distance: 1000,
-            selectedType: .montee,
+            selectedType: .climb,
             personalMessage: "",
             name: "",
             autoMessage: "Montee. 2 kilometres."
@@ -1372,7 +1372,7 @@ struct EditorStoreTests {
             longitude: 5.5,
             elevation: 200,
             distance: 1000,
-            type: .montee,
+            type: .climb,
             message: "Montée",
             name: nil
         )
@@ -1420,9 +1420,10 @@ struct EditorStoreTests {
             terrainTypes: terrainTypes
         )
         let expectedAuto = try #require(AnnouncementBuilder.build(
-            type: .montee,
-            name: nil,
-            lookaheadStats: lookaheadStats
+            type: .climb,
+            distance: lookaheadStats?.distance ?? 0,
+            elevation: lookaheadStats?.elevationGain ?? 0,
+            slope: lookaheadStats?.averageSlope ?? 0
         ))
 
         let milestone = Milestone(
@@ -1433,7 +1434,7 @@ struct EditorStoreTests {
             longitude: trackPoints[10].longitude,
             elevation: trackPoints[10].elevation,
             distance: trackPoints[10].distance,
-            type: .montee,
+            type: .climb,
             message: expectedAuto + " Mon complement",
             name: nil
         )

@@ -36,9 +36,9 @@ struct ImportStoreTests {
         (0..<count).map { index -> Milestone in
             let type: MilestoneType
             switch index {
-            case 0: type = .montee
-            case 1: type = .descente
-            default: type = .plat
+            case 0: type = .climb
+            case 1: type = .descent
+            default: type = .flat
             }
             return Milestone(
                 id: nil,

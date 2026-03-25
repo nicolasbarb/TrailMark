@@ -242,8 +242,11 @@ struct EditorStore {
                 )
                 let autoMessage = AnnouncementBuilder.build(
                     type: detectedType,
-                    name: nil,
-                    lookaheadStats: lookaheadStats
+                    distance: lookaheadStats?.distance ?? 0,
+                    elevation: detectedType == .descent
+                        ? (lookaheadStats?.elevationLoss ?? 0)
+                        : (lookaheadStats?.elevationGain ?? 0),
+                    slope: lookaheadStats?.averageSlope ?? 0
                 )
 
                 state.milestoneSheet = MilestoneSheetStore.State(
@@ -305,12 +308,7 @@ struct EditorStore {
 
             // MARK: - MilestoneSheet from List (nested sheet)
 
-            case .segmentPanel(.milestoneList(.presented(.milestoneSheet(.presented(.typeSelected(let type)))))):
-                if let sheet = state.segmentPanel.milestoneList?.milestoneSheet, let detail = state.trailDetail {
-                    state.segmentPanel.milestoneList?.milestoneSheet?.autoMessage = recomputeAutoMessage(
-                        type: type, name: sheet.edit.name, pointIndex: sheet.pointIndex, detail: detail
-                    )
-                }
+            case .segmentPanel(.milestoneList(.presented(.milestoneSheet(.presented(.typeSelected))))):
                 return .none
 
             case .segmentPanel(.milestoneList(.presented(.milestoneSheet(.presented(.saveButtonTapped))))):
@@ -332,12 +330,7 @@ struct EditorStore {
 
             // MARK: - MilestoneSheet (direct from profile tap)
 
-            case .milestoneSheet(.presented(.typeSelected(let type))):
-                if let sheet = state.milestoneSheet, let detail = state.trailDetail {
-                    state.milestoneSheet?.autoMessage = recomputeAutoMessage(
-                        type: type, name: sheet.edit.name, pointIndex: sheet.pointIndex, detail: detail
-                    )
-                }
+            case .milestoneSheet(.presented(.typeSelected)):
                 return .none
 
             case .milestoneSheet(.presented(.saveButtonTapped)):
@@ -414,21 +407,6 @@ struct EditorStore {
             selectedType: milestone.milestoneType,
             personalMessage: milestone.message,
             name: milestone.name ?? ""
-        )
-    }
-
-    /// Recompute autoMessage when type changes
-    private func recomputeAutoMessage(type: MilestoneType, name: String, pointIndex: Int, detail: TrailDetail) -> String? {
-        let terrainTypes = ElevationProfileAnalyzer.classify(trackPoints: detail.trackPoints)
-        let lookaheadStats = ElevationProfileAnalyzer.computeLookaheadStats(
-            from: pointIndex,
-            trackPoints: detail.trackPoints,
-            terrainTypes: terrainTypes
-        )
-        return AnnouncementBuilder.build(
-            type: type,
-            name: name.isEmpty ? nil : name,
-            lookaheadStats: lookaheadStats
         )
     }
 

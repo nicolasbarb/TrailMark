@@ -116,7 +116,7 @@ struct MilestoneDetectorTests {
 
         #expect(milestones.count >= 1)
         if let first = milestones.first {
-            #expect(first.milestoneType == .montee)
+            #expect(first.milestoneType == .climb)
         }
     }
 
@@ -133,7 +133,7 @@ struct MilestoneDetectorTests {
         let milestones = MilestoneDetector.detect(from: points)
 
         // Should not detect a milestone for such a small climb
-        let climbMilestones = milestones.filter { $0.milestoneType == .montee }
+        let climbMilestones = milestones.filter { $0.milestoneType == .climb }
         #expect(climbMilestones.isEmpty)
     }
 
@@ -186,7 +186,7 @@ struct MilestoneDetectorTests {
 
         let milestones = MilestoneDetector.detect(from: points)
 
-        let descentMilestones = milestones.filter { $0.milestoneType == .descente }
+        let descentMilestones = milestones.filter { $0.milestoneType == .descent }
         #expect(descentMilestones.count >= 1)
     }
 
@@ -276,9 +276,9 @@ struct MilestoneDetectorTests {
 
         let milestones = MilestoneDetector.detect(from: points)
 
-        if let climb = milestones.first(where: { $0.milestoneType == .montee }) {
-            #expect(climb.message.contains("Montée"))
-            #expect(climb.message.contains(" m "))
+        if let climb = milestones.first(where: { $0.milestoneType == .climb }) {
+            #expect(!climb.message.isEmpty)
+            #expect(climb.message.contains("%"))
         }
     }
 

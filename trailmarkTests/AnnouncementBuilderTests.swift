@@ -4,223 +4,89 @@ import Testing
 
 struct AnnouncementBuilderTests {
 
-    // MARK: - Montée
+    // MARK: - Climb
 
     @Test
-    func montee_generatesCorrectMessage() throws {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .climbing,
+    func climb_generatesMessage() throws {
+        let result = AnnouncementBuilder.build(
+            type: .climb,
             distance: 1800,
-            elevationGain: 215,
-            elevationLoss: 0,
-            averageSlope: 0.12
-        )
-
-        let result = AnnouncementBuilder.build(
-            type: .montee,
-            name: nil,
-            lookaheadStats: stats
+            elevation: 215,
+            slope: 0.12
         )
 
         let message = try #require(result)
-        #expect(message.contains("Montée"))
-        #expect(message.contains("1 virgule 8 kilomètres"))
-        #expect(message.contains("12 pourcent"))
-        #expect(message.contains("215 mètres de dénivelé positif"))
+        #expect(message.contains("12%"))
+        #expect(message.contains("215"))
     }
 
-    @Test
-    func montee_withName_includesName() throws {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .climbing,
-            distance: 2000,
-            elevationGain: 300,
-            elevationLoss: 0,
-            averageSlope: 0.15
-        )
+    // MARK: - Descent
 
+    @Test
+    func descent_generatesMessage() throws {
         let result = AnnouncementBuilder.build(
-            type: .montee,
-            name: "Col de la Croix",
-            lookaheadStats: stats
-        )
-
-        let message = try #require(result)
-        #expect(message.contains("Col de la Croix"))
-    }
-
-    // MARK: - Descente
-
-    @Test
-    func descente_generatesCorrectMessage() throws {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .descending,
+            type: .descent,
             distance: 2500,
-            elevationGain: 0,
-            elevationLoss: 350,
-            averageSlope: -0.14
-        )
-
-        let result = AnnouncementBuilder.build(
-            type: .descente,
-            name: nil,
-            lookaheadStats: stats
+            elevation: 350,
+            slope: -0.14
         )
 
         let message = try #require(result)
-        #expect(message.contains("Descente"))
-        #expect(message.contains("2 virgule 5 kilomètres"))
-        #expect(message.contains("14 pourcent"))
-        #expect(message.contains("350 mètres de dénivelé négatif"))
+        #expect(message.contains("14%"))
+        #expect(message.contains("350"))
     }
 
     // MARK: - Distance formatting
 
     @Test
-    func shortDistance_formattedInMeters() throws {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .climbing,
-            distance: 800,
-            elevationGain: 80,
-            elevationLoss: 0,
-            averageSlope: 0.10
-        )
-
-        let result = AnnouncementBuilder.build(
-            type: .montee,
-            name: nil,
-            lookaheadStats: stats
-        )
-
-        let message = try #require(result)
-        #expect(message.contains("800 mètres"))
-        #expect(!message.contains("kilomètres"))
+    func shortDistance_formattedInMeters() {
+        let result = AnnouncementBuilder.formatDistance(800)
+        #expect(result == "800 m")
     }
 
     @Test
-    func wholeKilometer_noDecimal() throws {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .climbing,
-            distance: 3000,
-            elevationGain: 300,
-            elevationLoss: 0,
-            averageSlope: 0.10
-        )
-
-        let result = AnnouncementBuilder.build(
-            type: .montee,
-            name: nil,
-            lookaheadStats: stats
-        )
-
-        let message = try #require(result)
-        #expect(message.contains("3 kilomètres"))
-        #expect(!message.contains("virgule"))
+    func wholeKilometer_noDecimal() {
+        let result = AnnouncementBuilder.formatDistance(3000)
+        #expect(result == "3 km")
     }
 
-    // MARK: - Plat
+    @Test
+    func decimalKilometer_hasDecimal() {
+        let result = AnnouncementBuilder.formatDistance(1800)
+        #expect(result.contains("km"))
+        #expect(result.contains("8")) // 1.8 or 1,8 depending on locale
+    }
+
+    // MARK: - Flat
 
     @Test
-    func plat_generatesCorrectMessage() throws {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .flat,
+    func flat_generatesMessage() throws {
+        let result = AnnouncementBuilder.build(
+            type: .flat,
             distance: 2000,
-            elevationGain: 10,
-            elevationLoss: 5,
-            averageSlope: 0.005
-        )
-
-        let result = AnnouncementBuilder.build(
-            type: .plat,
-            name: nil,
-            lookaheadStats: stats
+            elevation: 0,
+            slope: 0.005
         )
 
         let message = try #require(result)
-        #expect(message.contains("Plat"))
-        #expect(message.contains("2 kilomètres"))
-        #expect(!message.contains("pourcent"))
-        #expect(!message.contains("dénivelé"))
-    }
-
-    @Test
-    func plat_withName_includesName() throws {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .flat,
-            distance: 800,
-            elevationGain: 5,
-            elevationLoss: 3,
-            averageSlope: 0.002
-        )
-
-        let result = AnnouncementBuilder.build(
-            type: .plat,
-            name: "Plateau des Glières",
-            lookaheadStats: stats
-        )
-
-        let message = try #require(result)
-        #expect(message.contains("Plateau des Glières"))
-        #expect(message.contains("800 mètres"))
+        #expect(message.contains("2 km"))
+        #expect(!message.contains("%"))
     }
 
     // MARK: - Non terrain types return nil
 
     @Test
     func danger_returnsNil() {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .flat,
-            distance: 2000,
-            elevationGain: 10,
-            elevationLoss: 5,
-            averageSlope: 0.005
-        )
-
-        #expect(AnnouncementBuilder.build(type: .danger, name: nil, lookaheadStats: stats) == nil)
+        #expect(AnnouncementBuilder.build(type: .danger, distance: 2000, elevation: 0, slope: 0) == nil)
     }
 
     @Test
     func info_returnsNil() {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .flat,
-            distance: 2000,
-            elevationGain: 10,
-            elevationLoss: 5,
-            averageSlope: 0.005
-        )
-
-        #expect(AnnouncementBuilder.build(type: .info, name: nil, lookaheadStats: stats) == nil)
+        #expect(AnnouncementBuilder.build(type: .info, distance: 2000, elevation: 0, slope: 0) == nil)
     }
 
     @Test
-    func ravito_returnsNil() {
-        let stats = ElevationProfileAnalyzer.LookaheadStats(
-            terrainType: .climbing,
-            distance: 2000,
-            elevationGain: 200,
-            elevationLoss: 0,
-            averageSlope: 0.10
-        )
-
-        let result = AnnouncementBuilder.build(
-            type: .ravito,
-            name: nil,
-            lookaheadStats: stats
-        )
-
-        #expect(result == nil)
-    }
-
-    // MARK: - Nil stats
-
-    @Test
-    func nilStats_returnsNil() {
-        let result = AnnouncementBuilder.build(
-            type: .montee,
-            name: nil,
-            lookaheadStats: nil
-        )
-
-        #expect(result == nil)
+    func aidStation_returnsNil() {
+        #expect(AnnouncementBuilder.build(type: .aidStation, distance: 2000, elevation: 200, slope: 0.10) == nil)
     }
 }

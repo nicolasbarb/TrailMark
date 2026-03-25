@@ -1957,6 +1957,54 @@
         }
       }
     },
+    "tts.climb %@ %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Climb, %@ at %lld%%, %lld m elevation."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Montée, %@ à %lld%%, %lld m de dénivelé."
+          }
+        }
+      }
+    },
+    "tts.descent %@ %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descent, %@ at %lld%%, %lld m elevation."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descente, %@ à %lld%%, %lld m de dénivelé."
+          }
+        }
+      }
+    },
+    "tts.flat %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flat, %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plat, %@."
+          }
+        }
+      }
+    },
     "trailList.title" : {
       "localizations" : {
         "en" : {

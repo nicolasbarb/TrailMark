@@ -56,9 +56,12 @@ enum MilestoneDetector {
                 let dPlus = Int(segment.elevationGain)
                 guard dPlus >= Int(minimumClimbElevation) else { continue }
 
-                let distKm = segment.distance / 1000
-                let slopePercent = Int(abs(segment.averageSlope * 100))
-                let message = formatClimbMessage(dPlus: dPlus, distKm: distKm, slopePercent: slopePercent)
+                let message = AnnouncementBuilder.build(
+                    type: .climb,
+                    distance: segment.distance,
+                    elevation: Double(dPlus),
+                    slope: segment.averageSlope
+                ) ?? ""
 
                 let milestone = Milestone(
                     trailId: trailId,
@@ -77,9 +80,12 @@ enum MilestoneDetector {
                 let dMinus = Int(segment.elevationLoss)
                 guard dMinus >= Int(minimumDescentElevation) else { continue }
 
-                let distKm = segment.distance / 1000
-                let slopePercent = Int(abs(segment.averageSlope * 100))
-                let message = formatDescentMessage(dMinus: dMinus, distKm: distKm, slopePercent: slopePercent)
+                let message = AnnouncementBuilder.build(
+                    type: .descent,
+                    distance: segment.distance,
+                    elevation: Double(dMinus),
+                    slope: segment.averageSlope
+                ) ?? ""
 
                 let milestone = Milestone(
                     trailId: trailId,
@@ -120,21 +126,4 @@ enum MilestoneDetector {
         return filtered
     }
 
-    // MARK: - Message Formatting
-
-    private static func formatClimbMessage(dPlus: Int, distKm: Double, slopePercent: Int) -> String {
-        let dist = distKm >= 1
-            ? "\(String(format: "%.1f", distKm)) km"
-            : "\(Int(distKm * 1000)) m"
-
-        return "Montée de \(dPlus) m sur \(dist). Pente moyenne \(slopePercent)%."
-    }
-
-    private static func formatDescentMessage(dMinus: Int, distKm: Double, slopePercent: Int) -> String {
-        let dist = distKm >= 1
-            ? "\(String(format: "%.1f", distKm)) km"
-            : "\(Int(distKm * 1000)) m"
-
-        return "Descente de \(dMinus) m sur \(dist). Pente moyenne \(slopePercent)%."
-    }
 }
