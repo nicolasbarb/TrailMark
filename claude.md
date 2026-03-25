@@ -1,10 +1,10 @@
-# TrailMark
+# PaceMark
 
 ## Projet
 
-TrailMark est une application iOS native de guidage vocal pour le trail running. L'utilisateur importe un fichier GPX, place des jalons le long de la trace via un profil altimétrique interactif, puis lance un guidage : le téléphone va dans la poche et annonce vocalement chaque jalon quand le coureur l'atteint via GPS.
+PaceMark est une application iOS native de guidage vocal pour le trail running. L'utilisateur importe un fichier GPX, place des jalons le long de la trace via un profil altimétrique interactif, puis lance un guidage : le téléphone va dans la poche et annonce vocalement chaque jalon quand le coureur l'atteint via GPS.
 
-Ce n'est PAS un tracker de course. Pas de chrono, pas de vitesse, pas de record. Le coureur a déjà sa montre GPS pour ça. TrailMark est un complément vocal, un "roadbook parlant".
+Ce n'est PAS un tracker de course. Pas de chrono, pas de vitesse, pas de record. Le coureur a déjà sa montre GPS pour ça. PaceMark est un complément vocal, un "roadbook parlant".
 
 ## Stack
 
@@ -14,39 +14,114 @@ Ce n'est PAS un tracker de course. Pas de chrono, pas de vitesse, pas de record.
 - **Cartographie** : MapKit natif (gratuit, pas de clé API)
 - **GPS** : CoreLocation
 - **TTS** : AVSpeechSynthesizer
+- **Abonnements** : RevenueCat
+- **Analytics** : TelemetryDeck
 - **Pas de backend**, tout est local
 
 ## Structure
 
 ```
-TrailMark/
+trailmark/
 ├── App/
-│   └── TrailMarkApp.swift              # @main, crée le Store racine, force .dark
+│   └── TrailMarkApp.swift                     # @main, Store racine, configure RevenueCat + TelemetryDeck
 ├── Models/
-│   └── Models.swift                    # Trail, TrackPoint, Milestone, MilestoneType, TrailDetail
+│   └── Models.swift                           # Trail, TrackPoint, Milestone, MilestoneType, TrailDetail, TrailListItem
 ├── Database/
-│   └── AppDatabase.swift               # SQLite-Data migrations, DatabaseClient @DependencyKey
+│   └── AppDatabase.swift                      # SQLite-Data migrations, DatabaseClient @DependencyKey
 ├── Services/
-│   ├── GPXParser.swift                 # XMLParser natif → [ParsedPoint] avec distances Haversine
-│   ├── LocationClient.swift            # @DependencyKey, wraps CLLocationManager en AsyncStream
-│   └── SpeechClient.swift              # @DependencyKey, wraps AVSpeechSynthesizer
+│   ├── GPXParser.swift                        # XMLParser natif → [ParsedPoint], D+ adaptatif
+│   ├── LocationClient.swift                   # @Dependency(\.location), CLLocationManager → AsyncStream
+│   ├── SpeechClient.swift                     # @Dependency(\.speech), AVSpeechSynthesizer
+│   ├── SubscriptionClient.swift               # @Dependency(\.subscription), RevenueCat
+│   ├── StoreKitClient.swift                   # @Dependency(\.storeKit), review App Store
+│   ├── TelemetryClient.swift                  # @Dependency(\.telemetry), TelemetryDeck
+│   ├── AnnouncementBuilder.swift              # Génération de messages TTS enrichis (terrain)
+│   ├── ElevationProfileAnalyzer.swift         # Classification terrain, segments, pente
+│   └── MilestoneDetector.swift                # Détection auto de jalons (seuils: montée/descente ≥75m)
 ├── Features/
-│   ├── TrailList/TrailListFeature.swift # Reducer liste des parcours + navigation
-│   ├── Import/ImportFeature.swift       # Reducer import GPX → parse → DB
-│   ├── Editor/EditorFeature.swift       # Reducer éditeur carte + profil + jalons
-│   └── Run/RunFeature.swift             # Reducer guidage GPS live + TTS
+│   ├── Root/
+│   │   ├── RootStore.swift                    # Reducer racine, routage onboarding/traillist
+│   │   └── RootView.swift
+│   ├── Onboarding/
+│   │   ├── OnboardingStore.swift              # Reducer onboarding (intro + carousel + permission GPS)
+│   │   ├── OnboardingView.swift
+│   │   ├── OnboardingCarousel.swift           # Carousel 5 slides avec screenshots
+│   │   ├── OnboardingAnalyticsReducer.swift
+│   │   └── Components/                        # DeviceFrameView, LocationOverlayView, etc.
+│   ├── TrailList/
+│   │   ├── TrailListStore.swift               # Reducer liste (CRUD trails, premium, paywall)
+│   │   ├── TrailListView.swift
+│   │   └── TrailListAnalyticsReducer.swift
+│   ├── Import/
+│   │   ├── ImportStore.swift                  # Reducer import GPX → parse → détection jalons
+│   │   ├── ImportView.swift
+│   │   └── ImportAnalyticsReducer.swift
+│   ├── Editor/
+│   │   ├── EditorStore.swift                  # Reducer coordinateur (le plus complexe) + PendingTrailData
+│   │   ├── EditorView.swift
+│   │   ├── EditorAnalyticsReducer.swift
+│   │   ├── MilestoneMessages.swift            # Bibliothèque de messages TTS par type (4 variantes)
+│   │   ├── ElevationProfile/
+│   │   │   ├── ElevationProfileStore.swift    # Curseur, scroll, délégation tap/edit
+│   │   │   └── EditorProfileView.swift
+│   │   ├── MilestoneList/
+│   │   │   ├── MilestoneListStore.swift       # Liste des jalons (sheet)
+│   │   │   └── MilestoneListView.swift
+│   │   ├── MilestoneSheet/
+│   │   │   ├── MilestoneSheetStore.swift      # Modal 2 étapes (preview auto → édition)
+│   │   │   ├── MilestoneSheetView.swift
+│   │   │   ├── AnnouncementPreview/           # Aperçu message auto-généré (PRO)
+│   │   │   └── Edit/                          # Formulaire type + message + nom + preview TTS
+│   │   ├── SegmentPanel/
+│   │   │   ├── SegmentPanelStore.swift        # Panneau segment courant + ajout jalon
+│   │   │   └── SegmentPanelView.swift
+│   │   └── TrailMetadata/
+│   │       ├── TrailMetadataStore.swift       # Renommage / suppression trail
+│   │       └── TrailMetadataView.swift
+│   ├── Run/
+│   │   ├── RunStore.swift                     # Reducer guidage GPS live + TTS
+│   │   ├── RunView.swift
+│   │   └── RunAnalyticsReducer.swift
+│   ├── Paywall/
+│   │   ├── PaywallStore.swift                 # Wrapper RevenueCat PaywallView
+│   │   ├── PaywallView.swift
+│   │   └── PaywallDesignPreview.swift
+│   └── SubscriptionInfo/
+│       ├── SubscriptionInfoStore.swift        # Détails abonnement + gestion StoreKit
+│       └── SubscriptionInfoView.swift
 ├── Views/
-│   ├── Theme.swift                     # Enum TM avec toutes les couleurs + Color(hex:)
-│   ├── TrailListView.swift             # Écran liste
-│   ├── ImportView.swift                # Sheet import GPX avec fileImporter
-│   ├── EditorView.swift                # Écran éditeur (header, tabs, carte, profil, jalons, modale)
-│   ├── RunView.swift                   # Écran guidage (pré-run + en cours + bulle TTS)
-│   └── Components/
-│       ├── TrailMapView.swift          # Map {} SwiftUI avec trace polyline + markers
-│       └── ElevationProfileView.swift  # Canvas interactif grille + courbe + jalons + curseur
+│   ├── Theme.swift                            # Tokens couleurs (TM), couleurs sémantiques iOS
+│   ├── Components/
+│   │   ├── TrailMapView.swift                 # MapKit avec trace, marqueurs, glow
+│   │   ├── ElevationProfileView.swift         # Canvas interactif (tap + drag)
+│   │   ├── ScrollableElevationProfileView.swift  # Profil scrollable 120 FPS, segments colorés
+│   │   ├── MiniProfileView.swift              # Vignette pré-rendue (O(1)/frame)
+│   │   ├── ProfileStatsView.swift             # Carousel jalons + stats segment (Liquid Glass)
+│   │   ├── ButtonStyle.swift                  # Styles boutons (primary, secondary, tertiary)
+│   │   └── Haptics.swift                      # Système haptique centralisé
+│   └── Shared/
+│       ├── DistanceView.swift                 # Affichage distance formatée
+│       ├── ElevationView.swift                # Affichage altitude / D+
+│       ├── PointStatsView.swift               # Distance + altitude combinées
+│       ├── TrailStatsView.swift               # Distance + D+ combinées
+│       └── ProBadge.swift                     # Badge "PRO" orange
 └── Resources/
-    └── Info.plist                      # Permissions GPS background + audio + UTType GPX
+    └── Info.plist                              # Permissions GPS background + audio + UTType GPX
 ```
+
+## Documentation détaillée
+
+La documentation feature-by-feature se trouve dans `docs/features/` :
+- `ROOT.md` — Navigation racine et routage
+- `TRAIL_LIST.md` — Écran d'accueil et gestion des parcours
+- `IMPORT.md` — Import et parsing GPX
+- `EDITOR.md` — Éditeur de parcours et jalons (feature la plus complexe)
+- `RUN.md` — Guidage GPS live avec annonces vocales
+- `ONBOARDING.md` — Expérience de première utilisation
+- `PAYWALL.md` — Écran d'achat et points de déclenchement
+- `SUBSCRIPTION_INFO.md` — Gestion de l'abonnement
+- `SERVICES.md` — Services et utilitaires (GPS, TTS, GPX, RevenueCat, analytics)
+- `VIEWS_COMPONENTS.md` — Composants UI partagés
 
 ## Règles de code
 
@@ -60,12 +135,14 @@ TrailMark/
 - Code en anglais, strings UI en français
 
 ### TCA
-- Chaque feature dans `Features/{Nom}/{Nom}Feature.swift`
+- Chaque feature : `{Nom}Store.swift` (Reducer) + `{Nom}View.swift` dans `Features/{Nom}/`
 - Les side effects dans `.run {}`, jamais de logique async dans les views
-- `@Dependency` pour tout service externe (DB, GPS, TTS)
+- `@Dependency` pour tout service externe (DB, GPS, TTS, subscription, telemetry)
 - `@Presents` pour la navigation entre écrans
 - `BindingReducer()` quand des `$store.xxx` bindings sont nécessaires
 - `CancelID` enum privée pour les effets annulables (ex: tracking GPS)
+- Analytics dans des reducers séparés (`{Nom}AnalyticsReducer.swift`)
+- Communication parent-enfant via `Delegate` actions
 
 ### SQLite-Data
 - Tout passe par `DatabaseClient`, jamais d'accès DB direct depuis un reducer ou une view
@@ -81,8 +158,21 @@ TrailMark/
 
 ### Couleurs et style
 - Toujours utiliser les tokens de `Theme.swift` (enum `TM`) — jamais de couleur en dur
+- TM utilise les couleurs sémantiques iOS (`.systemBackground`, `.primary`, etc.)
 - Font `.system(design: .monospaced)` pour toutes les données numériques
 - Light et dark mode supportés — ne jamais ajouter `.preferredColorScheme()` dans les views ou les previews
+
+## Modèle premium
+
+| Aspect | Free | PRO |
+|--------|------|-----|
+| Parcours | 1 max | Illimité |
+| Jalons par parcours | 10 max | Illimité |
+| Messages auto-générés | Bloqué (blur) | Complet |
+| Import jalons détectés | Non | Oui |
+| Guidage vocal | Oui | Oui |
+
+Points de déclenchement paywall : first-visit, limite trail, expiration, import jalons, limite jalons, message auto.
 
 ## GPS Background — configuration critique
 
@@ -93,33 +183,23 @@ TrailMark/
     <string>location</string>
     <string>audio</string>
 </array>
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>TrailMark utilise le GPS pour détecter votre position et déclencher les annonces vocales aux jalons.</string>
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course, même quand le téléphone est dans votre poche.</string>
-<key>NSLocationAlwaysUsageDescription</key>
-<string>TrailMark a besoin du GPS en arrière-plan pour vous guider vocalement pendant votre course.</string>
 ```
++ 3 clés NSLocation*UsageDescription (WhenInUse, AlwaysAndWhenInUse, Always).
 
-### Xcode Capabilities
-Background Modes → cocher "Location updates" et "Audio, AirPlay, and Picture in Picture"
-
-### CLLocationManager (dans LocationClient)
+### CLLocationManager (LocationClient)
 ```swift
-clManager.desiredAccuracy = kCLLocationAccuracyBest
-clManager.distanceFilter = 10           // update tous les 10m
-clManager.allowsBackgroundLocationUpdates = true
-clManager.pausesLocationUpdatesAutomatically = false
-clManager.showsBackgroundLocationIndicator = true  // flèche bleue status bar
+desiredAccuracy = kCLLocationAccuracyBest
+distanceFilter = 10           // update tous les 10m
+allowsBackgroundLocationUpdates = true
+pausesLocationUpdatesAutomatically = false
+showsBackgroundLocationIndicator = true
 ```
-Stratégie permissions : demander WhenInUse d'abord, puis escalader vers Always automatiquement.
 
-### Audio Session (dans SpeechClient)
+### Audio Session (SpeechClient)
 ```swift
-try session.setCategory(.playback, mode: .voicePrompt,
-    options: [.duckOthers, .interruptSpokenAudioAndMixWithOthers])
+category: .playback, mode: .voicePrompt
+options: [.duckOthers, .interruptSpokenAudioAndMixWithOthers]
 ```
-Le TTS joue dans les écouteurs même en background et baisse le volume de la musique pendant l'annonce.
 
 ## Modèle de données
 
@@ -127,11 +207,10 @@ Le TTS joue dans les écouteurs même en background et baisse le volume de la mu
 | Colonne | Type | Notes |
 |---------|------|-------|
 | id | Int64 | PK auto-increment |
-| name | String | Nom dérivé du fichier GPX, capitalized |
-| createdAt | Date | |
+| name | String | Nom dérivé du fichier GPX |
+| createdAt | Double | Unix timestamp (REAL) |
 | distance | Double | Mètres |
 | dPlus | Int | Mètres |
-| color | String | Hex sans #, défaut "f97316" |
 
 ### Table `trackPoint`
 | Colonne | Type | Notes |
@@ -141,7 +220,7 @@ Le TTS joue dans les écouteurs même en background et baisse le volume de la mu
 | index | Int | Ordre dans la trace |
 | latitude, longitude | Double | |
 | elevation | Double | Mètres |
-| distance | Double | Distance cumulée depuis le départ, mètres |
+| distance | Double | Distance cumulée, mètres |
 
 ### Table `milestone`
 | Colonne | Type | Notes |
@@ -152,30 +231,20 @@ Le TTS joue dans les écouteurs même en background et baisse le volume de la mu
 | latitude, longitude, elevation, distance | Double | Copiés du TrackPoint |
 | type | String | Enum : montee, descente, plat, ravito, danger, info |
 | message | String | Texte lu par le TTS |
-| name | String? | Optionnel (ex: "Col de la Croix") |
+| name | String? | Optionnel |
 
-## Parsing GPX
-- `XMLParser` natif Foundation, pas de dépendance
-- Tags `<trkpt>` et `<rtept>` supportés
-- Distance cumulée : `CLLocation.distance(from:)` point par point
-- D+ = somme des deltas d'altitude positifs
-- Minimum 2 points sinon erreur
-
-## Détection des jalons
+## Détection des jalons (Run)
 - Rayon : 30 mètres
-- Chaque jalon ne se déclenche qu'une fois par session (Set<Int64>)
-- Boucle sur les jalons non déclenchés à chaque update GPS
+- Chaque jalon ne se déclenche qu'une fois par session (`Set<Int64>`)
 - Déclenchement → TTS immédiat
 
 ## Worktrees & secrets
 
-`Secrets.xcconfig` est gitignored. Quand tu travailles dans un worktree, crée un symlink vers le fichier du repo principal :
+`Secrets.xcconfig` est gitignored. Dans un worktree :
 
 ```bash
 ln -s "$(git rev-parse --git-common-dir)/../Secrets.xcconfig" Secrets.xcconfig
 ```
-
-Cela garantit que tous les worktrees partagent les mêmes clés API.
 
 ## Tests à écrire
 - `GPXParser` : fichier valide, vide, invalide, avec `<rtept>`

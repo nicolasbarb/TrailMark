@@ -1,8 +1,8 @@
-# TrailMark — Spécification Complète
+# PaceMark — Spécification Complète
 
 ## Vision produit
 
-Les traileurs professionnels préparent leurs courses avec un coach qui leur fait un "roadbook" : à tel kilomètre marcher, à tel endroit se ravitailler, ici faire attention à la descente technique. TrailMark apporte ça à tout le monde. On importe sa trace GPX, on place des jalons visuellement sur un profil altimétrique, et pendant la course l'app annonce vocalement chaque instruction au bon moment via le GPS.
+Les traileurs professionnels préparent leurs courses avec un coach qui leur fait un "roadbook" : à tel kilomètre marcher, à tel endroit se ravitailler, ici faire attention à la descente technique. PaceMark apporte ça à tout le monde. On importe sa trace GPX, on place des jalons visuellement sur un profil altimétrique, et pendant la course l'app annonce vocalement chaque instruction au bon moment via le GPS.
 
 L'app n'est PAS un tracker. L'utilisateur ne regarde jamais l'écran pendant la course. Le téléphone est dans la poche, point.
 
@@ -14,53 +14,60 @@ L'app n'est PAS un tracker. L'utilisateur ne regarde jamais l'écran pendant la 
 
 Tout passe par l'enum `TM` dans `Theme.swift`. Jamais de couleur en dur dans les views.
 
+L'app utilise les **couleurs sémantiques Apple** (Human Interface Guidelines) pour s'adapter automatiquement au light et dark mode. Les valeurs hex ci-dessous sont les valeurs résolues par iOS dans chaque mode.
+
 **Fonds**
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `bgPrimary` | `#1a1d23` | Fond global de l'app, arrière-plan par défaut |
-| `bgSecondary` | `#22262e` | Fond des cards, zones surélevées, upload zone |
-| `bgTertiary` | `#2a2f38` | Boutons secondaires, séparateurs, bordures de conteneurs |
-| `bgCard` | `#272b34` | Fond des bottom sheets / modales |
+| Token | Source iOS | Light | Dark | Usage |
+|-------|-----------|-------|------|-------|
+| `bgPrimary` | `.systemBackground` | `#FFFFFF` | `#000000` | Fond global de l'app |
+| `bgSecondary` | `.secondarySystemBackground` | `#F2F2F7` | `#1C1C1E` | Fond des cards, zones surélevées |
+| `bgTertiary` | `.tertiarySystemBackground` | `#FFFFFF` | `#2C2C2E` | Contenus encore plus élevés |
+| `bgCard` | `.secondarySystemBackground` | `#F2F2F7` | `#1C1C1E` | Alias de `bgSecondary` (bottom sheets) |
 
 **Textes**
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `textPrimary` | `#e8eaed` | Titres, noms de trails, valeurs numériques principales |
-| `textSecondary` | `#9aa0ab` | Labels secondaires, sous-titres, noms de jalons |
-| `textMuted` | `#6b7280` | Hints, dates, sous-labels, texte tertiaire |
-
-On utilise aussi `#4b5563` en dur pour certains textes très discrets (instructions écran de course, labels profil altimétrique) et `#d1d5db` pour le texte des messages TTS dans la liste des jalons.
+| Token | Source iOS | Light | Dark | Usage |
+|-------|-----------|-------|------|-------|
+| `textPrimary` | `Color.primary` | `#000000` | `#FFFFFF` | Titres, noms de trails, valeurs principales |
+| `textSecondary` | `Color.secondary` | `#3C3C43` 60% | `#EBEBF5` 60% | Labels secondaires, sous-titres |
+| `textTertiary` | `.secondaryLabel` | `#3C3C43` 60% | `#EBEBF5` 60% | Unités, labels tertiaires |
+| `textMuted` | `.tertiaryLabel` | `#3C3C43` 30% | `#EBEBF5` 30% | Hints, dates, texte très discret |
 
 **Accents**
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `accent` | `#f97316` | Orange principal. Logo, CTA, boutons primaires, tab active |
-| `accentDark` | `#ea580c` | Gradient fin pour boutons (accent → accentDark, topLeading → bottomTrailing) |
-| `trace` | `#38bdf8` | Bleu ciel. Trace GPX sur carte et profil |
-| `traceGlow` | `#38bdf8` 30% | Halo autour de la trace sur la carte |
-| `border` | `#353a45` | Bordures des cards, inputs, séparateurs de stats |
-| `danger` | `#ef4444` | Rouge. Bouton stop, jalon danger, suppression, marqueur arrivée |
-| `success` | `#22c55e` | Vert. Indicateur guidage actif, marqueur départ, toast sauvegarde |
+| Token | Source iOS | Light | Dark | Usage |
+|-------|-----------|-------|------|-------|
+| `accent` | `Color.accentColor` (Asset Catalog) | `#F97316` | `#F97316` | Orange principal. Logo, CTA, boutons primaires |
+| `accentDark` | `.systemOrange` × 0.85 opacité | `#FF9500` 85% | `#FF9F0A` 85% | Gradient fin pour boutons |
+| `trace` | `Color.cyan` | `#32ADE6` | `#64D2FF` | Trace GPX sur carte et profil |
+| `traceGlow` | `Color.cyan` × 0.3 opacité | `#32ADE6` 30% | `#64D2FF` 30% | Halo autour de la trace |
+| `border` | `.separator` | `#3C3C43` 29% | `#545458` 60% | Bordures, séparateurs |
+| `danger` | `Color.red` | `#FF3B30` | `#FF453A` | Bouton stop, jalon danger, suppression |
+| `success` | `Color.green` | `#34C759` | `#30D158` | Indicateur guidage actif, marqueur départ |
 
-**Couleurs des types de jalon**
+**Gradients**
 
-| Type | Valeur enum | Hex | Icône texte |
-|------|-------------|-----|-------------|
-| Montée | `montee` | `#f97316` | △ |
-| Descente | `descente` | `#38bdf8` | ▽ |
-| Plat | `plat` | `#a3e635` | ─ |
-| Ravito | `ravito` | `#c084fc` | ◉ |
-| Danger | `danger` | `#ef4444` | ⚠ |
-| Info | `info` | `#60a5fa` | ℹ |
+| Token | Composition | Direction |
+|-------|-------------|-----------|
+| `accentGradient` | `accent` → `accentDark` | topLeading → bottomTrailing |
+
+**Couleurs des types de jalon** (via `MilestoneType.color` dans Theme.swift)
+
+| Type | Valeur enum | Source iOS | Light | Dark | Icône | SF Symbol |
+|------|-------------|-----------|-------|------|-------|-----------|
+| Montée | `montee` | `.orange` | `#FF9500` | `#FF9F0A` | △ | `arrow.up.right` |
+| Descente | `descente` | `.cyan` | `#32ADE6` | `#64D2FF` | ▽ | `arrow.down.right` |
+| Plat | `plat` | `.green` | `#34C759` | `#30D158` | ─ | `minus` |
+| Ravito | `ravito` | `.purple` | `#AF52DE` | `#BF5AF2` | ◉ | `fork.knife` |
+| Danger | `danger` | `.red` | `#FF3B30` | `#FF453A` | ⚠ | `exclamationmark.triangle.fill` |
+| Info | `info` | `.blue` | `#007AFF` | `#0A84FF` | ℹ | `info.circle.fill` |
 
 ### 1.2 Typographie
 
 - **Texte courant** : San Francisco système (défaut iOS)
 - **Données numériques** (altitudes, distances, km, compteurs) : `.system(design: .monospaced)`
-- **Logo "TrailMark"** : `.system(design: .monospaced, weight: .bold)`, couleur `accent`
+- **Logo "PaceMark"** : `.system(design: .monospaced, weight: .bold)`, couleur `accent`
 - **Labels de section** (TYPE, MESSAGE TTS, PROFIL...) : UPPERCASE, `.tracking(1)`, weight semibold, couleur `textMuted`
 
 ### 1.3 Composants récurrents
@@ -95,14 +102,14 @@ On utilise aussi `#4b5563` en dur pour certains textes très discrets (instructi
 **Navigation** : c'est la racine dans `NavigationStack`.
 
 **Header** :
-- Logo "TrailMark" : `.system(.title2, design: .monospaced, weight: .bold)`, couleur `accent`
+- Logo "PaceMark" : `.system(.title2, design: .monospaced, weight: .bold)`, couleur `accent`
 - Sous-titre "Mes parcours" : `.font(.caption)`, couleur `textMuted`
 - Bouton "+" en haut à droite : 40×40, radius 12, fond `accent`, icône `plus` 16pt semibold blanche, shadow orange radius 12 y 4 opacité 0.3
 
 **État vide** (quand aucun trail) :
 - Centré verticalement
 - Emoji `🏔️` taille système 40
-- "Aucun TrailMark" : `.font(.headline)`, couleur `textSecondary`
+- "Aucun PaceMark" : `.font(.headline)`, couleur `textSecondary`
 - "Importez un fichier GPX pour créer\nvotre premier guide vocal de trail" : `.font(.caption)`, `textMuted`, centré, multiline
 - Bouton "Importer un GPX" : fond `accent`, texte blanc subheadline semibold, padding h24 v12, radius 12
 
@@ -134,7 +141,7 @@ On utilise aussi `#4b5563` en dur pour certains textes très discrets (instructi
 **Présentation** : sheet depuis TrailListView
 
 **Layout** centré verticalement, padding h28 :
-- Logo "TrailMark" : `.system(.largeTitle, design: .monospaced, weight: .bold)`, `accent`
+- Logo "PaceMark" : `.system(.largeTitle, design: .monospaced, weight: .bold)`, `accent`
 - "ÉDITEUR DE JALONS GPS" : `.font(.caption2)`, `textMuted`, `.tracking(3)`
 
 **Zone d'upload** (marginTop ~48) :
@@ -161,7 +168,7 @@ On utilise aussi `#4b5563` en dur pour certains textes très discrets (instructi
 
 #### 2.3.1 Header
 - Bouton retour : `chevron.left`, couleur `textSecondary`
-- Logo "TrailMark" : `.system(.subheadline, design: .monospaced, weight: .bold)`, `accent`
+- Logo "PaceMark" : `.system(.subheadline, design: .monospaced, weight: .bold)`, `accent`
 - Nom du fichier : `.system(.caption2, design: .monospaced)`, `textMuted`
 - Stats : `"12.4km 920m+"` en caption2 monospace `textMuted` (valeurs en bold `textPrimary`)
 - Bouton "Sauver" : icône `square.and.arrow.down` caption + texte caption semibold blanc, gradient accent, radius 9, shadow orange
@@ -188,7 +195,7 @@ On utilise aussi `#4b5563` en dur pour certains textes très discrets (instructi
 - **Curseur** (sync profil) : `Annotation` avec cercle 14px blanc, border 2px `trace`, shadow glow `trace` radius 8
 
 **Profil altimétrique** (partie basse, hauteur fixe 170pt) :
-- Fond `#1e2128`
+- Fond `bgPrimary`
 - Séparateur top 1px `bgTertiary`
 - **Mini header** : "PROFIL" monospace caption2 semibold tracking 1 `textMuted` | "Tap = jalon" size 9 `#4b5563`
 - Séparateur 1px blanc 4% opacité
@@ -283,7 +290,7 @@ Contenu dans un ScrollView, padding 20 :
 - Apparaît en haut centré au-dessus du contenu, dans un ZStack
 - Animation : `.transition(.move(edge: .top).combined(with: .opacity))` + `.animation(.spring)`
 - Fond `bgSecondary`, border `success` 30%, radius 12, shadow noire 50% radius 20
-- Contenu : icône `checkmark.circle.fill` + "TrailMark sauvegardé !" en subheadline medium, couleur `success`
+- Contenu : icône `checkmark.circle.fill` + "PaceMark sauvegardé !" en subheadline medium, couleur `success`
 - Disparaît après 1.5s
 
 ### 2.4 Écran de guidage (RunView — push depuis la liste)
@@ -349,8 +356,8 @@ Layout centré verticalement :
 5. Distance cumulée calculée point par point via `CLLocation.distance(from:)`
 6. D+ = somme des deltas d'altitude positifs entre points consécutifs
 7. Nom du trail = nom du fichier sans extension, underscores et tirets remplacés par des espaces, `.capitalized`
-8. Couleur par défaut : "f97316" (accent orange)
-9. Trail + TrackPoints insérés en DB (SQLite-Data transaction)
+8. Trail + TrackPoints insérés en DB (SQLite-Data transaction)
+9. Détection automatique des jalons via `MilestoneDetector` (montées/descentes ≥ 75m)
 10. Si < 2 points → erreur "pas assez de points"
 11. Navigation automatique vers l'éditeur
 
@@ -391,7 +398,7 @@ Layout centré verticalement :
 
 ---
 
-## 4. Ce qui n'est PAS dans le MVP
+## 4. Ce qui n'est PAS implémenté
 
 - Chrono / timer pendant la course
 - Record / historique des runs
@@ -402,5 +409,4 @@ Layout centré verticalement :
 - Intégration Strava / Garmin / Apple Health
 - Courbes de niveau sur la carte
 - Version Android
-- Projection curviligne pour la détection des jalons (amélioration future, pour l'instant c'est un rayon simple de 30m)
-- Détection automatique de tous les jalons depuis le profil (l'utilisateur les place manuellement)
+- Projection curviligne pour la détection des jalons (pour l'instant c'est un rayon simple de 30m)
