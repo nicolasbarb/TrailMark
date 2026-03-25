@@ -11,19 +11,16 @@ struct SettingsStore {
 
     enum Action: Equatable {
         case upgradeTapped
-        case subscriptionInfoTapped
         case destination(PresentationAction<Destination.Action>)
     }
 
     var body: some Reducer<State, Action> {
+        SettingsAnalyticsReducer()
+
         Reduce { state, action in
             switch action {
             case .upgradeTapped:
                 state.destination = .paywall(PaywallStore.State())
-                return .none
-
-            case .subscriptionInfoTapped:
-                state.destination = .subscriptionInfo(SubscriptionInfoStore.State())
                 return .none
 
             case .destination(.presented(.paywall(.purchaseCompleted))),
