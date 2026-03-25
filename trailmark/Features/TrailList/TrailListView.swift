@@ -37,10 +37,15 @@ struct TrailListView: View {
                     Image(systemName: "plus")
                 }
             }
-            
-            ToolbarItem(placement: .secondaryAction) {
-                Link(destination: URL(string: "mailto:nicolas.barb.pro@gmail.com?subject=Retour%20PaceMark")!) {
-                    Label("Donner un retour", systemImage: "ellipsis")
+
+            ToolbarSpacer(.fixed, placement: .primaryAction)
+
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Haptic.light.trigger()
+                    store.send(.settingsTapped)
+                } label: {
+                    Image(systemName: "gearshape")
                 }
             }
         }
@@ -64,6 +69,11 @@ struct TrailListView: View {
             item: $store.scope(state: \.destination?.run, action: \.destination.run)
         ) { runStore in
             RunView(store: runStore)
+        }
+        .navigationDestination(
+            item: $store.scope(state: \.destination?.settings, action: \.destination.settings)
+        ) { settingsStore in
+            SettingsView(store: settingsStore)
         }
         .fullScreenCover(
             item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)

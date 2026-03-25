@@ -26,6 +26,7 @@ struct TrailListStore {
         case trailDeleted
         case navigateToEditor(Int64)
         case navigateToEditorWithPendingData(PendingTrailData)
+        case settingsTapped
         case proBadgeTapped
         case dismissExpiredAlert
         case renewTapped
@@ -115,6 +116,10 @@ struct TrailListStore {
                 if wasExpired {
                     state.showExpiredAlert = true
                 }
+                return .none
+
+            case .settingsTapped:
+                state.destination = .settings(SettingsStore.State())
                 return .none
 
             case .proBadgeTapped:
@@ -220,6 +225,7 @@ struct TrailListStore {
             case importGPX(ImportStore.State)
             case editor(EditorStore.State)
             case run(RunStore.State)
+            case settings(SettingsStore.State)
             case paywall(PaywallStore.State)
             case subscriptionInfo(SubscriptionInfoStore.State)
         }
@@ -228,6 +234,7 @@ struct TrailListStore {
             case importGPX(ImportStore.Action)
             case editor(EditorStore.Action)
             case run(RunStore.Action)
+            case settings(SettingsStore.Action)
             case paywall(PaywallStore.Action)
             case subscriptionInfo(SubscriptionInfoStore.Action)
         }
@@ -241,6 +248,9 @@ struct TrailListStore {
             }
             Scope(state: \.run, action: \.run) {
                 RunStore()
+            }
+            Scope(state: \.settings, action: \.settings) {
+                SettingsStore()
             }
             Scope(state: \.paywall, action: \.paywall) {
                 PaywallStore()
