@@ -174,12 +174,14 @@ platform :ios do
       }
     )
 
-    # Get changelog from last commit body
-    changelog = sh("git log -1 --pretty=%b").strip
-
-    if changelog.empty?
+    # Get changelog from file (written by Claude before running the lane)
+    changelog_path = File.expand_path("../changelog.txt", __dir__)
+    if File.exist?(changelog_path)
+      changelog = File.read(changelog_path).strip
+      UI.success("✅ Changelog lu depuis fastlane/changelog.txt")
+    else
       changelog = "Corrections de bugs et améliorations des performances"
-      UI.important("⚠️  Aucune description de commit trouvée, utilisation du changelog par défaut")
+      UI.important("⚠️  Aucun fichier changelog.txt trouvé, utilisation du changelog par défaut")
     end
 
     # Upload to TestFlight
