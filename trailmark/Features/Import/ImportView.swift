@@ -57,7 +57,7 @@ struct ImportView: View {
                     .font(.system(.largeTitle, design: .monospaced, weight: .bold))
                     .foregroundStyle(TM.accent)
 
-                Text("COACH VOCAL DE COURSE")
+                Text("import.tagline")
                     .font(.caption2)
                     .tracking(3)
                     .foregroundStyle(TM.textMuted)
@@ -82,7 +82,7 @@ struct ImportView: View {
                 Haptic.light.trigger()
                 store.send(.dismissTapped)
             } label: {
-                Text("Retour à mes parcours")
+                Text("import.backButton")
                     .underline()
             }
             .tertiaryButton(size: .mini, tint: TM.textSecondary)
@@ -106,11 +106,11 @@ struct ImportView: View {
 
                 // Text
                 VStack(spacing: 4) {
-                    Text("Importer un fichier GPX")
+                    Text("import.uploadZone.title")
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(TM.textPrimary)
 
-                    Text("Appuyez pour parcourir")
+                    Text("import.uploadZone.hint")
                         .font(.caption)
                         .foregroundStyle(TM.textMuted)
                 }
@@ -148,11 +148,11 @@ struct ImportView: View {
                 .tint(TM.accent)
 
             VStack(spacing: 8) {
-                Text("Analyse du parcours")
+                Text("import.analyzing.title")
                     .font(.headline)
                     .foregroundStyle(TM.textPrimary)
 
-                Text("Détection des repères en cours...")
+                Text("import.analyzing.subtitle")
                     .font(.caption)
                     .foregroundStyle(TM.textMuted)
             }
@@ -194,7 +194,7 @@ struct ImportView: View {
                 .font(.system(size: 32))
                 .foregroundStyle(TM.success)
 
-            Text("Parcours importé")
+            Text("import.result.title")
                 .font(.headline)
                 .foregroundStyle(TM.textPrimary)
 
@@ -235,7 +235,7 @@ struct ImportView: View {
                         .font(.title2)
                         .foregroundStyle(TM.textMuted)
 
-                    Text("Aperçu verrouillé")
+                    Text("import.result.previewLocked")
                         .font(.caption)
                         .foregroundStyle(TM.textMuted)
                 }
@@ -251,10 +251,10 @@ struct ImportView: View {
                 .foregroundStyle(TM.accent)
 
             if store.detectedMilestones.isEmpty {
-                Text("Aucun repère détecté")
+                Text("import.result.noMilestones")
                     .foregroundStyle(TM.textMuted)
             } else {
-                Text("\(store.detectedMilestones.count) repères détectés automatiquement")
+                Text("import.result.milestonesDetected \(store.detectedMilestones.count)")
                     .foregroundStyle(TM.textPrimary)
             }
 
@@ -273,7 +273,7 @@ struct ImportView: View {
                 Haptic.medium.trigger()
                 store.send(.skipTapped)
             } label: {
-                Text("Continuer")
+                Text("common.continue")
             }
             .primaryButton(size: .large, width: .flexible, shape: .capsule)
         } else if store.isPremium {
@@ -283,7 +283,7 @@ struct ImportView: View {
                     Haptic.medium.trigger()
                     store.send(.continueWithMilestonesTapped)
                 } label: {
-                    Text("Continuer")
+                    Text("common.continue")
                 }
                 .primaryButton(size: .large, width: .flexible, shape: .capsule)
 
@@ -291,7 +291,7 @@ struct ImportView: View {
                     Haptic.light.trigger()
                     store.send(.skipTapped)
                 } label: {
-                    Text("Ignorer et placer manuellement")
+                    Text("import.result.skipButton")
                         .underline()
                 }
                 .tertiaryButton(size: .small, tint: .secondary)
@@ -304,7 +304,7 @@ struct ImportView: View {
                     store.send(.unlockTapped)
                 } label: {
                     Label {
-                        Text("Débloquer la détection auto")
+                        Text("import.result.unlockDetection")
                     } icon: {
                         Image(systemName: "sparkles")
                     }
@@ -315,7 +315,7 @@ struct ImportView: View {
                     Haptic.light.trigger()
                     store.send(.skipTapped)
                 } label: {
-                    Text("Placer mes repères manuellement")
+                    Text("import.result.manualButton")
                         .underline()
                 }
                 .tertiaryButton(size: .small, tint: .secondary)

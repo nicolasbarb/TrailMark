@@ -6,15 +6,15 @@ struct SettingsView: View {
 
     var body: some View {
         List {
-            Section("Abonnement") {
+            Section("settings.subscription.section") {
                 HStack(spacing: 12) {
                     SettingsIcon(systemName: "tag", color: TM.textSecondary)
-                    Text("Offre actuelle")
+                    Text("settings.subscription.currentPlan")
                     Spacer()
                     if store.isPremium {
                         ProBadge()
                     } else {
-                        Text("Gratuit")
+                        Text("settings.subscription.free")
                             .font(.body)
                             .foregroundStyle(TM.textMuted)
                     }
@@ -28,10 +28,10 @@ struct SettingsView: View {
                         HStack(spacing: 12) {
                             SettingsIcon(systemName: "crown.fill", color: TM.accent)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Passer à PRO")
+                                Text("settings.subscription.upgradeCta")
                                     .font(.body.weight(.medium))
                                     .foregroundStyle(TM.textPrimary)
-                                Text("Prépare chaque course sans aucune limite.")
+                                Text("settings.subscription.upgradeDescription")
                                     .font(.caption)
                                     .foregroundStyle(TM.textMuted)
                             }
@@ -45,10 +45,10 @@ struct SettingsView: View {
             }
             .listRowBackground(TM.bgSecondary)
 
-            Section("À propos") {
+            Section("settings.about.section") {
                 HStack(spacing: 12) {
                     SettingsIcon(systemName: "info.circle", color: TM.textSecondary)
-                    Text("Version")
+                    Text("settings.about.version")
                     Spacer()
                     Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "–")
                         .foregroundStyle(TM.textMuted)
@@ -57,7 +57,7 @@ struct SettingsView: View {
                 Link(destination: URL(string: "mailto:nicolas.barb.pro@gmail.com?subject=Retour%20PaceMark")!) {
                     HStack(spacing: 12) {
                         SettingsIcon(systemName: "envelope.fill", color: .blue)
-                        Text("Signaler un problème")
+                        Text("settings.about.reportProblem")
                             .foregroundStyle(TM.textPrimary)
                     }
                 }
@@ -67,7 +67,7 @@ struct SettingsView: View {
         .listStyle(.automatic)
         .scrollContentBackground(.hidden)
         .background(TM.bgPrimary)
-        .navigationTitle("Réglages")
+        .navigationTitle("settings.title")
         .navigationBarTitleDisplayMode(.large)
         .fullScreenCover(
             item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)

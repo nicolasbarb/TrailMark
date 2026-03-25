@@ -21,22 +21,22 @@ struct OnboardingView: View {
                     items: [
                         .init(
                             id: 0,
-                            title: "Importe ton parcours",
-                            subtitle: "Un fichier GPX, et PaceMark\nanalyse tout automatiquement.",
+                            title: String(localized: "onboarding.slide1.title"),
+                            subtitle: String(localized: "onboarding.slide1.subtitle"),
                             screenshot: UIImage(named: "gpxScreenshot")
                         ),
                         .init(
                             id: 1,
-                            title: "Prépare ta stratégie",
-                            subtitle: "Visualise le profil altimétrique\net les segments clés de ta course.",
+                            title: String(localized: "onboarding.slide2.title"),
+                            subtitle: String(localized: "onboarding.slide2.subtitle"),
                             screenshot: UIImage(named: "editScreenshot"),
                             zoomScale: 1.3,
                             zoomAnchor: .init(x: 0.5, y: 0.0)
                         ),
                         .init(
                             id: 2,
-                            title: "Place tes repères",
-                            subtitle: "Chaque segment a son instruction.\nMontées, descentes, ravitos, dangers.",
+                            title: String(localized: "onboarding.slide3.title"),
+                            subtitle: String(localized: "onboarding.slide3.subtitle"),
                             screenshot: UIImage(named: "editScreenshot"),
                             zoomScale: 1.5,
                             zoomAnchor: .init(x: 0.5, y: 1.2),
@@ -44,14 +44,14 @@ struct OnboardingView: View {
                         ),
                         .init(
                             id: 3,
-                            title: "Cours sans écran",
-                            subtitle: "Téléphone en poche. PaceMark t'annonce\nchaque repère au bon moment.",
+                            title: String(localized: "onboarding.slide4.title"),
+                            subtitle: String(localized: "onboarding.slide4.subtitle"),
                             screenshot: UIImage(named: "playScreenshot")
                         ),
                         .init(
                             id: 4,
-                            title: "Autorisation GPS",
-                            subtitle: "PaceMark a besoin du GPS pour\ndéclencher les annonces vocales.",
+                            title: String(localized: "onboarding.slide5.title"),
+                            subtitle: String(localized: "onboarding.slide5.subtitle"),
                             screenshot: UIImage(named: "mapScreenshot"),
                             isLocationStep: true
                         )
@@ -99,7 +99,7 @@ private struct IntroView: View {
                     .font(.system(.largeTitle, design: .monospaced, weight: .bold))
                     .foregroundStyle(TM.accent)
 
-                Text("Prépare ta course comme un pro.")
+                Text("onboarding.intro.subtitle")
                     .font(.title3)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
@@ -111,7 +111,7 @@ private struct IntroView: View {
                 Haptic.medium.trigger()
                 onContinue()
             } label: {
-                Text("Commencer")
+                Text("onboarding.intro.startButton")
                     .fontWeight(.medium)
                     .padding(.vertical, 6)
             }

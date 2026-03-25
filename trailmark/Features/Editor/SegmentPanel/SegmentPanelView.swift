@@ -58,7 +58,7 @@ struct SegmentPanelView: View {
                 HStack(alignment: .center) {
                     HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Distance")
+                            Text("common.distance")
                                 .font(.caption2)
                                 .foregroundStyle(TM.textTertiary)
                             Text(formatDistance(segment.distance))
@@ -67,7 +67,7 @@ struct SegmentPanelView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Dénivelé")
+                            Text("editor.segmentPanel.elevation")
                                 .font(.caption2)
                                 .foregroundStyle(TM.textTertiary)
                             Text("\(segment.type == .descent ? "-" : "+")\(segment.elevationChange) m")

@@ -87,12 +87,12 @@ extension MilestoneType {
 
     var label: String {
         switch self {
-        case .climb: return "Climb"
-        case .descent: return "Descent"
-        case .flat: return "Flat"
-        case .aidStation: return "Aid station"
-        case .danger: return "Danger"
-        case .info: return "Info"
+        case .climb: return String(localized: "milestoneType.climb")
+        case .descent: return String(localized: "milestoneType.descent")
+        case .flat: return String(localized: "milestoneType.flat")
+        case .aidStation: return String(localized: "milestoneType.aidStation")
+        case .danger: return String(localized: "milestoneType.danger")
+        case .info: return String(localized: "milestoneType.info")
         }
     }
 }

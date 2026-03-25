@@ -63,11 +63,11 @@ struct EditorView: View {
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button("Renommer le fichier", systemImage: "square.and.pencil") {
+                    Button("editor.menu.rename", systemImage: "square.and.pencil") {
                         Haptic.light.trigger()
                         store.send(.trailMetadata(.renameButtonTapped))
                     }
-                    Button("Supprimer le fichier", systemImage: "trash", role: .destructive) {
+                    Button("editor.menu.delete", systemImage: "trash", role: .destructive) {
                         Haptic.warning.trigger()
                         store.send(.trailMetadata(.deleteTrailButtonTapped))
                     }
@@ -79,21 +79,21 @@ struct EditorView: View {
         .toolbarRole(.editor)
         .alert($store.scope(state: \.trailMetadata.alert, action: \.trailMetadata.alert))
         .alert(
-            "Renommer le parcours",
+            "editor.renameAlert.title",
             isPresented: Binding(
                 get: { store.trailMetadata.isRenamingTrail },
                 set: { if !$0 { store.send(.trailMetadata(.renameCancelled)) } }
             )
         ) {
-            TextField("Nom du parcours", text: Binding(
+            TextField("editor.renameAlert.placeholder", text: Binding(
                 get: { store.trailMetadata.editedTrailName },
                 set: { store.send(.trailMetadata(.binding(.set(\.editedTrailName, $0)))) }
             ))
-            Button("Annuler", role: .cancel) {
+            Button("common.cancel", role: .cancel) {
                 Haptic.light.trigger()
                 store.send(.trailMetadata(.renameCancelled))
             }
-            Button("Renommer") {
+            Button("common.rename") {
                 Haptic.medium.trigger()
                 store.send(.trailMetadata(.renameConfirmed))
             }

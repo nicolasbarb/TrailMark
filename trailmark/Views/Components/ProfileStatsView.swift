@@ -190,11 +190,11 @@ struct ProfileStatsView: View {
                 }
 
                 VStack(spacing: 6) {
-                    Text("Aucun repère")
+                    Text("profile.emptyState.title")
                         .font(.system(.subheadline, weight: .bold))
                         .foregroundStyle(TM.textPrimary)
 
-                    Text("Place tes repères sur le profil\npour préparer ta stratégie de course.")
+                    Text("profile.emptyState.description")
                         .font(.system(.caption, weight: .medium))
                         .foregroundStyle(TM.textTertiary)
                         .multilineTextAlignment(.center)
@@ -241,9 +241,9 @@ struct ProfileStatsView: View {
 
             // Right: Stats (receipt style)
             VStack(spacing: 6) {
-                statRow("SEGMENT", value: formatSegmentDistance(segment.distance))
+                statRow(String(localized: "profile.segment"), value: formatSegmentDistance(segment.distance))
                 statRow("D\(segment.type == .descent ? "−" : "+")", value: "\(segment.elevationChange)m")
-                statRow("PENTE MOY", value: "\(segment.avgSlopePercent)%", valueColor: segment.type.color)
+                statRow(String(localized: "profile.averageSlope"), value: "\(segment.avgSlopePercent)%", valueColor: segment.type.color)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
@@ -346,7 +346,7 @@ private struct MilestoneCarousel: View {
 
     private func milestoneCard(_ milestone: Milestone, number: Int) -> some View {
         let distanceToMilestone = milestone.distance - currentDistance
-        let displayName = (milestone.name?.isEmpty == false) ? milestone.name! : "Repère \(number)"
+        let displayName = (milestone.name?.isEmpty == false) ? milestone.name! : String(localized: "profile.milestoneFallbackName \(number)")
         let absDist = abs(distanceToMilestone)
         let isOnMilestone = absDist < 30
         let isAhead = distanceToMilestone > 0
@@ -362,7 +362,7 @@ private struct MilestoneCarousel: View {
                         .font(.system(.caption2, weight: .semibold))
                         .foregroundStyle(TM.textSecondary)
                 } else {
-                    Text("\(milestone.milestoneType.label) · \(isAhead ? "Dans" : "Il y a") \(formatDistance(absDist))")
+                    Text("\(milestone.milestoneType.label) · \(isAhead ? String(localized: "profile.distance.ahead") : String(localized: "profile.distance.behind")) \(formatDistance(absDist))")
                         .font(.system(.caption2, weight: .semibold))
                         .foregroundStyle(TM.textSecondary)
                 }
@@ -386,7 +386,7 @@ private struct MilestoneCarousel: View {
                 Button {
                     onGoToMilestone?(milestone)
                 } label: {
-                    Label("Voir", systemImage: "eye")
+                    Label("profile.viewButton", systemImage: "eye")
                         .font(.system(.caption, weight: .semibold))
                         .foregroundStyle(TM.textSecondary)
                         .frame(maxWidth: .infinity)
@@ -397,7 +397,7 @@ private struct MilestoneCarousel: View {
                 Button {
                     onEditMilestone?(milestone)
                 } label: {
-                    Label("Modifier", systemImage: "pencil")
+                    Label("profile.editButton", systemImage: "pencil")
                         .font(.system(.caption, weight: .semibold))
                         .foregroundStyle(TM.textSecondary)
                         .frame(maxWidth: .infinity)

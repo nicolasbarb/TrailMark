@@ -288,7 +288,7 @@ struct OnboardingCarousel: View {
                         }
                     }
                 } label: {
-                    Text("Continuer")
+                    Text("common.continue")
                         .fontWeight(.medium)
                         .contentTransition(.numericText())
                         .padding(.vertical, 6)
@@ -299,7 +299,7 @@ struct OnboardingCarousel: View {
                     Haptic.light.trigger()
                     skipToLocationStep()
                 } label: {
-                    Text("Passer")
+                    Text("onboarding.carousel.skipButton")
                 }
                 .tertiaryButton(tint: currentTextColor)
             }
@@ -332,7 +332,7 @@ struct OnboardingCarousel: View {
                     onRequestLocation?()
                 }
             } label: {
-                Text("Continuer")
+                Text("common.continue")
                     .fontWeight(.medium)
                     .contentTransition(.numericText())
                     .padding(.vertical, 6)

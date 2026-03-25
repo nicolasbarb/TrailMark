@@ -24,7 +24,7 @@ struct MilestoneListView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
-            .navigationTitle("Repères")
+            .navigationTitle("editor.milestoneList.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

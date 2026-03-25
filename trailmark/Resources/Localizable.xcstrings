@@ -1,1734 +1,1846 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "common.cancel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancel"
+  "sourceLanguage": "en",
+  "strings": {
+    "common.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annuler"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
           }
         }
       }
     },
-    "common.delete" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete"
+    "common.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer"
           }
         }
       }
     },
-    "common.confirm" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Confirm"
+    "common.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Valider"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valider"
           }
         }
       }
     },
-    "common.close" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close"
+    "common.continue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fermer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer"
           }
         }
       }
     },
-    "common.continue" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continue"
+    "common.delete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continuer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer"
           }
         }
       }
     },
-    "common.later" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Later"
+    "common.distance": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distance"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plus tard"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distance"
           }
         }
       }
     },
-    "common.edit" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit"
+    "common.edit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Editer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editer"
           }
         }
       }
     },
-    "common.rename" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rename"
+    "common.later": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renommer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus tard"
           }
         }
       }
     },
-    "common.unlockWithPro" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock with PRO"
+    "common.listen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Débloquer avec PRO"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écouter"
           }
         }
       }
     },
-    "common.distance" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Distance"
+    "common.rename": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Distance"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renommer"
           }
         }
       }
     },
-    "common.listen" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Listen"
+    "common.stop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Écouter"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêter"
           }
         }
       }
     },
-    "common.stop" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stop"
+    "common.unlockWithPro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock with PRO"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrêter"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Débloquer avec PRO"
           }
         }
       }
     },
-    "milestoneType.climb" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Climb"
+    "editor.announcementPreview.header": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PaceMark analyzed the terrain"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Montée"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PaceMark a analysé le terrain"
           }
         }
       }
     },
-    "milestoneType.descent" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Descent"
+    "editor.announcementPreview.subheader": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Announcement generated for you"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Descente"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annonce générée pour vous"
           }
         }
       }
     },
-    "milestoneType.flat" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Flat"
+    "editor.announcementPreview.useButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plat"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser"
           }
         }
       }
     },
-    "milestoneType.aidStation" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aid station"
+    "editor.announcementPreview.writeManually": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write manually"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ravito"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écrire manuellement"
           }
         }
       }
     },
-    "milestoneType.danger" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Danger"
+    "editor.deleteAlert.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This will permanently delete the trail and all its milestones."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Danger"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette action supprimera définitivement le parcours et tous ses repères."
           }
         }
       }
     },
-    "milestoneType.info" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Info"
+    "editor.deleteAlert.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this trail?"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Info"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer ce parcours ?"
           }
         }
       }
     },
-    "trailList.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "My trails"
+    "editor.menu.delete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete file"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mes parcours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer le fichier"
           }
         }
       }
     },
-    "trailList.emptyState.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No trails"
+    "editor.menu.rename": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename file"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun parcours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renommer le fichier"
           }
         }
       }
     },
-    "trailList.emptyState.description" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import your first GPX\nand prepare your race strategy."
+    "editor.milestoneEdit.listenAccessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen to announcement"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importe ton premier GPX\net prépare ta stratégie de course."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écouter l'annonce"
           }
         }
       }
     },
-    "trailList.importButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import a GPX"
+    "editor.milestoneEdit.messagePlaceholder.aidStation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g.: Aid station, turn left…"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importer un GPX"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ex: Ravitaillement, prenez à gauche…"
           }
         }
       }
     },
-    "trailList.startButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start"
+    "editor.milestoneEdit.messagePlaceholder.danger": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g.: Caution, technical section…"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Démarrer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ex: Attention, passage technique…"
           }
         }
       }
     },
-    "trailList.milestones" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Milestones"
+    "editor.milestoneEdit.messagePlaceholder.default": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your voice announcement…"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repères"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre annonce vocale…"
           }
         }
       }
     },
-    "trailList.expiredAlert.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Subscription expired"
+    "editor.milestoneEdit.messagePlaceholder.flat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g.: Flat section, pick up the pace…"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abonnement expiré"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ex: Portion plate, relancez…"
           }
         }
       }
     },
-    "trailList.expiredAlert.message" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your Premium subscription has expired. Renew to continue creating unlimited trails."
+    "editor.milestoneEdit.messagePlaceholder.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g.: Beautiful view of the valley…"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre abonnement Premium a expiré. Renouvelez pour continuer à créer des parcours illimités."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ex: Belle vue sur la vallée…"
           }
         }
       }
     },
-    "trailList.expiredAlert.renewButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renew"
+    "editor.milestoneEdit.messageSection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOICE ANNOUNCEMENT"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renouveler"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ANNONCE VOCALE"
           }
         }
       }
     },
-    "import.uploadZone.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import a GPX file"
+    "editor.milestoneEdit.namePlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g.: Col de la Croix"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importer un fichier GPX"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ex: Col de la Croix"
           }
         }
       }
     },
-    "import.uploadZone.hint" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap to browse"
+    "editor.milestoneEdit.nameSection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NAME (OPTIONAL)"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appuyez pour parcourir"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NOM (OPTIONNEL)"
           }
         }
       }
     },
-    "import.backButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back to my trails"
+    "editor.milestoneEdit.stopAccessibility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop playback"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retour à mes parcours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêter la lecture"
           }
         }
       }
     },
-    "import.analyzing.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Analyzing trail"
+    "editor.milestoneEdit.typeSection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TYPE"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Analyse du parcours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TYPE"
           }
         }
       }
     },
-    "import.analyzing.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Detecting milestones..."
+    "editor.milestoneList.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Milestones"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Détection des repères en cours..."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repères"
           }
         }
       }
     },
-    "import.result.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trail imported"
+    "editor.milestoneSheet.editTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Parcours importé"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier"
           }
         }
       }
     },
-    "import.result.noMilestones" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No milestones detected"
+    "editor.milestoneSheet.newTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New milestone"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun repère détecté"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveau repère"
           }
         }
       }
     },
-    "import.result.milestonesDetected %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld milestones automatically detected"
+    "editor.renameAlert.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trail name"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld repères détectés automatiquement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom du parcours"
           }
         }
       }
     },
-    "import.result.skipButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skip and place manually"
+    "editor.renameAlert.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename trail"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ignorer et placer manuellement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renommer le parcours"
           }
         }
       }
     },
-    "import.result.manualButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Place my milestones manually"
+    "editor.segmentPanel.elevation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elevation"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Placer mes repères manuellement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dénivelé"
           }
         }
       }
     },
-    "import.result.unlockDetection" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock auto-detection"
+    "import.analyzing.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detecting milestones..."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Débloquer la détection auto"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détection des repères en cours..."
           }
         }
       }
     },
-    "import.result.previewLocked" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preview locked"
+    "import.analyzing.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyzing trail"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aperçu verrouillé"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyse du parcours"
           }
         }
       }
     },
-    "onboarding.intro.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prepare your race like a pro."
+    "import.backButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to my trails"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prépare ta course comme un pro."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retour à mes parcours"
           }
         }
       }
     },
-    "onboarding.intro.startButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get started"
+    "import.result.manualButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place my milestones manually"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Commencer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Placer mes repères manuellement"
           }
         }
       }
     },
-    "onboarding.carousel.skipButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skip"
+    "import.result.milestonesDetected %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld milestones automatically detected"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld repères détectés automatiquement"
           }
         }
       }
     },
-    "onboarding.slide1.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import your trail"
+    "import.result.noMilestones": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No milestones detected"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importe ton parcours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun repère détecté"
           }
         }
       }
     },
-    "onboarding.slide1.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A GPX file, and PaceMark\nanalyzes everything automatically."
+    "import.result.previewLocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview locked"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un fichier GPX, et PaceMark\nanalyse tout automatiquement."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aperçu verrouillé"
           }
         }
       }
     },
-    "onboarding.slide2.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prepare your strategy"
+    "import.result.skipButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip and place manually"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prépare ta stratégie"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorer et placer manuellement"
           }
         }
       }
     },
-    "onboarding.slide2.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visualize the elevation profile\nand key segments of your race."
+    "import.result.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trail imported"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visualise le profil altimétrique\net les segments clés de ta course."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parcours importé"
           }
         }
       }
     },
-    "onboarding.slide3.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Place your milestones"
+    "import.result.unlockDetection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock auto-detection"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Place tes repères"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Débloquer la détection auto"
           }
         }
       }
     },
-    "onboarding.slide3.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Each segment has its instruction.\nClimbs, descents, aid stations, hazards."
+    "import.tagline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOICE RUNNING COACH"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chaque segment a son instruction.\nMontées, descentes, ravitos, dangers."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "COACH VOCAL DE COURSE"
           }
         }
       }
     },
-    "onboarding.slide4.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Run screen-free"
+    "import.uploadZone.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to browse"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cours sans écran"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appuyez pour parcourir"
           }
         }
       }
     },
-    "onboarding.slide4.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Phone in your pocket. PaceMark announces\neach milestone at the right moment."
+    "import.uploadZone.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import a GPX file"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Téléphone en poche. PaceMark t'annonce\nchaque repère au bon moment."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer un fichier GPX"
           }
         }
       }
     },
-    "onboarding.slide5.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GPS Permission"
+    "milestoneType.aidStation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aid station"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autorisation GPS"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ravito"
           }
         }
       }
     },
-    "onboarding.slide5.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PaceMark needs GPS to\ntrigger voice announcements."
+    "milestoneType.climb": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Climb"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PaceMark a besoin du GPS pour\ndéclencher les annonces vocales."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Montée"
           }
         }
       }
     },
-    "editor.menu.rename" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rename file"
+    "milestoneType.danger": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Danger"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renommer le fichier"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Danger"
           }
         }
       }
     },
-    "editor.menu.delete" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete file"
+    "milestoneType.descent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descent"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer le fichier"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descente"
           }
         }
       }
     },
-    "editor.renameAlert.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rename trail"
+    "milestoneType.flat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flat"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renommer le parcours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plat"
           }
         }
       }
     },
-    "editor.renameAlert.placeholder" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trail name"
+    "milestoneType.info": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Info"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nom du parcours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Info"
           }
         }
       }
     },
-    "editor.milestoneList.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Milestones"
+    "onboarding.carousel.skipButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repères"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer"
           }
         }
       }
     },
-    "editor.milestoneSheet.editTitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit"
+    "onboarding.intro.startButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get started"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commencer"
           }
         }
       }
     },
-    "editor.milestoneSheet.newTitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New milestone"
+    "onboarding.intro.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare your race like a pro."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nouveau repère"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prépare ta course comme un pro."
           }
         }
       }
     },
-    "editor.milestoneEdit.typeSection" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TYPE"
+    "onboarding.slide1.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A GPX file, and PaceMark\nanalyzes everything automatically."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TYPE"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un fichier GPX, et PaceMark\nanalyse tout automatiquement."
           }
         }
       }
     },
-    "editor.milestoneEdit.messageSection" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOICE ANNOUNCEMENT"
+    "onboarding.slide1.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import your trail"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ANNONCE VOCALE"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importe ton parcours"
           }
         }
       }
     },
-    "editor.milestoneEdit.nameSection" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NAME (OPTIONAL)"
+    "onboarding.slide2.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualize the elevation profile\nand key segments of your race."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NOM (OPTIONNEL)"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualise le profil altimétrique\net les segments clés de ta course."
           }
         }
       }
     },
-    "editor.milestoneEdit.namePlaceholder" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "e.g.: Col de la Croix"
+    "onboarding.slide2.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare your strategy"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ex: Col de la Croix"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prépare ta stratégie"
           }
         }
       }
     },
-    "editor.milestoneEdit.messagePlaceholder.default" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your voice announcement\u2026"
+    "onboarding.slide3.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each segment has its instruction.\nClimbs, descents, aid stations, hazards."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre annonce vocale\u2026"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque segment a son instruction.\nMontées, descentes, ravitos, dangers."
           }
         }
       }
     },
-    "editor.milestoneEdit.messagePlaceholder.aidStation" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "e.g.: Aid station, turn left\u2026"
+    "onboarding.slide3.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place your milestones"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ex: Ravitaillement, prenez à gauche\u2026"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place tes repères"
           }
         }
       }
     },
-    "editor.milestoneEdit.messagePlaceholder.danger" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "e.g.: Caution, technical section\u2026"
+    "onboarding.slide4.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone in your pocket. PaceMark announces\neach milestone at the right moment."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ex: Attention, passage technique\u2026"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléphone en poche. PaceMark t'annonce\nchaque repère au bon moment."
           }
         }
       }
     },
-    "editor.milestoneEdit.messagePlaceholder.info" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "e.g.: Beautiful view of the valley\u2026"
+    "onboarding.slide4.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run screen-free"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ex: Belle vue sur la vallée\u2026"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cours sans écran"
           }
         }
       }
     },
-    "editor.milestoneEdit.messagePlaceholder.flat" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "e.g.: Flat section, pick up the pace\u2026"
+    "onboarding.slide5.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PaceMark needs GPS to\ntrigger voice announcements."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ex: Portion plate, relancez\u2026"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PaceMark a besoin du GPS pour\ndéclencher les annonces vocales."
           }
         }
       }
     },
-    "editor.milestoneEdit.listenAccessibility" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Listen to announcement"
+    "onboarding.slide5.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPS Permission"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Écouter l'annonce"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisation GPS"
           }
         }
       }
     },
-    "editor.milestoneEdit.stopAccessibility" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stop playback"
+    "profile.averageSlope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AVG SLOPE"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrêter la lecture"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PENTE MOY"
           }
         }
       }
     },
-    "editor.announcementPreview.header" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PaceMark analyzed the terrain"
+    "profile.distance.ahead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PaceMark a analysé le terrain"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dans"
           }
         }
       }
     },
-    "editor.announcementPreview.subheader" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Announcement generated for you"
+    "profile.distance.behind": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behind"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annonce générée pour vous"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il y a"
           }
         }
       }
     },
-    "editor.announcementPreview.useButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use"
+    "profile.editButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier"
           }
         }
       }
     },
-    "editor.announcementPreview.writeManually" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Write manually"
+    "profile.emptyState.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place your milestones on the profile\nto prepare your race strategy."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Écrire manuellement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place tes repères sur le profil\npour préparer ta stratégie de course."
           }
         }
       }
     },
-    "editor.segmentPanel.elevation" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elevation"
+    "profile.emptyState.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No milestones"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dénivelé"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun repère"
           }
         }
       }
     },
-    "run.preRun.info %@ %@ %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ km · %@m D+ · %lld milestones"
+    "profile.header": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PROFILE"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ km · %@m D+ · %lld repères"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PROFIL"
           }
         }
       }
     },
-    "run.preRun.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start guidance"
+    "profile.milestoneFallbackName %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Milestone %lld"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lancer le guidage"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repère %lld"
           }
         }
       }
     },
-    "run.preRun.instruction" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Put the phone in your pocket.\nMilestones will be announced by voice."
+    "profile.segment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SEGMENT"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rangez le téléphone dans votre poche.\nLes repères seront annoncés vocalement."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SEGMENT"
           }
         }
       }
     },
-    "run.running.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guidance in progress"
+    "profile.tapHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap = milestone"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guidage en cours"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap = repère"
           }
         }
       }
     },
-    "run.running.instruction" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Milestones are announced automatically\nvia GPS. You can put the phone away."
+    "profile.viewButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les repères sont annoncés automatiquement\npar GPS. Vous pouvez ranger le téléphone."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir"
           }
         }
       }
     },
-    "run.running.stopButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stop guidance"
+    "run.permission.denied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location access denied. Enable it in Settings."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrêter le guidage"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès à la localisation refusé. Activez-le dans les réglages."
           }
         }
       }
     },
-    "run.permission.denied" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Location access denied. Enable it in Settings."
+    "run.preRun.info %@ %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ km · %lldm D+ · %lld milestones"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accès à la localisation refusé. Activez-le dans les réglages."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ km · %lldm D+ · %lld repères"
           }
         }
       }
     },
-    "settings.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings"
+    "run.preRun.instruction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put the phone in your pocket.\nMilestones will be announced by voice."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réglages"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rangez le téléphone dans votre poche.\nLes repères seront annoncés vocalement."
           }
         }
       }
     },
-    "settings.subscription.section" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Subscription"
+    "run.preRun.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start guidance"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abonnement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lancer le guidage"
           }
         }
       }
     },
-    "settings.subscription.currentPlan" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Current plan"
+    "run.running.instruction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Milestones are announced automatically\nvia GPS. You can put the phone away."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Offre actuelle"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les repères sont annoncés automatiquement\npar GPS. Vous pouvez ranger le téléphone."
           }
         }
       }
     },
-    "settings.subscription.free" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free"
+    "run.running.stopButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop guidance"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gratuit"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêter le guidage"
           }
         }
       }
     },
-    "settings.subscription.upgradeCta" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Upgrade to PRO"
+    "run.running.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guidance in progress"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passer à PRO"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guidage en cours"
           }
         }
       }
     },
-    "settings.subscription.upgradeDescription" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prepare every race without any limits."
+    "settings.about.reportProblem": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report a problem"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prépare chaque course sans aucune limite."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signaler un problème"
           }
         }
       }
     },
-    "settings.about.section" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "About"
+    "settings.about.section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "À propos"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À propos"
           }
         }
       }
     },
-    "settings.about.version" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Version"
+    "settings.about.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Version"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
           }
         }
       }
     },
-    "settings.about.reportProblem" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Report a problem"
+    "settings.subscription.currentPlan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current plan"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Signaler un problème"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offre actuelle"
           }
         }
       }
     },
-    "subscriptionInfo.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "My subscription"
+    "settings.subscription.free": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mon abonnement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gratuit"
           }
         }
       }
     },
-    "subscriptionInfo.monthlyPlan" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monthly subscription"
+    "settings.subscription.section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscription"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abonnement mensuel"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnement"
           }
         }
       }
     },
-    "subscriptionInfo.yearlyPlan" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yearly subscription"
+    "settings.subscription.upgradeCta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upgrade to PRO"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abonnement annuel"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer à PRO"
           }
         }
       }
     },
-    "subscriptionInfo.premiumPlan" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premium subscription"
+    "settings.subscription.upgradeDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare every race without any limits."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abonnement Premium"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prépare chaque course sans aucune limite."
           }
         }
       }
     },
-    "subscriptionInfo.nextRenewal" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next renewal"
+    "settings.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prochain renouvellement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
           }
         }
       }
     },
-    "subscriptionInfo.expiresOn" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Expires on"
+    "subscriptionInfo.expiresOn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expires on"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Expire le"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expire le"
           }
         }
       }
     },
-    "subscriptionInfo.status" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Status"
+    "subscriptionInfo.manageButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage subscription"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Statut"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gérer l'abonnement"
           }
         }
       }
     },
-    "subscriptionInfo.statusNotRenewing" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not renewing"
+    "subscriptionInfo.monthlyPlan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly subscription"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non renouvelable"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnement mensuel"
           }
         }
       }
     },
-    "subscriptionInfo.statusActive" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Active"
+    "subscriptionInfo.nextRenewal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next renewal"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Actif"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prochain renouvellement"
           }
         }
       }
     },
-    "subscriptionInfo.manageButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manage subscription"
+    "subscriptionInfo.premiumPlan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Premium subscription"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gérer l'abonnement"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnement Premium"
           }
         }
       }
     },
-    "profile.emptyState.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No milestones"
+    "subscriptionInfo.status": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun repère"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statut"
           }
         }
       }
     },
-    "profile.emptyState.description" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Place your milestones on the profile\nto prepare your race strategy."
+    "subscriptionInfo.statusActive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Place tes repères sur le profil\npour préparer ta stratégie de course."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actif"
           }
         }
       }
     },
-    "profile.viewButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View"
+    "subscriptionInfo.statusNotRenewing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not renewing"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voir"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non renouvelable"
           }
         }
       }
     },
-    "profile.editButton" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit"
+    "subscriptionInfo.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My subscription"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mon abonnement"
           }
         }
       }
     },
-    "profile.segment" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SEGMENT"
+    "subscriptionInfo.yearlyPlan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yearly subscription"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SEGMENT"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnement annuel"
           }
         }
       }
     },
-    "profile.averageSlope" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AVG SLOPE"
+    "trailList.emptyState.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import your first GPX\nand prepare your race strategy."
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "PENTE MOY"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importe ton premier GPX\net prépare ta stratégie de course."
           }
         }
       }
     },
-    "profile.tapHint" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap = milestone"
+    "trailList.emptyState.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No trails"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap = repère"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun parcours"
+          }
+        }
+      }
+    },
+    "trailList.expiredAlert.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Premium subscription has expired. Renew to continue creating unlimited trails."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre abonnement Premium a expiré. Renouvelez pour continuer à créer des parcours illimités."
+          }
+        }
+      }
+    },
+    "trailList.expiredAlert.renewButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renew"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renouveler"
+          }
+        }
+      }
+    },
+    "trailList.expiredAlert.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscription expired"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnement expiré"
+          }
+        }
+      }
+    },
+    "trailList.importButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import a GPX"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer un GPX"
+          }
+        }
+      }
+    },
+    "trailList.milestones": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Milestones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repères"
+          }
+        }
+      }
+    },
+    "trailList.startButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrer"
+          }
+        }
+      }
+    },
+    "trailList.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My trails"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mes parcours"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }
