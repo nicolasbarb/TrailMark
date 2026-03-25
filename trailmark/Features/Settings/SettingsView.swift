@@ -8,7 +8,7 @@ struct SettingsView: View {
         List {
             Section("settings.subscription.section") {
                 HStack(spacing: 12) {
-                    SettingsIcon(systemName: "tag", color: TM.textSecondary)
+                    SettingsIcon(systemName: "tag")
                     Text("settings.subscription.currentPlan")
                     Spacer()
                     if store.isPremium {
@@ -26,7 +26,7 @@ struct SettingsView: View {
                         store.send(.upgradeTapped)
                     } label: {
                         HStack(spacing: 12) {
-                            SettingsIcon(systemName: "crown.fill", color: TM.accent)
+                            SettingsIcon(systemName: "crown.fill")
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("settings.subscription.upgradeCta")
                                     .font(.body.weight(.medium))
@@ -45,9 +45,26 @@ struct SettingsView: View {
             }
             .listRowBackground(TM.bgSecondary)
 
+            Section("settings.general.section") {
+                NavigationLink {
+                    LanguageView(
+                        store: Store(initialState: LanguageStore.State()) {
+                            LanguageStore()
+                        }
+                    )
+                } label: {
+                    HStack(spacing: 12) {
+                        SettingsIcon(systemName: "globe")
+                        Text("settings.language.row")
+                            .foregroundStyle(TM.textPrimary)
+                    }
+                }
+            }
+            .listRowBackground(TM.bgSecondary)
+
             Section("settings.about.section") {
                 HStack(spacing: 12) {
-                    SettingsIcon(systemName: "info.circle", color: TM.textSecondary)
+                    SettingsIcon(systemName: "info.circle")
                     Text("settings.about.version")
                     Spacer()
                     Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "–")
@@ -56,9 +73,13 @@ struct SettingsView: View {
 
                 Link(destination: URL(string: "mailto:nicolas.barb.pro@gmail.com?subject=Retour%20PaceMark")!) {
                     HStack(spacing: 12) {
-                        SettingsIcon(systemName: "envelope.fill", color: .blue)
+                        SettingsIcon(systemName: "envelope.fill")
                         Text("settings.about.reportProblem")
                             .foregroundStyle(TM.textPrimary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(TM.textMuted)
                     }
                 }
             }
@@ -84,16 +105,15 @@ struct SettingsView: View {
 
 // MARK: - Settings Icon
 
-private struct SettingsIcon: View {
+struct SettingsIcon: View {
     let systemName: String
-    let color: Color
 
     var body: some View {
         Image(systemName: systemName)
             .font(.system(size: 18, weight: .semibold))
             .foregroundStyle(.white)
             .frame(width: 32, height: 32)
-            .background(color, in: .rect(cornerRadius: 8, style: .continuous))
+            .background(TM.textPrimary, in: .rect(cornerRadius: 8, style: .continuous))
     }
 }
 
