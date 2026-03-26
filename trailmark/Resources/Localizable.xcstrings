@@ -737,6 +737,54 @@
         }
       }
     },
+    "import.result.explanation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A milestone was placed at the start of each significant climb and descent."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un repère a été placé au début de chaque montée et descente significative."
+          }
+        }
+      }
+    },
+    "import.result.foundMilestones %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PaceMark detected %lld milestones for you"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PaceMark a détecté %lld repères pour vous"
+          }
+        }
+      }
+    },
+    "import.result.imported" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PaceMark imported your trail"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PaceMark a importé votre parcours"
+          }
+        }
+      }
+    },
     "import.result.manualButton" : {
       "localizations" : {
         "en" : {
@@ -754,6 +802,7 @@
       }
     },
     "import.result.milestonesDetected %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -770,6 +819,7 @@
       }
     },
     "import.result.noMilestones" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -786,6 +836,7 @@
       }
     },
     "import.result.previewLocked" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -818,6 +869,7 @@
       }
     },
     "import.result.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2053,6 +2105,22 @@
         }
       }
     },
+    "trailList.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My trails"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mes parcours"
+          }
+        }
+      }
+    },
     "tts.climb %@ %lld %lld" : {
       "localizations" : {
         "en" : {
@@ -2097,22 +2165,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plat, %@."
-          }
-        }
-      }
-    },
-    "trailList.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "My trails"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mes parcours"
           }
         }
       }
