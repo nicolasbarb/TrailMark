@@ -7,7 +7,12 @@ struct ImportView: View {
 
     var body: some View {
         ZStack {
-            TM.bgPrimary.ignoresSafeArea()
+            LinearGradient(
+                colors: [TM.accent.opacity(0.08), TM.bgSecondary],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
             switch store.phase {
             case .upload:
@@ -163,21 +168,29 @@ struct ImportView: View {
 
     // MARK: - Result Phase
 
+    private var hasMilestones: Bool {
+        !store.detectedMilestones.isEmpty
+    }
+
     private var resultPhaseView: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header with sparkles
             resultHeader
-                .padding(.top, 20)
-                .padding(.horizontal, 20)
-
-            // Elevation profile (blurred for free users)
-            elevationProfileSection
                 .padding(.top, 24)
-
-            // Milestones count
-            milestonesCountSection
-                .padding(.top, 20)
                 .padding(.horizontal, 20)
+
+            // Elevation profile
+            elevationProfileSection
+                .padding(.top, 20)
+
+            // Explanation text
+            if hasMilestones {
+                Text("import.result.explanation")
+                    .font(.caption)
+                    .foregroundStyle(TM.textMuted)
+                    .padding(.top, 12)
+                    .padding(.horizontal, 20)
+            }
 
             Spacer()
 
@@ -189,85 +202,63 @@ struct ImportView: View {
     }
 
     private var resultHeader: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 32))
-                .foregroundStyle(TM.success)
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 26, weight: .semibold))
+                .foregroundStyle(TM.accent)
 
-            Text("import.result.title")
-                .font(.headline)
-                .foregroundStyle(TM.textPrimary)
-
-            if let trail = store.parsedTrail {
-                Text(trail.name)
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(TM.accent)
-                    .multilineTextAlignment(.center)
-
-                HStack(spacing: 16) {
-                    Label(String(format: "%.1f km", trail.distance / 1000), systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                    Label("D+ \(trail.dPlus)m", systemImage: "arrow.up.right")
+            VStack(alignment: .leading, spacing: 4) {
+                if hasMilestones {
+                    Text("import.result.foundMilestones \(store.detectedMilestones.count)")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(TM.textPrimary)
+                } else {
+                    Text("import.result.imported")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(TM.textPrimary)
                 }
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(TM.textMuted)
+
+                if let trail = store.parsedTrail {
+                    Text(trail.name)
+                        .font(.subheadline)
+                        .foregroundStyle(TM.textMuted)
+
+                    HStack(spacing: 12) {
+                        Text(String(format: "%.1f km", trail.distance / 1000))
+                        Text("D+ \(trail.dPlus)m")
+                    }
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(TM.textMuted)
+                    .padding(.top, 2)
+                }
             }
+
+            Spacer()
         }
     }
 
     private var elevationProfileSection: some View {
-        ZStack {
-            // Profile view
+        ZStack(alignment: .topTrailing) {
             ElevationProfilePreview(
                 trackPoints: store.parsedTrackPoints,
                 milestones: store.detectedMilestones
             )
             .frame(height: 150)
 
-            // Blur overlay for free users
-            if !store.isPremium && !store.detectedMilestones.isEmpty {
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .blur(radius: 3)
-
-                // Lock icon
-                VStack(spacing: 8) {
-                    Image(systemName: "lock.fill")
-                        .font(.title2)
-                        .foregroundStyle(TM.textMuted)
-
-                    Text("import.result.previewLocked")
-                        .font(.caption)
-                        .foregroundStyle(TM.textMuted)
-                }
+            // PRO badge for free users with detected milestones
+            if !store.isPremium && hasMilestones {
+                ProBadge()
+                    .padding(8)
             }
         }
+        .background(TM.bgSecondary)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .padding(.horizontal, 20)
     }
 
-    private var milestonesCountSection: some View {
-        HStack {
-            Image(systemName: "mappin.circle.fill")
-                .foregroundStyle(TM.accent)
-
-            if store.detectedMilestones.isEmpty {
-                Text("import.result.noMilestones")
-                    .foregroundStyle(TM.textMuted)
-            } else {
-                Text("import.result.milestonesDetected \(store.detectedMilestones.count)")
-                    .foregroundStyle(TM.textPrimary)
-            }
-
-            Spacer()
-        }
-        .font(.subheadline)
-        .padding(16)
-        .background(TM.bgSecondary, in: RoundedRectangle(cornerRadius: 12))
-    }
-
     @ViewBuilder
     private var actionButtons: some View {
-        if store.detectedMilestones.isEmpty {
+        if !hasMilestones {
             // No milestones detected - single button
             Button {
                 Haptic.medium.trigger()
@@ -277,7 +268,7 @@ struct ImportView: View {
             }
             .primaryButton(size: .large, width: .flexible, shape: .capsule)
         } else if store.isPremium {
-            // Premium user - show continue and ignore buttons
+            // Premium user
             VStack(spacing: 12) {
                 Button {
                     Haptic.medium.trigger()
@@ -297,7 +288,7 @@ struct ImportView: View {
                 .tertiaryButton(size: .small, tint: .secondary)
             }
         } else {
-            // Free user - show unlock and manual buttons
+            // Free user
             VStack(spacing: 12) {
                 Button {
                     Haptic.medium.trigger()
@@ -306,7 +297,7 @@ struct ImportView: View {
                     Label {
                         Text("import.result.unlockDetection")
                     } icon: {
-                        Image(systemName: "sparkles")
+                        Image(systemName: "lock.fill")
                     }
                 }
                 .primaryButton(size: .large, width: .flexible, shape: .capsule)
