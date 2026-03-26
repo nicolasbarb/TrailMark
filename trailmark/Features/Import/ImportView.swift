@@ -160,12 +160,12 @@ struct ImportView: View {
     // MARK: - Analyzing Phase
 
     private var analyzingPhaseView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 32) {
             Spacer()
 
-            ProgressView()
-                .scaleEffect(1.5)
-                .tint(TM.accent)
+            ProfileDrawingAnimation()
+                .frame(height: 80)
+                .padding(.horizontal, 40)
 
             VStack(spacing: 8) {
                 Text("import.analyzing.title")
@@ -397,6 +397,109 @@ private struct ScrollingPillRow: View {
     }
 }
 
+// MARK: - Profile Drawing Animation
+
+private struct ProfileDrawingAnimation: View {
+    // Elevation profile shape as normalized points (x: 0...1, y: 0...1 where 0=top)
+    private static let profilePoints: [(CGFloat, CGFloat)] = [
+        (0.00, 0.75), (0.04, 0.72), (0.08, 0.68), (0.12, 0.60),
+        (0.16, 0.48), (0.20, 0.38), (0.24, 0.30), (0.28, 0.22),
+        (0.32, 0.18), (0.36, 0.20), (0.40, 0.28), (0.44, 0.35),
+        (0.48, 0.42), (0.52, 0.38), (0.56, 0.30), (0.60, 0.20),
+        (0.64, 0.15), (0.68, 0.12), (0.72, 0.18), (0.76, 0.28),
+        (0.80, 0.40), (0.84, 0.50), (0.88, 0.55), (0.92, 0.60),
+        (0.96, 0.65), (1.00, 0.70),
+    ]
+
+    private let cycleDuration: Double = 6
+
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+            let progress = CGFloat(time.truncatingRemainder(dividingBy: cycleDuration)) / CGFloat(cycleDuration)
+
+            Canvas { context, size in
+                drawProfile(context: context, size: size, progress: progress)
+            }
+        }
+    }
+
+    private func drawProfile(context: GraphicsContext, size: CGSize, progress: CGFloat) {
+        let points = Self.profilePoints.map { p in
+            CGPoint(x: p.0 * size.width, y: p.1 * size.height)
+        }
+
+        let cursorX = progress * size.width
+        let trailLength: CGFloat = size.width * 0.5
+
+        guard points.count >= 2 else { return }
+
+        for i in 1..<points.count {
+            let p0 = points[i - 1]
+            let p1 = points[i]
+
+            guard p0.x <= cursorX else { break }
+
+            let clippedEnd: CGPoint
+            if p1.x <= cursorX {
+                clippedEnd = p1
+            } else {
+                let t = (cursorX - p0.x) / (p1.x - p0.x)
+                clippedEnd = CGPoint(x: cursorX, y: p0.y + t * (p1.y - p0.y))
+            }
+
+            let segmentMidX = (p0.x + clippedEnd.x) / 2
+            let distFromCursor = cursorX - segmentMidX
+            let opacity: Double
+            if distFromCursor < trailLength * 0.3 {
+                opacity = 1.0
+            } else if distFromCursor < trailLength {
+                opacity = Double(1.0 - (distFromCursor - trailLength * 0.3) / (trailLength * 0.7))
+            } else {
+                opacity = 0
+            }
+
+            guard opacity > 0 else { continue }
+
+            var segmentPath = Path()
+            segmentPath.move(to: p0)
+            segmentPath.addLine(to: clippedEnd)
+
+            context.stroke(
+                segmentPath,
+                with: .color(TM.accent.opacity(opacity)),
+                style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round)
+            )
+        }
+
+        // Cursor glow
+        let cursorY = interpolateY(at: progress, points: Self.profilePoints) * size.height
+
+        let glowRect = CGRect(x: cursorX - 8, y: cursorY - 8, width: 16, height: 16)
+        context.fill(Path(ellipseIn: glowRect), with: .color(TM.accent.opacity(0.2)))
+
+        let dotRect = CGRect(x: cursorX - 4, y: cursorY - 4, width: 8, height: 8)
+        context.fill(Path(ellipseIn: dotRect), with: .color(TM.accent))
+    }
+
+    private func interpolateY(at progress: CGFloat, points: [(CGFloat, CGFloat)]) -> CGFloat {
+        let clamped = min(max(progress, 0), 1)
+        guard let lastPoint = points.last, let firstPoint = points.first else { return 0.5 }
+        if clamped <= firstPoint.0 { return firstPoint.1 }
+        if clamped >= lastPoint.0 { return lastPoint.1 }
+
+        for i in 1..<points.count {
+            if points[i].0 >= clamped {
+                let p0 = points[i - 1]
+                let p1 = points[i]
+                let t = (clamped - p0.0) / (p1.0 - p0.0)
+                return p0.1 + t * (p1.1 - p0.1)
+            }
+        }
+        return lastPoint.1
+    }
+}
+
 // MARK: - Elevation Profile Preview
 
 private struct ElevationProfilePreview: View {
@@ -503,6 +606,16 @@ private struct ElevationProfilePreview: View {
 #Preview("Upload") {
     ImportView(
         store: Store(initialState: ImportStore.State()) {
+            ImportStore()
+        }
+    )
+}
+
+#Preview("Analyzing") {
+    ImportView(
+        store: Store(
+            initialState: ImportStore.State(phase: .analyzing)
+        ) {
             ImportStore()
         }
     )
