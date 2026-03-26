@@ -6,22 +6,34 @@ struct ImportView: View {
     @Bindable var store: StoreOf<ImportStore>
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [TM.accent.opacity(0.08), TM.bgSecondary],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                LinearGradient(
+                    colors: [TM.accent.opacity(0.08), TM.bgSecondary],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-            switch store.phase {
-            case .upload:
-                uploadPhaseView
-            case .analyzing:
-                analyzingPhaseView
-            case .result:
-                resultPhaseView
+                switch store.phase {
+                case .upload:
+                    uploadPhaseView
+                case .analyzing:
+                    analyzingPhaseView
+                case .result:
+                    resultPhaseView
+                }
             }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("common.close", systemImage: "xmark", role: .cancel) {
+                        Haptic.light.trigger()
+                        store.send(.dismissTapped)
+                    }
+                }
+            }
+            .toolbar(store.phase == .analyzing ? .hidden : .visible, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.inline)
         }
         .interactiveDismissDisabled(store.phase == .analyzing)
         .fileImporter(
@@ -54,92 +66,95 @@ struct ImportView: View {
 
     private var uploadPhaseView: some View {
         VStack(spacing: 0) {
-            Spacer()
+            // Pills en haut
+            trailPillsView
+                .padding(.top, 16)
 
-            // Logo
+//            Spacer()
+
+            // Texte centré
             VStack(spacing: 8) {
-                Text("PaceMark")
-                    .font(.system(.largeTitle, design: .monospaced, weight: .bold))
-                    .foregroundStyle(TM.accent)
+                Text("import.upload.title")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(TM.textPrimary)
+                    .multilineTextAlignment(.center)
 
-                Text("import.tagline")
-                    .font(.caption2)
-                    .tracking(3)
+                Text("import.upload.subtitle")
+                    .font(.subheadline)
                     .foregroundStyle(TM.textMuted)
-            }
+                    .multilineTextAlignment(.center)
 
-            // Upload zone
-            uploadZone
-                .padding(.top, 48)
-
-            // Error message
-            if let error = store.error {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(TM.danger)
-                    .padding(.top, 12)
+                // Error message
+                if let error = store.error {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(TM.danger)
+                        .padding(.top, 4)
+                }
             }
+            .padding(.top, 28)
+            .padding(.horizontal, 28)
 
             Spacer()
 
-            // Back link
+            // CTA en bas
             Button {
-                Haptic.light.trigger()
-                store.send(.dismissTapped)
+                Haptic.medium.trigger()
+                store.send(.uploadZoneTapped)
             } label: {
-                Text("import.backButton")
-                    .underline()
+                Text("import.upload.cta")
             }
-            .tertiaryButton(size: .mini, tint: TM.textSecondary)
-            .padding(.bottom, 32)
+            .primaryButton(size: .large, width: .flexible, shape: .capsule)
+            .padding(.horizontal, 24)
+
+            Text("import.upload.sources")
+                .font(.caption)
+                .foregroundStyle(TM.textMuted)
+                .padding(.top, 10)
+                .padding(.bottom, 24)
         }
-        .padding(.horizontal, 28)
     }
 
-    private var uploadZone: some View {
-        Button {
-            Haptic.medium.trigger()
-            store.send(.uploadZoneTapped)
-        } label: {
-            VStack(spacing: 16) {
-                // Icon
-                Image(systemName: "doc.badge.plus")
-                    .font(.system(size: 24))
-                    .foregroundStyle(TM.accent)
-                    .frame(width: 48, height: 48)
-                    .background(TM.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+    // MARK: - Trail Pills
 
-                // Text
-                VStack(spacing: 4) {
-                    Text("import.uploadZone.title")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(TM.textPrimary)
+    private static let trailNames: [[String]] = [
+        ["UTMB", "Tour du Mont Blanc", "Diagonale des Fous", "CCC", "Échappée Belle"],
+        ["Western States", "Tor des Géants", "SaintéLyon", "Templiers", "Pikes Peak"],
+        ["Lavaredo", "Transgrancanaria", "Hardrock 100", "Eiger Ultra Trail", "GR20"],
+        ["Cape Town Ultra", "Trail du Ventoux", "Oman by UTMB", "Patagonia Run", "MiUT"],
+    ]
 
-                    Text("import.uploadZone.hint")
-                        .font(.caption)
-                        .foregroundStyle(TM.textMuted)
-                }
+    private static let pillConfigs: [(reversed: Bool, duration: Double, startOffset: CGFloat)] = [
+        (false, 25, 0),
+        (true, 32, -60),
+        (false, 28, -120),
+        (true, 26, -40),
+    ]
 
-                // Badge
-                Text(".GPX")
-                    .font(.system(.caption2, design: .monospaced))
-                    .foregroundStyle(TM.accent)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 3)
-                    .background(TM.accent.opacity(0.1), in: Capsule())
+    private var trailPillsView: some View {
+        VStack(spacing: 8) {
+            ForEach(Array(Self.trailNames.enumerated()), id: \.offset) { index, row in
+                let config = Self.pillConfigs[index]
+                ScrollingPillRow(
+                    names: row,
+                    reversed: config.reversed,
+                    duration: config.duration,
+                    startOffset: config.startOffset
+                )
             }
-            .frame(maxWidth: 300)
-            .padding(.vertical, 40)
-            .frame(maxWidth: .infinity)
-            .background(TM.bgSecondary, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(
-                        style: StrokeStyle(lineWidth: 2, dash: [8, 4])
-                    )
-                    .foregroundStyle(TM.border)
-            )
         }
+        .mask(
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0),
+                    .init(color: .black, location: 0.1),
+                    .init(color: .black, location: 0.9),
+                    .init(color: .clear, location: 1),
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
     }
 
     // MARK: - Analyzing Phase
@@ -326,6 +341,63 @@ struct ImportView: View {
 }
 
 // MARK: - Elevation Profile Preview (simplified, non-interactive)
+
+// MARK: - Scrolling Pill Row
+
+private struct ScrollingPillRow: View {
+    let names: [String]
+    let reversed: Bool
+    let duration: Double
+    let startOffset: CGFloat
+
+    @State private var contentWidth: CGFloat = 0
+
+    var body: some View {
+        GeometryReader { geo in
+            TimelineView(.animation) { timeline in
+                let time = timeline.date.timeIntervalSinceReferenceDate
+                let progress = CGFloat(time.truncatingRemainder(dividingBy: duration)) / CGFloat(duration)
+                let shift = reversed
+                    ? -contentWidth + progress * contentWidth + startOffset
+                    : startOffset - progress * contentWidth
+
+                HStack(spacing: 8) {
+                    pillContent
+                    pillContent
+                }
+                .fixedSize()
+                .offset(x: shift)
+            }
+        }
+        .frame(height: 40)
+        .clipped()
+    }
+
+    private var pillContent: some View {
+        HStack(spacing: 8) {
+            ForEach(Array(names.enumerated()), id: \.offset) { _, name in
+                Text(name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(TM.textPrimary.opacity(0.2))
+                    .fixedSize()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(TM.accent.opacity(0.05), in: Capsule())
+                    .overlay(Capsule().strokeBorder(TM.accent.opacity(0.08), lineWidth: 1))
+            }
+        }
+        .background(
+            GeometryReader { geo in
+                Color.clear.onAppear {
+                    contentWidth = geo.size.width + 8
+                }
+            }
+        )
+    }
+}
+
+// MARK: - Elevation Profile Preview
 
 private struct ElevationProfilePreview: View {
     let trackPoints: [TrackPoint]
