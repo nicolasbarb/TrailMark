@@ -142,12 +142,27 @@ struct TrailListView: View {
             LazyVStack(spacing: 12) {
                 ForEach(Array(store.trails.enumerated()), id: \.element.id) { index, item in
                     let isLocked = !store.isPremium && index > 0
+                    let isExpanded = store.expandedTrailId == item.trail.id
                     TrailCard(
                         item: item,
                         isLocked: isLocked,
-                        onEdit: { store.send(.editTrailTapped(item)) },
-                        onStart: { store.send(.startTrailTapped(item)) },
-                        onUnlock: { store.send(.addButtonTapped) }
+                        isExpanded: isExpanded,
+                        onTap: {
+                            Haptic.light.trigger()
+                            store.send(.trailCardTapped(item))
+                        },
+                        onEdit: {
+                            Haptic.light.trigger()
+                            store.send(.editTrailTapped(item))
+                        },
+                        onStart: {
+                            Haptic.heavy.trigger()
+                            store.send(.startTrailTapped(item))
+                        },
+                        onUnlock: {
+                            Haptic.medium.trigger()
+                            store.send(.trailCardTapped(item))
+                        }
                     )
                 }
             }
@@ -163,59 +178,73 @@ struct TrailListView: View {
 private struct TrailCard: View {
     let item: TrailListItem
     let isLocked: Bool
+    let isExpanded: Bool
+    let onTap: () -> Void
     let onEdit: () -> Void
     let onStart: () -> Void
     let onUnlock: () -> Void
-    
+
     private var trail: Trail { item.trail }
-    
+
     var body: some View {
-        HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 12) {
-                // Name and date
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(trail.name)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(TM.textPrimary)
-                    
-                    Text(trail.createdAtDate.formatted(date: .abbreviated, time: .omitted))
-                        .font(.caption2)
-                        .foregroundStyle(TM.textMuted)
-                }
-                
-                // Stats
-                HStack(spacing: 0) {
-                    statColumn(
-                        value: String(format: "%.1f", trail.distance / 1000),
-                        unit: "km",
-                        label: "Distance"
-                    )
-                    
-                    Divider()
-                        .frame(width: 1, height: 24)
-                        .background(TM.border)
-                    
-                    statColumn(
-                        value: "\(trail.dPlus)",
-                        unit: "m",
-                        label: "D+"
-                    )
-                    
-                    Divider()
-                        .frame(width: 1, height: 24)
-                        .background(TM.border)
-                    
-                    statColumn(
-                        value: "\(item.milestoneCount)",
-                        unit: nil,
-                        label: String(localized: "trailList.milestones")
-                    )
-                }
-                
-                // Action buttons
+        VStack(alignment: .leading, spacing: 12) {
+            // Header: name + date
+            HStack {
+                Text(trail.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(TM.textPrimary)
+
+                Spacer()
+
+                Text(trail.createdAtDate.formatted(date: .abbreviated, time: .omitted))
+                    .font(.caption2)
+                    .foregroundStyle(TM.textMuted)
+            }
+
+            // Elevation profile
+            if !item.trackPoints.isEmpty {
+                ElevationProfilePreview(
+                    trackPoints: item.trackPoints,
+                    milestones: item.milestones
+                )
+                .frame(height: 60)
+                .clipShape(.rect(cornerRadius: 8))
+            }
+
+            // Stats row
+            HStack(spacing: 0) {
+                statItem(
+                    value: String(format: "%.1f", trail.distance / 1000),
+                    unit: "km"
+                )
+
+                Text("·")
+                    .font(.caption2)
+                    .foregroundStyle(TM.textMuted)
+                    .padding(.horizontal, 6)
+
+                statItem(
+                    value: "\(trail.dPlus)",
+                    unit: String(localized: "trailList.elevationGain")
+                )
+
+                Text("·")
+                    .font(.caption2)
+                    .foregroundStyle(TM.textMuted)
+                    .padding(.horizontal, 6)
+
+                statItem(
+                    value: "\(item.milestoneCount)",
+                    unit: String(localized: "trailList.milestones")
+                )
+
+                Spacer()
+            }
+
+            // Expandable buttons
+            if isExpanded {
                 if isLocked {
                     Button {
-                        Haptic.medium.trigger()
                         onUnlock()
                     } label: {
                         Label {
@@ -230,7 +259,6 @@ private struct TrailCard: View {
                 } else {
                     HStack(spacing: 8) {
                         Button {
-                            Haptic.light.trigger()
                             onEdit()
                         } label: {
                             Label {
@@ -242,9 +270,8 @@ private struct TrailCard: View {
                             }
                         }
                         .secondaryButton(size: .regular, width: .flexible, shape: .roundedRectangle(radius: 10))
-                        
+
                         Button {
-                            Haptic.heavy.trigger()
                             onStart()
                         } label: {
                             Label {
@@ -259,29 +286,25 @@ private struct TrailCard: View {
                     }
                 }
             }
-            .padding(16)
         }
+        .padding(16)
         .background(TM.bgSecondary)
         .containerShape(.rect(cornerRadius: 18, style: .continuous))
+        .animation(.snappy(duration: 0.3), value: isExpanded)
+        .onTapGesture {
+            onTap()
+        }
     }
-    
-    private func statColumn(value: String, unit: String?, label: String) -> some View {
-        VStack(spacing: 2) {
-            HStack(spacing: 2) {
-                Text(value)
-                    .font(.system(.subheadline, design: .monospaced, weight: .bold))
-                    .foregroundStyle(TM.textPrimary)
-                if let unit {
-                    Text(unit)
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(TM.textMuted)
-                }
-            }
-            Text(label.uppercased())
-                .font(.system(size: 9))
+
+    private func statItem(value: String, unit: String) -> some View {
+        HStack(spacing: 3) {
+            Text(value)
+                .font(.system(.caption, design: .monospaced, weight: .bold))
+                .foregroundStyle(TM.textPrimary)
+            Text(unit)
+                .font(.caption2)
                 .foregroundStyle(TM.textMuted)
         }
-        .frame(maxWidth: .infinity)
     }
 }
 
