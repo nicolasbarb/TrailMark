@@ -27,6 +27,7 @@ struct RealProfileDrawingAnimation: View {
         }
         .onAppear {
             startTime = Date()
+            hasFinished = false
         }
         .onChange(of: restartToken) {
             startTime = Date()

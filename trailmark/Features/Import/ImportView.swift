@@ -352,8 +352,8 @@ struct ImportView: View {
                     Text("import.phase.creatingProfile")
                 }
             }
-            .font(.subheadline)
-            .foregroundStyle(TM.textMuted)
+            .font(.headline)
+            .foregroundStyle(TM.textPrimary)
             .padding(.top, 16)
             .padding(.horizontal, 20)
             .animation(reduceMotion ? .none : .spring(duration: 0.3, bounce: 0.1), value: phase)
