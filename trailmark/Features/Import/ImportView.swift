@@ -378,20 +378,28 @@ struct ImportView: View {
                 switch phase {
                 case .drawingProfile:
                     Text("import.phase.creatingProfile")
+                        .font(.headline)
+                        .foregroundStyle(TM.textPrimary)
                 case .showingSegments, .revealingMilestones:
                     Text("import.phase.detectingMilestones")
+                        .font(.headline)
+                        .foregroundStyle(TM.textPrimary)
                 case .complete:
                     if hasMilestones {
                         Text("import.result.explanation")
+                            .font(.subheadline)
+                            .foregroundStyle(TM.textSecondary)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
                         Color.clear.frame(height: 0)
                     }
                 default:
                     Text("import.phase.creatingProfile")
+                        .font(.headline)
+                        .foregroundStyle(TM.textPrimary)
                 }
             }
-            .font(.headline)
-            .foregroundStyle(TM.textPrimary)
             .padding(.top, 16)
             .padding(.horizontal, 20)
             .animation(reduceMotion ? .none : .spring(duration: 0.3, bounce: 0.1), value: phase)
