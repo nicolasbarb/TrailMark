@@ -2189,6 +2189,22 @@
         }
       }
     },
+    "trailList.elevationGain" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "m elev."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "m dénivelé"
+          }
+        }
+      }
+    },
     "trailList.milestones" : {
       "localizations" : {
         "en" : {

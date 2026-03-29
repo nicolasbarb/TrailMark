@@ -319,6 +319,24 @@ private struct TrailCard: View {
 }
 
 #Preview("Avec parcours") {
+    let samplePoints: [TrackPoint] = (0..<100).map { i in
+        let progress = Double(i) / 99.0
+        let elevation = 1200 + 800 * sin(progress * .pi) + 200 * sin(progress * 4 * .pi)
+        return TrackPoint(
+            index: i,
+            latitude: 45.8 + progress * 0.1,
+            longitude: 6.8 + progress * 0.05,
+            elevation: elevation,
+            distance: progress * 42500
+        )
+    }
+
+    let sampleMilestones: [Milestone] = [
+        Milestone(pointIndex: 25, latitude: 45.825, longitude: 6.8125, elevation: 1800, distance: 10625, type: .climb, message: "Montée"),
+        Milestone(pointIndex: 50, latitude: 45.85, longitude: 6.825, elevation: 2000, distance: 21250, type: .descent, message: "Descente"),
+        Milestone(pointIndex: 75, latitude: 45.875, longitude: 6.8375, elevation: 1600, distance: 31875, type: .info, message: "Info"),
+    ]
+
     NavigationStack {
         TrailListView(
             store: Store(
@@ -332,9 +350,9 @@ private struct TrailCard: View {
                                 distance: 42_500,
                                 dPlus: 2_850
                             ),
-                            milestoneCount: 12,
-                            trackPoints: [],
-                            milestones: []
+                            milestoneCount: 3,
+                            trackPoints: samplePoints,
+                            milestones: sampleMilestones
                         ),
                         TrailListItem(
                             trail: Trail(
@@ -344,32 +362,31 @@ private struct TrailCard: View {
                                 distance: 28_300,
                                 dPlus: 1_650
                             ),
-                            milestoneCount: 8,
-                            trackPoints: [],
-                            milestones: []
+                            milestoneCount: 2,
+                            trackPoints: (0..<80).map { i in
+                                let progress = Double(i) / 79.0
+                                let elevation = 800 + 600 * sin(progress * .pi * 1.5)
+                                return TrackPoint(index: i, latitude: 45.6 + progress * 0.08, longitude: 6.1 + progress * 0.04, elevation: elevation, distance: progress * 28300)
+                            },
+                            milestones: [
+                                Milestone(pointIndex: 30, latitude: 45.63, longitude: 6.115, elevation: 1200, distance: 10613, type: .climb, message: "Montée"),
+                                Milestone(pointIndex: 60, latitude: 45.66, longitude: 6.13, elevation: 1000, distance: 21225, type: .danger, message: "Danger"),
+                            ]
                         ),
                         TrailListItem(
                             trail: Trail(
                                 id: 3,
-                                name: "Boucle Col de la Croix",
-                                createdAt: Date().addingTimeInterval(-86400),
-                                distance: 15_800,
-                                dPlus: 890
-                            ),
-                            milestoneCount: 5,
-                            trackPoints: [],
-                            milestones: []
-                        ),
-                        TrailListItem(
-                            trail: Trail(
-                                id: 4,
                                 name: "UTMB CCC",
                                 createdAt: Date(),
                                 distance: 101_000,
                                 dPlus: 6_100
                             ),
-                            milestoneCount: 24,
-                            trackPoints: [],
+                            milestoneCount: 0,
+                            trackPoints: (0..<120).map { i in
+                                let progress = Double(i) / 119.0
+                                let elevation = 1000 + 1500 * sin(progress * .pi * 2) + 500 * sin(progress * 7 * .pi)
+                                return TrackPoint(index: i, latitude: 45.9 + progress * 0.15, longitude: 6.9 + progress * 0.08, elevation: max(800, elevation), distance: progress * 101000)
+                            },
                             milestones: []
                         ),
                     ]
