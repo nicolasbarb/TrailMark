@@ -20,7 +20,7 @@ struct TrailListStoreTests {
     }
 
     private static func makeTrailListItem(id: Int64 = 1, name: String = "Test Trail", milestoneCount: Int = 3) -> TrailListItem {
-        TrailListItem(trail: makeTrail(id: id, name: name), milestoneCount: milestoneCount)
+        TrailListItem(trail: makeTrail(id: id, name: name), milestoneCount: milestoneCount, trackPoints: [], milestones: [])
     }
 
     // MARK: - trailsLoaded

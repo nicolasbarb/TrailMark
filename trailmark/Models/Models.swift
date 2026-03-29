@@ -136,6 +136,8 @@ struct Milestone: Hashable, Identifiable, Sendable {
 struct TrailListItem: Equatable, Identifiable, Sendable {
     let trail: Trail
     let milestoneCount: Int
+    let trackPoints: [TrackPoint]
+    let milestones: [Milestone]
 
     var id: Int64? { trail.id }
 }

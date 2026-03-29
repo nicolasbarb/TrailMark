@@ -309,7 +309,9 @@ private struct TrailCard: View {
                                 distance: 42_500,
                                 dPlus: 2_850
                             ),
-                            milestoneCount: 12
+                            milestoneCount: 12,
+                            trackPoints: [],
+                            milestones: []
                         ),
                         TrailListItem(
                             trail: Trail(
@@ -319,7 +321,9 @@ private struct TrailCard: View {
                                 distance: 28_300,
                                 dPlus: 1_650
                             ),
-                            milestoneCount: 8
+                            milestoneCount: 8,
+                            trackPoints: [],
+                            milestones: []
                         ),
                         TrailListItem(
                             trail: Trail(
@@ -329,7 +333,9 @@ private struct TrailCard: View {
                                 distance: 15_800,
                                 dPlus: 890
                             ),
-                            milestoneCount: 5
+                            milestoneCount: 5,
+                            trackPoints: [],
+                            milestones: []
                         ),
                         TrailListItem(
                             trail: Trail(
@@ -339,7 +345,9 @@ private struct TrailCard: View {
                                 distance: 101_000,
                                 dPlus: 6_100
                             ),
-                            milestoneCount: 24
+                            milestoneCount: 24,
+                            trackPoints: [],
+                            milestones: []
                         ),
                     ]
                 )
