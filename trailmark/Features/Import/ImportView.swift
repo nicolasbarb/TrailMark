@@ -130,7 +130,7 @@ struct ImportView: View {
             onCompletion: { result in
                 switch result {
                 case .success(let url):
-                    store.send(.fileSelected(url.path))
+                    store.send(.fileSelected(url.path(percentEncoded: false)))
                 case .failure:
                     store.send(.filePickerDismissed)
                 }
