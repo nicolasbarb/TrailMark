@@ -185,19 +185,22 @@ struct ImportView: View {
                     .multilineTextAlignment(.center)
                     .opacity(uploadContentFading ? 0 : 1)
 
-                // Error message
-                if let error = store.error {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(TM.danger)
-                        .padding(.top, 4)
-                }
             }
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 28)
             .padding(.horizontal, 28)
 
             Spacer()
+
+            // Error message
+            if let error = store.error {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(TM.danger)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 8)
+            }
 
             // CTA en bas — disparaît en fondu
             Button {
@@ -621,6 +624,18 @@ private func loadPreviewGPX() -> (Trail, [TrackPoint], [Milestone]) {
     ImportView(
         store: Store(
             initialState: ImportStore.State(phase: .analyzing)
+        ) {
+            ImportStore()
+        }
+    )
+}
+
+#Preview("Upload - Error") {
+    ImportView(
+        store: Store(
+            initialState: ImportStore.State(
+                error: "Le fichier sélectionné n'est pas un fichier GPX valide."
+            )
         ) {
             ImportStore()
         }
