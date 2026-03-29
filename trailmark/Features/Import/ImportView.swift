@@ -116,7 +116,7 @@ struct ImportView: View {
             .toolbar(.visible, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
         }
-        .interactiveDismissDisabled(store.phase == .analyzing)
+        .interactiveDismissDisabled(store.phase == .analyzing || store.phase == .animatingProfile)
         .fileImporter(
             isPresented: Binding(
                 get: { store.isShowingFilePicker },
@@ -313,6 +313,14 @@ struct ImportView: View {
         )
     }
 
+    // MARK: - Downsampled Track Points (shared by all profile views)
+
+    private var downsampledTrackPoints: [TrackPoint] {
+        let points = store.parsedTrackPoints
+        let step = max(1, points.count / 300)
+        return stride(from: 0, to: points.count, by: step).map { points[$0] }
+    }
+
     // MARK: - Unified Profile + Result View
 
     private var profileResultView: some View {
@@ -327,7 +335,7 @@ struct ImportView: View {
             ZStack(alignment: .topTrailing) {
                 // Layer 1: Drawing animation (accent color, stays visible under colored)
                 RealProfileDrawingAnimation(
-                    trackPoints: store.parsedTrackPoints,
+                    trackPoints: downsampledTrackPoints,
                     onFinished: {
                         store.send(.profileAnimationFinished)
                     },
@@ -337,7 +345,7 @@ struct ImportView: View {
 
                 // Layer 2: Colored profile fades in ON TOP of accent profile
                 ElevationProfilePreview(
-                    trackPoints: store.parsedTrackPoints,
+                    trackPoints: downsampledTrackPoints,
                     milestones: [],
                     showMilestones: false
                 )

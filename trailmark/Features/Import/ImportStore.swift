@@ -55,6 +55,8 @@ struct ImportStore {
         case paywall(PresentationAction<PaywallStore.Action>)
     }
 
+    private enum CancelID { case importing }
+
     @Dependency(\.dismiss) var dismiss
 
     var body: some Reducer<State, Action> {
@@ -136,6 +138,7 @@ struct ImportStore {
                         await send(.importFailed("Erreur lors de l'import: \(error.localizedDescription)"))
                     }
                 }
+                .cancellable(id: CancelID.importing, cancelInFlight: true)
 
             // MARK: - Analysis Result
 

@@ -57,11 +57,7 @@ struct RealProfileDrawingAnimation: View {
         let eleRange = max(maxEle - minEle, 1)
         let maxDist = trackPoints.last?.distance ?? 1
 
-        // Downsample for performance (max ~200 points)
-        let step = max(1, trackPoints.count / 200)
-        let sampled = stride(from: 0, to: trackPoints.count, by: step).map { trackPoints[$0] }
-
-        let points = sampled.map { pt -> CGPoint in
+        let points = trackPoints.map { pt -> CGPoint in
             let x = plotRect.minX + CGFloat(pt.distance / maxDist) * plotRect.width
             let y = plotRect.maxY - CGFloat((pt.elevation - minEle) / eleRange) * plotRect.height
             return CGPoint(x: x, y: y)
