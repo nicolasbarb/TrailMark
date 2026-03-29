@@ -19,11 +19,34 @@ struct ImportView: View {
         case complete            // Header, buttons, explanation visible
     }
 
-    @State private var phase: ImportPhase = .upload
-    @State private var visibleMilestoneCount: Int = 0
+    @State private var phase: ImportPhase
+    @State private var visibleMilestoneCount: Int
     @State private var milestoneAnimationStartDate: Date?
-    @State private var coloredProfileVisible = false
+    @State private var coloredProfileVisible: Bool
     private let totalMilestoneDuration: Double = 1.5
+
+    init(store: StoreOf<ImportStore>) {
+        self.store = store
+
+        switch store.phase {
+        case .upload:
+            _phase = State(initialValue: .upload)
+            _coloredProfileVisible = State(initialValue: false)
+            _visibleMilestoneCount = State(initialValue: 0)
+        case .analyzing:
+            _phase = State(initialValue: .importing)
+            _coloredProfileVisible = State(initialValue: false)
+            _visibleMilestoneCount = State(initialValue: 0)
+        case .animatingProfile:
+            _phase = State(initialValue: .drawingProfile)
+            _coloredProfileVisible = State(initialValue: false)
+            _visibleMilestoneCount = State(initialValue: 0)
+        case .result:
+            _phase = State(initialValue: .complete)
+            _coloredProfileVisible = State(initialValue: true)
+            _visibleMilestoneCount = State(initialValue: store.detectedMilestones.count)
+        }
+    }
 
     // MARK: - Derived properties
 
@@ -118,6 +141,10 @@ struct ImportView: View {
         ) { paywallStore in
             PaywallContainerView(store: paywallStore)
         }
+        .onAppear {
+            // Sync view phase with store phase for previews
+            syncPhaseWithStore()
+        }
         .onChange(of: store.phase) { _, newPhase in
             switch newPhase {
             case .analyzing:
@@ -191,25 +218,10 @@ struct ImportView: View {
             .padding(.horizontal, 24)
             .opacity(uploadContentFading ? 0 : 1)
 
-            Text("import.upload.sources")
-                .font(.caption)
-                .foregroundStyle(TM.textMuted)
-                .padding(.top, 10)
-                .padding(.bottom, 24)
+            Spacer()
+                .frame(height: 24)
                 .opacity(uploadContentFading ? 0 : 1)
 
-            #if DEBUG
-            if !uploadContentFading {
-                Button {
-                    startUploadExitAnimation()
-                } label: {
-                    Label("Test exit animation", systemImage: "arrow.right.to.line")
-                        .font(.caption)
-                }
-                .tertiaryButton(size: .mini, tint: TM.textMuted)
-                .padding(.bottom, 8)
-            }
-            #endif
         }
         .animation(reduceMotion ? .none : .spring(duration: 0.4, bounce: 0.1), value: uploadContentFading)
     }
@@ -237,6 +249,24 @@ struct ImportView: View {
                 animationToken = UUID() // Reset so drawing starts from 0
                 phase = .drawingProfile
             }
+        }
+    }
+
+    /// Syncs view-local phase with store phase on appear (for previews)
+    private func syncPhaseWithStore() {
+        switch store.phase {
+        case .upload:
+            break // already .upload
+        case .analyzing:
+            phase = .importing
+        case .animatingProfile:
+            phase = .drawingProfile
+        case .result:
+            // Skip animations, show final state directly
+            coloredProfileVisible = true
+            visibleMilestoneCount = store.detectedMilestones.count
+            milestoneAnimationStartDate = nil
+            phase = .complete
         }
     }
 
@@ -367,22 +397,6 @@ struct ImportView: View {
                 .opacity(showContent ? 1 : 0)
                 .offset(y: showContent ? 0 : 20)
 
-            #if DEBUG
-            Button {
-                phase = .drawingProfile
-                visibleMilestoneCount = 0
-                milestoneAnimationStartDate = nil
-                coloredProfileVisible = false
-                store.send(.debugReplayAnimation)
-                animationToken = UUID()
-            } label: {
-                Label("Replay", systemImage: "arrow.counterclockwise")
-                    .font(.caption)
-            }
-            .tertiaryButton(size: .mini, tint: TM.textMuted)
-            .padding(.bottom, 8)
-            .opacity(showContent ? 1 : 0)
-            #endif
         }
         // TimelineView-driven milestone counter (frame-synced)
         .overlay {

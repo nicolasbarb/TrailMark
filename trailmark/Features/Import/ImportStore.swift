@@ -42,9 +42,6 @@ struct ImportStore {
         case profileAnimationFinished
         case importFailed(String)
 
-        // Debug
-        case debugReplayAnimation
-
         // Result phase
         case unlockTapped
         case continueWithMilestonesTapped
@@ -163,11 +160,6 @@ struct ImportStore {
                 if state.detectionFinished {
                     state.phase = .result
                 }
-                return .none
-
-            case .debugReplayAnimation:
-                state.phase = .animatingProfile
-                state.profileAnimationFinished = false
                 return .none
 
             case let .importFailed(message):
