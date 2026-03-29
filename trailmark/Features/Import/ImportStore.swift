@@ -85,6 +85,8 @@ struct ImportStore {
 
                 return .run { send in
                     do {
+                        let startTime = Date()
+
                         // 1. Parser le GPX
                         let (parsedPoints, dPlus) = try await MainActor.run {
                             try GPXParser.parse(url: url)
@@ -114,10 +116,17 @@ struct ImportStore {
                             )
                         }
 
-                        // 4. Send parsed data to start animation
+                        // 4. Minimum loading time (1s) to avoid spinner flash
+                        let elapsed = Date().timeIntervalSince(startTime)
+                        let remaining = max(0, 1.0 - elapsed)
+                        if remaining > 0 {
+                            try await Task.sleep(for: .seconds(remaining))
+                        }
+
+                        // 5. Send parsed data to start animation
                         await send(.parsingCompleted(trail, trackPoints))
 
-                        // 5. Detect milestones in parallel with animation
+                        // 6. Detect milestones in parallel with animation
                         let detectedMilestones = MilestoneDetector.detect(
                             from: trackPoints,
                             trailId: 0

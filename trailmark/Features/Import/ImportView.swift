@@ -4,13 +4,15 @@ import UniformTypeIdentifiers
 
 struct ImportView: View {
     @Bindable var store: StoreOf<ImportStore>
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var animationToken = UUID()
 
     /// Single source of truth for the import animation sequence
     private enum ImportPhase: Equatable {
         case upload              // Pills scrolling, CTA visible
         case importing           // CTA shows spinner
-        case exitingUpload       // Pills accelerate out, content fades
+        case exitingPills        // Pills accelerate out, rest stays
+        case exitingContent      // Title/button fade, subtitle transforms
         case drawingProfile      // Profile draws left to right
         case showingSegments     // Colored segments fade in
         case revealingMilestones // Milestones pop one by one
@@ -20,12 +22,16 @@ struct ImportView: View {
     @State private var phase: ImportPhase = .upload
     @State private var visibleMilestoneCount: Int = 0
     @State private var milestoneAnimationStartDate: Date?
+    @State private var coloredProfileVisible = false
     private let totalMilestoneDuration: Double = 1.5
 
     // MARK: - Derived properties
 
     private var pillsExiting: Bool {
-        phase == .exitingUpload
+        switch phase {
+        case .exitingPills, .exitingContent: true
+        default: false
+        }
     }
 
     private var showProfileView: Bool {
@@ -36,7 +42,7 @@ struct ImportView: View {
     }
 
     private var uploadContentFading: Bool {
-        phase == .exitingUpload
+        phase == .exitingContent
     }
 
     private var showSegments: Bool {
@@ -125,6 +131,7 @@ struct ImportView: View {
                 phase = .upload
                 visibleMilestoneCount = 0
                 milestoneAnimationStartDate = nil
+                coloredProfileVisible = false
             }
         }
     }
@@ -145,11 +152,11 @@ struct ImportView: View {
                     .multilineTextAlignment(.center)
                     .opacity(uploadContentFading ? 0 : 1)
 
-                Text(uploadContentFading ? "import.phase.creatingProfile" : "import.upload.subtitle")
+                Text("import.upload.subtitle")
                     .font(.subheadline)
                     .foregroundStyle(TM.textMuted)
                     .multilineTextAlignment(.center)
-                    .contentTransition(.numericText())
+                    .opacity(uploadContentFading ? 0 : 1)
 
                 // Error message
                 if let error = store.error {
@@ -159,7 +166,7 @@ struct ImportView: View {
                         .padding(.top, 4)
                 }
             }
-            .frame(height: 80, alignment: .center)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 28)
             .padding(.horizontal, 28)
 
@@ -175,6 +182,7 @@ struct ImportView: View {
                     .overlay {
                         if phase == .importing {
                             ProgressView()
+                                .controlSize(.regular)
                         }
                     }
             }
@@ -203,21 +211,32 @@ struct ImportView: View {
             }
             #endif
         }
-        .animation(.easeInOut(duration: 0.4), value: uploadContentFading)
+        .animation(reduceMotion ? .none : .spring(duration: 0.4, bounce: 0.1), value: uploadContentFading)
     }
 
     // MARK: - Upload Exit Animation
 
     private func startUploadExitAnimation() {
-        // Step 1: pills accelerate and exit (immediate, TimelineView-driven)
-        phase = .exitingUpload
-
-        // Step 2: after pills + content fade, switch to profile view
-        // We need Task.sleep here because we switch WHICH view is shown (if/else)
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(1400))
-            guard phase == .exitingUpload else { return }
+        if reduceMotion {
             phase = .drawingProfile
+            return
+        }
+        // Step 1: pills accelerate out (TimelineView-driven, not SwiftUI-animated)
+        phase = .exitingPills
+
+        // Wait for pills to mostly exit, then chain SwiftUI animations for steps 2-3
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(1200))
+            guard phase == .exitingPills else { return }
+
+            // Step 2: title/button fade out
+            withAnimation(.smooth(duration: 0.3)) {
+                phase = .exitingContent
+            } completion: {
+                // Step 3: show profile immediately (upload already invisible)
+                animationToken = UUID() // Reset so drawing starts from 0
+                phase = .drawingProfile
+            }
         }
     }
 
@@ -276,7 +295,7 @@ struct ImportView: View {
 
             // Profile — just below header
             ZStack(alignment: .topTrailing) {
-                // Layer 1: Drawing animation (accent color)
+                // Layer 1: Drawing animation (accent color, stays visible under colored)
                 RealProfileDrawingAnimation(
                     trackPoints: store.parsedTrackPoints,
                     onFinished: {
@@ -285,16 +304,16 @@ struct ImportView: View {
                     restartToken: animationToken
                 )
                 .frame(height: 150)
-                .opacity(phase == .drawingProfile ? 1 : 0)
 
-                // Layer 2: Colored profile WITHOUT milestones
+                // Layer 2: Colored profile fades in ON TOP of accent profile
                 ElevationProfilePreview(
                     trackPoints: store.parsedTrackPoints,
                     milestones: [],
                     showMilestones: false
                 )
                 .frame(height: 150)
-                .opacity(showSegments ? 1 : 0)
+                .opacity(coloredProfileVisible ? 1 : 0)
+                .animation(.smooth(duration: 1.2), value: coloredProfileVisible)
 
                 // Layer 3: SwiftUI milestone markers (animated individually)
                 if showMilestones {
@@ -312,7 +331,6 @@ struct ImportView: View {
                         .opacity(showContent ? 1 : 0)
                 }
             }
-            .background(phase == .drawingProfile ? .clear : TM.bgSecondary)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -338,7 +356,7 @@ struct ImportView: View {
             .foregroundStyle(TM.textMuted)
             .padding(.top, 16)
             .padding(.horizontal, 20)
-            .animation(.easeInOut(duration: 0.3), value: phase)
+            .animation(reduceMotion ? .none : .spring(duration: 0.3, bounce: 0.1), value: phase)
 
             Spacer()
 
@@ -354,6 +372,7 @@ struct ImportView: View {
                 phase = .drawingProfile
                 visibleMilestoneCount = 0
                 milestoneAnimationStartDate = nil
+                coloredProfileVisible = false
                 store.send(.debugReplayAnimation)
                 animationToken = UUID()
             } label: {
@@ -385,7 +404,7 @@ struct ImportView: View {
                             if finished {
                                 visibleMilestoneCount = store.detectedMilestones.count
                                 milestoneAnimationStartDate = nil
-                                withAnimation(.easeInOut(duration: 0.5)) {
+                                withAnimation(.spring(duration: 0.5, bounce: 0.1)) {
                                     phase = .complete
                                 }
                             }
@@ -400,23 +419,27 @@ struct ImportView: View {
     private func startResultTransition() {
         let milestoneCount = store.detectedMilestones.count
 
-        // Phase 1: colored segments appear
-        withAnimation(.easeInOut(duration: 0.6)) {
-            phase = .showingSegments
+        if reduceMotion {
+            coloredProfileVisible = true
+            visibleMilestoneCount = milestoneCount
+            phase = .complete
+            return
         }
 
-        if milestoneCount > 0 {
-            // Phase 2: start milestone animation after segments settle
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(700))
-                guard phase == .showingSegments else { return }
+        // Phase 1: colored profile fades in over accent profile
+        phase = .showingSegments
+        withAnimation(.smooth(duration: 1.2)) {
+            coloredProfileVisible = true
+        } completion: {
+            if milestoneCount > 0 {
+                // Phase 2: milestones appear one by one
                 phase = .revealingMilestones
                 milestoneAnimationStartDate = Date()
-            }
-        } else {
-            // No milestones — skip to complete
-            withAnimation(.easeInOut(duration: 0.5).delay(0.7)) {
-                phase = .complete
+            } else {
+                // No milestones — skip to complete
+                withAnimation(.spring(duration: 0.5, bounce: 0.1)) {
+                    phase = .complete
+                }
             }
         }
     }
