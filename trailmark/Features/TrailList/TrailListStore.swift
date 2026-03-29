@@ -9,6 +9,7 @@ struct TrailListStore {
         var isLoading = false
         @Shared(.inMemory("isPremium")) var isPremium = false
         var showExpiredAlert = false
+        var expandedTrailId: Int64? = nil
         @Shared(.appStorage("trailListVisitCount")) var trailListVisitCount = 0
         @Shared(.appStorage("completedRunsCount")) var completedRunsCount = 0
         @Shared(.appStorage("hasRequestedReview")) var hasRequestedReview = false
@@ -22,6 +23,7 @@ struct TrailListStore {
         case addButtonTapped
         case editTrailTapped(TrailListItem)
         case startTrailTapped(TrailListItem)
+        case trailCardTapped(TrailListItem)
         case deleteTrailTapped(TrailListItem)
         case trailDeleted
         case navigateToEditor(Int64)
@@ -162,6 +164,19 @@ struct TrailListStore {
             case let .startTrailTapped(item):
                 guard let trailId = item.trail.id else { return .none }
                 state.destination = .run(RunStore.State(trailId: trailId))
+                return .none
+
+            case let .trailCardTapped(item):
+                let isLocked = !state.isPremium && (state.trails.firstIndex(where: { $0.id == item.id }).map { $0 > 0 } ?? false)
+                if isLocked {
+                    state.destination = .paywall(PaywallStore.State())
+                    return .none
+                }
+                if state.expandedTrailId == item.trail.id {
+                    state.expandedTrailId = nil
+                } else {
+                    state.expandedTrailId = item.trail.id
+                }
                 return .none
 
             case let .deleteTrailTapped(item):
