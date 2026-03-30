@@ -8,6 +8,14 @@
     <key>CFBundleVersion</key>
     <string>$(CURRENT_PROJECT_VERSION)</string>
 
+    <!-- Location Usage Descriptions (localized via InfoPlist.xcstrings) -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>PaceMark uses GPS to detect your position and trigger voice announcements at milestones.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>PaceMark needs background GPS to guide you by voice during your run, even when the phone is in your pocket.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>PaceMark needs background GPS to guide you by voice during your run.</string>
+
     <!-- Background Modes (array - can't be INFOPLIST_KEY) -->
     <key>UIBackgroundModes</key>
     <array>
