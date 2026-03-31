@@ -41,9 +41,12 @@ def read_marketing_version
 end
 
 platform :ios do
-  before_all do
-    unless File.exist?(API_KEY_PATH)
-      UI.user_error!("AuthKey not found at #{API_KEY_PATH}. Download from App Store Connect > Users > Keys")
+  before_all do |lane|
+    # Skip API key check for screenshots lane
+    unless lane == :screenshots
+      unless File.exist?(API_KEY_PATH)
+        UI.user_error!("AuthKey not found at #{API_KEY_PATH}. Download from App Store Connect > Users > Keys")
+      end
     end
     # Workaround for Xcode 26 altool bug (fastlane/fastlane#29739)
     ENV["DELIVER_ALTOOL_ADDITIONAL_UPLOAD_PARAMETERS"] = "--use-old-altool"
@@ -252,5 +255,21 @@ platform :ios do
       scheme: "trailmark",
       device: "iPhone 16"
     )
+  end
+
+  desc "Generate app screenshots automatically"
+  lane :screenshots do
+    UI.important("📸 Génération des captures d'écran automatiques...")
+
+    capture_screenshots(
+      workspace: nil,  # Using project instead of workspace
+      project: "trailmark.xcodeproj",
+      scheme: "trailmark"
+    )
+
+    UI.success("✅ Captures d'écran générées avec succès dans ./screenshots/")
+    UI.important("Les captures sont organisées par appareil et langue :")
+    UI.important("- ./screenshots/fr-FR/iPhone 16 Pro Max/")
+    UI.important("Vous pouvez maintenant les utiliser pour App Store Connect.")
   end
 end

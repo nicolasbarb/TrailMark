@@ -45,7 +45,7 @@ Push a new build to TestFlight. Use bump:patch/minor/major to create a new App S
 [bundle exec] fastlane ios metadata
 ```
 
-Push metadata (description, keywords, etc.) to App Store Connect
+Push metadata (description, keywords, etc.) to App Store Connect. Use version:x.y.z to target a specific version.
 
 ### ios test
 
@@ -54,6 +54,14 @@ Push metadata (description, keywords, etc.) to App Store Connect
 ```
 
 Run tests
+
+### ios screenshots
+
+```sh
+[bundle exec] fastlane ios screenshots
+```
+
+Generate app screenshots automatically
 
 ----
 

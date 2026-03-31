@@ -7,11 +7,16 @@ import TelemetryDeck
 
 @main
 struct TrailMarkApp: App {
+    private let isScreenshot = ProcessInfo.processInfo.arguments.contains("--screenshot")
+
     init() {
         // Bootstrap the database before any dependencies are accessed
         try! prepareDependencies {
             try $0.bootstrapDatabase()
         }
+
+        // In screenshot mode, skip all external service configuration
+        guard !isScreenshot else { return }
 
         // Configure RevenueCat
         Purchases.logLevel = .debug
@@ -50,9 +55,13 @@ struct TrailMarkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(store: Store(initialState: RootStore.State()) {
-                RootStore()
-            })
+            if isScreenshot {
+                ScreenshotRouter()
+            } else {
+                RootView(store: Store(initialState: RootStore.State()) {
+                    RootStore()
+                })
+            }
         }
     }
 }
