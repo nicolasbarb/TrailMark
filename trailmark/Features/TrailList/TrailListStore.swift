@@ -167,11 +167,6 @@ struct TrailListStore {
                 return .none
 
             case let .trailCardTapped(item):
-                let isLocked = !state.isPremium && (state.trails.firstIndex(where: { $0.id == item.id }).map { $0 > 0 } ?? false)
-                if isLocked {
-                    state.destination = .paywall(PaywallStore.State())
-                    return .none
-                }
                 if state.expandedTrailId == item.trail.id {
                     state.expandedTrailId = nil
                 } else {

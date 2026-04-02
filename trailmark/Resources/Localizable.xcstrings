@@ -2093,6 +2093,22 @@
         }
       }
     },
+    "trailList.elevationGain" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "m elev."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "m dénivelé"
+          }
+        }
+      }
+    },
     "trailList.emptyState.description" : {
       "localizations" : {
         "en" : {
@@ -2185,22 +2201,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Importer un GPX"
-          }
-        }
-      }
-    },
-    "trailList.elevationGain" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "m elev."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "m dénivelé"
           }
         }
       }

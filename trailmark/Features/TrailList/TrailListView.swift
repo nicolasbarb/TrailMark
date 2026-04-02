@@ -149,7 +149,7 @@ struct TrailListView: View {
                         isExpanded: isExpanded,
                         onTap: {
                             Haptic.light.trigger()
-                            store.send(.trailCardTapped(item))
+                            store.send(.trailCardTapped(item), animation: .snappy(duration: 0.4, extraBounce: 0.24))
                         },
                         onEdit: {
                             Haptic.light.trigger()
@@ -193,7 +193,7 @@ private struct TrailCard: View {
                 Text(trail.name)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(TM.textPrimary)
-
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 Spacer()
 
                 Text(trail.createdAtDate.formatted(date: .abbreviated, time: .omitted))
@@ -201,14 +201,28 @@ private struct TrailCard: View {
                     .foregroundStyle(TM.textMuted)
             }
 
-            // Elevation profile
+            // Elevation profile — grows when expanded
             if !item.trackPoints.isEmpty {
-                ElevationProfilePreview(
-                    trackPoints: item.trackPoints,
-                    milestones: item.milestones
-                )
-                .frame(height: 60)
-                .clipShape(.rect(cornerRadius: 8))
+                ZStack {
+                    ElevationProfilePreview(
+                        trackPoints: item.trackPoints,
+                        milestones: item.milestones
+                    )
+                    .frame(height: 60)
+                    .clipShape(.rect(cornerRadius: 8))
+
+                    if isLocked {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(.ultraThinMaterial)
+
+                        HStack {
+                            Image(systemName: "lock.fill")
+                                .font(.title3)
+                                .foregroundStyle(TM.textMuted)
+                            ProBadge()
+                        }
+                    }
+                }
             }
 
             // Stats row
@@ -240,8 +254,9 @@ private struct TrailCard: View {
 
                 Spacer()
             }
+            .opacity(isLocked ? 0.5 : 1)
 
-            // Expandable buttons
+            // Expandable buttons with stagger
             if isExpanded {
                 if isLocked {
                     Button {
@@ -256,6 +271,7 @@ private struct TrailCard: View {
                         }
                     }
                     .primaryButton(size: .regular, width: .flexible, shape: .roundedRectangle(radius: 10))
+                    .transition(.move(edge: .top).combined(with: .blurReplace))
                 } else {
                     HStack(spacing: 8) {
                         Button {
@@ -284,13 +300,20 @@ private struct TrailCard: View {
                         }
                         .primaryButton(size: .regular, width: .flexible, shape: .roundedRectangle(radius: 10))
                     }
+                    .transition(.move(edge: .top).combined(with: .blurReplace))
                 }
             }
         }
         .padding(16)
         .background(TM.bgSecondary)
-        .containerShape(.rect(cornerRadius: 18, style: .continuous))
-        .animation(.snappy(duration: 0.3), value: isExpanded)
+        .clipShape(.rect(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(
+                    isExpanded ? TM.accent.opacity(0.4) : TM.border.opacity(0.3),
+                    lineWidth: isExpanded ? 1.5 : 0.5
+                )
+        )
         .onTapGesture {
             onTap()
         }
