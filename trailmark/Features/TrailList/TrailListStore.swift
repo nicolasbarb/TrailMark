@@ -24,6 +24,7 @@ struct TrailListStore {
         case editTrailTapped(TrailListItem)
         case startTrailTapped(TrailListItem)
         case trailCardTapped(TrailListItem)
+        case unlockTapped
         case deleteTrailTapped(TrailListItem)
         case trailDeleted
         case settingsTapped
@@ -177,6 +178,10 @@ struct TrailListStore {
                 } else {
                     state.expandedTrailId = item.trail.id
                 }
+                return .none
+
+            case .unlockTapped:
+                state.destination = .paywall(PaywallStore.State())
                 return .none
 
             case let .deleteTrailTapped(item):

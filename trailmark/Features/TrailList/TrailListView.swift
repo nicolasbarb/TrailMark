@@ -61,11 +61,11 @@ struct TrailListView: View {
         ) { importStore in
             ImportView(store: importStore)
         }
-        //        .fullScreenCover(
-        //            item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)
-        //        ) { paywallStore in
-        //            PaywallContainerView(store: paywallStore)
-        //        }
+        .fullScreenCover(
+            item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)
+        ) { paywallStore in
+            PaywallContainerView(store: paywallStore)
+        }
         .fullScreenCover(
             item: $store.scope(state: \.destination?.subscriptionInfo, action: \.destination.subscriptionInfo)
         ) { subscriptionInfoStore in
@@ -104,7 +104,7 @@ struct TrailListView: View {
                         isExpanded: isExpanded,
                         onTap: {
                             Haptic.light.trigger()
-                            store.send(.trailCardTapped(item), animation: .snappy(duration: 0.7, extraBounce: 0.24))
+                            store.send(.trailCardTapped(item), animation: .snappy(duration: 0.4, extraBounce: 0.24))
                         },
                         onEdit: {
                             Haptic.light.trigger()
@@ -116,7 +116,7 @@ struct TrailListView: View {
                         },
                         onUnlock: {
                             Haptic.medium.trigger()
-                            store.send(.trailCardTapped(item))
+                            store.send(.unlockTapped)
                         }
                     )
                 }
