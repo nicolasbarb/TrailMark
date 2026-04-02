@@ -15,7 +15,6 @@ struct TrailListView: View {
             }
         }
         .toolbar {
-            
             if store.isPremium {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -106,23 +105,58 @@ struct TrailListView: View {
     }
     
     // MARK: - Empty State
-    
-    private var emptyState: some View {
-        VStack(spacing: 12) {
-            Spacer()
-            
-            Text("🏔️")
-                .font(.system(size: 40))
-            
-            Text("trailList.emptyState.title")
-                .font(.headline)
-                .foregroundStyle(TM.textSecondary)
 
-            Text("trailList.emptyState.description")
-                .font(.caption)
-                .foregroundStyle(TM.textMuted)
-                .multilineTextAlignment(.center)
-            
+    @State private var showEmptyContent = false
+
+    private var emptyState: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            // 3-step flow
+            HStack(spacing: 12) {
+                emptyStateStep(
+                    symbol: "square.and.arrow.down",
+                    label: String(localized: "trailList.emptyState.step.import")
+                )
+                .animatedAppearance(show: showEmptyContent, delay: 0.0)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(TM.textMuted)
+                    .animatedAppearance(show: showEmptyContent, delay: 0.15)
+
+                emptyStateStep(
+                    symbol: "flag",
+                    label: String(localized: "trailList.emptyState.step.milestones")
+                )
+                .animatedAppearance(show: showEmptyContent, delay: 0.3)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(TM.textMuted)
+                    .animatedAppearance(show: showEmptyContent, delay: 0.45)
+
+                emptyStateStep(
+                    symbol: "play.fill",
+                    label: String(localized: "trailList.emptyState.step.guidance")
+                )
+                .animatedAppearance(show: showEmptyContent, delay: 0.6)
+            }
+
+            // Title + description
+            VStack(spacing: 6) {
+                Text("trailList.emptyState.title")
+                    .font(.headline)
+                    .foregroundStyle(TM.textSecondary)
+
+                Text("trailList.emptyState.description")
+                    .font(.caption)
+                    .foregroundStyle(TM.textMuted)
+                    .multilineTextAlignment(.center)
+            }
+            .animatedAppearance(show: showEmptyContent, delay: 0.8)
+
+            // CTA
             Button {
                 Haptic.medium.trigger()
                 store.send(.addButtonTapped)
@@ -130,8 +164,29 @@ struct TrailListView: View {
                 Text("trailList.importButton")
             }
             .primaryButton(size: .large, width: .fitted, shape: .capsule)
-            
+            .animatedAppearance(show: showEmptyContent, delay: 1.0)
+
             Spacer()
+        }
+        .onAppear {
+            guard !showEmptyContent else { return }
+            withAnimation(.snappy(duration: 0.4)) {
+                showEmptyContent = true
+            }
+        }
+    }
+
+    private func emptyStateStep(symbol: String, label: String) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: symbol)
+                .font(.system(size: 22))
+                .foregroundStyle(TM.accent)
+                .frame(width: 48, height: 48)
+                .background(TM.accent.opacity(0.1), in: .rect(cornerRadius: 14))
+
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(TM.textMuted)
         }
     }
     
@@ -418,5 +473,16 @@ private struct TrailCard: View {
                 TrailListStore()
             }
         )
+    }
+}
+
+// MARK: - Stagger Animation
+
+private extension View {
+    func animatedAppearance(show: Bool, delay: Double) -> some View {
+        self
+            .opacity(show ? 1 : 0)
+            .blur(radius: show ? 0 : 8)
+            .animation(.snappy(duration: 0.4).delay(delay), value: show)
     }
 }
