@@ -7,7 +7,7 @@ struct TrailListStore {
     struct State: Equatable {
         var trails: [TrailListItem] = []
         var isLoading = false
-        @Shared(.inMemory("isPremium")) var isPremium = false
+        @Shared(.inMemory("isPremium")) var isPremium = true
         var showExpiredAlert = false
         var expandedTrailId: Int64? = nil
         @Shared(.appStorage("trailListVisitCount")) var trailListVisitCount = 0
@@ -26,13 +26,12 @@ struct TrailListStore {
         case trailCardTapped(TrailListItem)
         case deleteTrailTapped(TrailListItem)
         case trailDeleted
-        case navigateToEditor(Int64)
-        case navigateToEditorWithPendingData(PendingTrailData)
         case settingsTapped
         case proBadgeTapped
         case dismissExpiredAlert
         case renewTapped
         case destination(PresentationAction<Destination.Action>)
+        case delegate(Delegate)
 
         // MARK: - Internal actions (for testability)
         case _incrementVisitCount
@@ -45,6 +44,15 @@ struct TrailListStore {
         // DEBUG: Simuler l'expiration
         case debugSimulateExpiration
         #endif
+    }
+
+    // MARK: - Delegate
+
+    enum Delegate: Equatable {
+        case navigateToEditor(Int64)
+        case navigateToEditorWithPendingData(PendingTrailData)
+        case navigateToRun(Int64)
+        case navigateToSettings
     }
     
     enum TrailListCancelID: Equatable/*, Hashable, Sendable*/ {
@@ -121,8 +129,7 @@ struct TrailListStore {
                 return .none
 
             case .settingsTapped:
-                state.destination = .settings(SettingsStore.State())
-                return .none
+                return .send(.delegate(.navigateToSettings))
 
             case .proBadgeTapped:
                 state.destination = .subscriptionInfo(SubscriptionInfoStore.State())
@@ -158,13 +165,11 @@ struct TrailListStore {
 
             case let .editTrailTapped(item):
                 guard let trailId = item.trail.id else { return .none }
-                state.destination = .editor(EditorStore.State(trailId: trailId))
-                return .none
+                return .send(.delegate(.navigateToEditor(trailId)))
 
             case let .startTrailTapped(item):
                 guard let trailId = item.trail.id else { return .none }
-                state.destination = .run(RunStore.State(trailId: trailId))
-                return .none
+                return .send(.delegate(.navigateToRun(trailId)))
 
             case let .trailCardTapped(item):
                 if state.expandedTrailId == item.trail.id {
@@ -187,21 +192,13 @@ struct TrailListStore {
                     await send(.trailsLoaded(trails))
                 }
 
-            case let .navigateToEditor(trailId):
-                state.destination = .editor(EditorStore.State(trailId: trailId))
-                return .none
-
-            case let .navigateToEditorWithPendingData(pendingData):
-                state.destination = .editor(EditorStore.State(pendingData: pendingData))
-                return .none
-
             case .destination(.presented(.importGPX(.importCompleted(let pendingData)))):
                 state.destination = nil
                 // Navigate to editor with pending data (will save in background)
                 return .run { send in
                     // Small delay to allow sheet dismissal
                     try await Task.sleep(for: .milliseconds(300))
-                    await send(.navigateToEditorWithPendingData(pendingData))
+                    await send(.delegate(.navigateToEditorWithPendingData(pendingData)))
                 }
 
             case .destination(.presented(.paywall(.purchaseCompleted))),
@@ -217,6 +214,9 @@ struct TrailListStore {
                     await send(.trailsLoaded(trails))
                 }
 
+            case .delegate:
+                return .none
+
             case .destination:
                 return .none
             }
@@ -226,25 +226,19 @@ struct TrailListStore {
         }
     }
 
-    // MARK: - Destination
+    // MARK: - Destination (modals only)
 
     @Reducer
     struct Destination {
         @ObservableState
         enum State: Equatable {
             case importGPX(ImportStore.State)
-            case editor(EditorStore.State)
-            case run(RunStore.State)
-            case settings(SettingsStore.State)
             case paywall(PaywallStore.State)
             case subscriptionInfo(SubscriptionInfoStore.State)
         }
 
         enum Action: Equatable {
             case importGPX(ImportStore.Action)
-            case editor(EditorStore.Action)
-            case run(RunStore.Action)
-            case settings(SettingsStore.Action)
             case paywall(PaywallStore.Action)
             case subscriptionInfo(SubscriptionInfoStore.Action)
         }
@@ -252,15 +246,6 @@ struct TrailListStore {
         var body: some Reducer<State, Action> {
             Scope(state: \.importGPX, action: \.importGPX) {
                 ImportStore()
-            }
-            Scope(state: \.editor, action: \.editor) {
-                EditorStore()
-            }
-            Scope(state: \.run, action: \.run) {
-                RunStore()
-            }
-            Scope(state: \.settings, action: \.settings) {
-                SettingsStore()
             }
             Scope(state: \.paywall, action: \.paywall) {
                 PaywallStore()
