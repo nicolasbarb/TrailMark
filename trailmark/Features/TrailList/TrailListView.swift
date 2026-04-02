@@ -9,7 +9,9 @@ struct TrailListView: View {
             TM.bgPrimary.ignoresSafeArea()
             
             if store.trails.isEmpty && !store.isLoading {
-                emptyState
+                EmptyState(action: {
+                    store.send(.addButtonTapped)
+                })
             } else {
                 trailList
             }
@@ -36,9 +38,9 @@ struct TrailListView: View {
                     Image(systemName: "plus")
                 }
             }
-
+            
             ToolbarSpacer(.fixed, placement: .primaryAction)
-
+            
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     Haptic.light.trigger()
@@ -59,11 +61,11 @@ struct TrailListView: View {
         ) { importStore in
             ImportView(store: importStore)
         }
-        .fullScreenCover(
-            item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)
-        ) { paywallStore in
-            PaywallContainerView(store: paywallStore)
-        }
+        //        .fullScreenCover(
+        //            item: $store.scope(state: \.destination?.paywall, action: \.destination.paywall)
+        //        ) { paywallStore in
+        //            PaywallContainerView(store: paywallStore)
+        //        }
         .fullScreenCover(
             item: $store.scope(state: \.destination?.subscriptionInfo, action: \.destination.subscriptionInfo)
         ) { subscriptionInfoStore in
@@ -88,93 +90,6 @@ struct TrailListView: View {
             Text("trailList.expiredAlert.message")
         }
     }
-    
-    // MARK: - Empty State
-
-    @State private var showEmptyContent = false
-
-    private var emptyState: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            // 3-step flow
-            HStack(spacing: 12) {
-                emptyStateStep(
-                    symbol: "square.and.arrow.down",
-                    label: String(localized: "trailList.emptyState.step.import")
-                )
-                .animatedAppearance(show: showEmptyContent, delay: 0.0)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(TM.textMuted)
-                    .animatedAppearance(show: showEmptyContent, delay: 0.15)
-
-                emptyStateStep(
-                    symbol: "flag",
-                    label: String(localized: "trailList.emptyState.step.milestones")
-                )
-                .animatedAppearance(show: showEmptyContent, delay: 0.3)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(TM.textMuted)
-                    .animatedAppearance(show: showEmptyContent, delay: 0.45)
-
-                emptyStateStep(
-                    symbol: "play.fill",
-                    label: String(localized: "trailList.emptyState.step.guidance")
-                )
-                .animatedAppearance(show: showEmptyContent, delay: 0.6)
-            }
-
-            // Title + description
-            VStack(spacing: 6) {
-                Text("trailList.emptyState.title")
-                    .font(.headline)
-                    .foregroundStyle(TM.textSecondary)
-
-                Text("trailList.emptyState.description")
-                    .font(.caption)
-                    .foregroundStyle(TM.textMuted)
-                    .multilineTextAlignment(.center)
-            }
-            .animatedAppearance(show: showEmptyContent, delay: 0.8)
-
-            // CTA
-            Button {
-                Haptic.medium.trigger()
-                store.send(.addButtonTapped)
-            } label: {
-                Text("trailList.importButton")
-            }
-            .primaryButton(size: .large, width: .fitted, shape: .capsule)
-            .animatedAppearance(show: showEmptyContent, delay: 1.0)
-
-            Spacer()
-        }
-        .onAppear {
-            guard !showEmptyContent else { return }
-            withAnimation(.snappy(duration: 0.4)) {
-                showEmptyContent = true
-            }
-        }
-    }
-
-    private func emptyStateStep(symbol: String, label: String) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: symbol)
-                .font(.system(size: 22))
-                .foregroundStyle(TM.accent)
-                .frame(width: 48, height: 48)
-                .background(TM.accent.opacity(0.1), in: .rect(cornerRadius: 14))
-
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(TM.textMuted)
-        }
-    }
-    
     // MARK: - Trail List
     
     private var trailList: some View {
@@ -189,7 +104,7 @@ struct TrailListView: View {
                         isExpanded: isExpanded,
                         onTap: {
                             Haptic.light.trigger()
-                            store.send(.trailCardTapped(item), animation: .snappy(duration: 0.4, extraBounce: 0.24))
+                            store.send(.trailCardTapped(item), animation: .snappy(duration: 0.7, extraBounce: 0.24))
                         },
                         onEdit: {
                             Haptic.light.trigger()
@@ -236,13 +151,13 @@ struct TrailListView: View {
             distance: progress * 42500
         )
     }
-
+    
     let sampleMilestones: [Milestone] = [
         Milestone(pointIndex: 25, latitude: 45.825, longitude: 6.8125, elevation: 1800, distance: 10625, type: .climb, message: "Montée"),
         Milestone(pointIndex: 50, latitude: 45.85, longitude: 6.825, elevation: 2000, distance: 21250, type: .descent, message: "Descente"),
         Milestone(pointIndex: 75, latitude: 45.875, longitude: 6.8375, elevation: 1600, distance: 31875, type: .info, message: "Info"),
     ]
-
+    
     NavigationStack {
         TrailListView(
             store: Store(
@@ -304,13 +219,95 @@ struct TrailListView: View {
     }
 }
 
-// MARK: - Stagger Animation
+private struct EmptyState: View {
+    
+    let action: () -> Void
+    @State var isAppearing: Bool = false
+    
+    var body: some View {
+        VStack(spacing: 32) {
+            Spacer()
+            // 3-step flow
+            HStack(spacing: 16) {
+                emptyStateIcon(symbol: "square.and.arrow.down", label: String(localized: "trailList.emptyState.step.import"))
+                    .opacity(isAppearing ? 1 : 0)
+                    .offset(y: isAppearing ? 0 : -20)
+                    .animation(.snappy(duration: 0.7, extraBounce: 0.24), value: isAppearing)
+                
+                Image(systemName: "chevron.right.fill")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(TM.textMuted)
+                    .padding(.bottom, 20)
+                    .opacity(isAppearing ? 1 : 0)
+                    .offset(y: isAppearing ? 0 : -20)
+                    .animation(.snappy(duration: 0.7, extraBounce: 0.24).delay(0.18), value: isAppearing)
+                
+                emptyStateIcon(symbol: "flag", label: String(localized: "trailList.emptyState.step.milestones"))
+                    .opacity(isAppearing ? 1 : 0)
+                    .offset(y: isAppearing ? 0 : -20)
+                    .animation(.snappy(duration: 0.7, extraBounce: 0.24).delay(0.36), value: isAppearing)
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(TM.textMuted)
+                    .padding(.bottom, 20)
+                    .opacity(isAppearing ? 1 : 0)
+                    .offset(y: isAppearing ? 0 : -20)
+                    .animation(.snappy(duration: 0.7, extraBounce: 0.24).delay(0.54), value: isAppearing)
+                
+                emptyStateIcon(symbol: "play", label: String(localized: "trailList.emptyState.step.guidance"))
+                    .opacity(isAppearing ? 1 : 0)
+                    .offset(y: isAppearing ? 0 : -20)
+                    .animation(.snappy(duration: 0.7, extraBounce: 0.24).delay(0.72), value: isAppearing)
+            }
+            
+            // Title + description
+            VStack(spacing: 8) {
+                Text("trailList.emptyState.title")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(TM.textPrimary)
+                
+                Text("trailList.emptyState.description")
+                    .font(.subheadline)
+                    .foregroundStyle(TM.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .opacity(isAppearing ? 1 : 0)
+            .offset(y: isAppearing ? 0 : -20)
+            .animation(.snappy(duration: 0.7, extraBounce: 0.24).delay(0.95), value: isAppearing)
+            
+            // CTA
+            Button {
+                Haptic.medium.trigger()
+                action()
+            } label: {
+                Text("trailList.importButton")
+            }
+            .primaryButton(size: .large, width: .fitted, shape: .capsule)
+            .opacity(isAppearing ? 1 : 0)
+            .offset(y: isAppearing ? 0 : -20)
+            .animation(.snappy(duration: 0.7, extraBounce: 0.24).delay(1.2), value: isAppearing)
+            
+            Spacer()
+        }
+        .task {
+            guard !isAppearing else { return }
+            try? await Task.sleep(for: .seconds(0.5))
+            isAppearing = true
+        }
+    }
+}
 
-private extension View {
-    func animatedAppearance(show: Bool, delay: Double) -> some View {
-        self
-            .opacity(show ? 1 : 0)
-            .blur(radius: show ? 0 : 8)
-            .animation(.snappy(duration: 0.4).delay(delay), value: show)
+private func emptyStateIcon(symbol: String, label: String) -> some View {
+    VStack(spacing: 8) {
+        Image(systemName: symbol)
+            .font(.system(size: 28))
+            .foregroundStyle(TM.accent)
+            .frame(width: 60, height: 60)
+            .background(TM.accent.opacity(0.1), in: .rect(cornerRadius: 16))
+        
+        Text(label)
+            .font(.caption)
+            .foregroundStyle(TM.textMuted)
     }
 }

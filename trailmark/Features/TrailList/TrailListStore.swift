@@ -7,7 +7,7 @@ struct TrailListStore {
     struct State: Equatable {
         var trails: [TrailListItem] = []
         var isLoading = false
-        @Shared(.inMemory("isPremium")) var isPremium = true
+        @Shared(.inMemory("isPremium")) var isPremium = false
         var showExpiredAlert = false
         var expandedTrailId: Int64? = nil
         @Shared(.appStorage("trailListVisitCount")) var trailListVisitCount = 0
