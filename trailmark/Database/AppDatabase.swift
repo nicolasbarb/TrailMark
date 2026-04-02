@@ -139,10 +139,33 @@ extension DatabaseClient: DependencyKey {
 
                     return try trails.compactMap { trail in
                         guard let trailId = trail.id else { return nil }
-                        let count = try Milestone
+
+                        let milestones = try Milestone
                             .where { col in col.trailId.eq(trailId) }
-                            .fetchCount(db)
-                        return TrailListItem(trail: trail, milestoneCount: count)
+                            .order { col in col.distance.asc() }
+                            .fetchAll(db)
+
+                        let allPoints = try TrackPoint
+                            .where { col in col.trailId.eq(trailId) }
+                            .order { col in col.index.asc() }
+                            .fetchAll(db)
+
+                        // Downsample to ~300 points for profile rendering
+                        let trackPoints: [TrackPoint]
+                        if allPoints.count <= 300 {
+                            trackPoints = allPoints
+                        } else {
+                            let step = Double(allPoints.count) / 300.0
+                            trackPoints = stride(from: 0.0, to: Double(allPoints.count), by: step)
+                                .map { allPoints[min(Int($0), allPoints.count - 1)] }
+                        }
+
+                        return TrailListItem(
+                            trail: trail,
+                            milestoneCount: milestones.count,
+                            trackPoints: trackPoints,
+                            milestones: milestones
+                        )
                     }
                 }
             },
@@ -291,10 +314,33 @@ extension DatabaseClient: DependencyKey {
 
                     return try trails.compactMap { trail in
                         guard let trailId = trail.id else { return nil }
-                        let count = try Milestone
+
+                        let milestones = try Milestone
                             .where { col in col.trailId.eq(trailId) }
-                            .fetchCount(db)
-                        return TrailListItem(trail: trail, milestoneCount: count)
+                            .order { col in col.distance.asc() }
+                            .fetchAll(db)
+
+                        let allPoints = try TrackPoint
+                            .where { col in col.trailId.eq(trailId) }
+                            .order { col in col.index.asc() }
+                            .fetchAll(db)
+
+                        // Downsample to ~300 points for profile rendering
+                        let trackPoints: [TrackPoint]
+                        if allPoints.count <= 300 {
+                            trackPoints = allPoints
+                        } else {
+                            let step = Double(allPoints.count) / 300.0
+                            trackPoints = stride(from: 0.0, to: Double(allPoints.count), by: step)
+                                .map { allPoints[min(Int($0), allPoints.count - 1)] }
+                        }
+
+                        return TrailListItem(
+                            trail: trail,
+                            milestoneCount: milestones.count,
+                            trackPoints: trackPoints,
+                            milestones: milestones
+                        )
                     }
                 }
             },

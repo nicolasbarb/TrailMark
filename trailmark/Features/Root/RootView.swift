@@ -22,6 +22,18 @@ struct RootView: View {
                     TrailListView(store: store)
                         .navigationBarBackButtonHidden()
                 }
+            case .editor:
+                if let store = store.scope(state: \.editor, action: \.editor) {
+                    EditorView(store: store)
+                }
+            case .run:
+                if let store = store.scope(state: \.run, action: \.run) {
+                    RunView(store: store)
+                }
+            case .settings:
+                if let store = store.scope(state: \.settings, action: \.settings) {
+                    SettingsView(store: store)
+                }
             }
         }
     }

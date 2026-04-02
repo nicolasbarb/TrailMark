@@ -19,22 +19,32 @@ struct RootStore {
         Reduce { state, action in
             switch action {
             case .initiate:
-                print("[Root] initiate - hasCompletedOnboarding: \(state.hasCompletedOnboarding)")
-                print("[Root] initiate - path count before: \(state.path.count)")
                 if state.hasCompletedOnboarding {
                     state.path.append(.trailList(TrailListStore.State()))
                 } else {
                     state.path.append(.onboarding(OnboardingStore.State()))
                 }
-                print("[Root] initiate - path count after: \(state.path.count)")
                 return .none
 
             case .path(.element(id: _, action: .onboarding(.carouselCompleted))):
-                // Sauvegarder que l'onboarding est complété
                 state.$hasCompletedOnboarding.withLock { $0 = true }
-                // Remplacer l'onboarding par la liste
-//                state.path.removeAll()
                 state.path.append(.trailList(TrailListStore.State()))
+                return .none
+
+            case let .path(.element(id: _, action: .trailList(.delegate(.navigateToEditor(trailId))))):
+                state.path.append(.editor(EditorStore.State(trailId: trailId)))
+                return .none
+
+            case let .path(.element(id: _, action: .trailList(.delegate(.navigateToEditorWithPendingData(pendingData))))):
+                state.path.append(.editor(EditorStore.State(pendingData: pendingData)))
+                return .none
+
+            case let .path(.element(id: _, action: .trailList(.delegate(.navigateToRun(trailId))))):
+                state.path.append(.run(RunStore.State(trailId: trailId)))
+                return .none
+
+            case .path(.element(id: _, action: .trailList(.delegate(.navigateToSettings)))):
+                state.path.append(.settings(SettingsStore.State()))
                 return .none
 
             case .path:
@@ -48,21 +58,30 @@ struct RootStore {
     
     @Reducer
     struct Path {
-        
+
         @ObservableState
         enum State: Equatable {
             case onboarding(OnboardingStore.State)
             case trailList(TrailListStore.State)
+            case editor(EditorStore.State)
+            case run(RunStore.State)
+            case settings(SettingsStore.State)
         }
-        
+
         enum Action: Equatable {
             case onboarding(OnboardingStore.Action)
             case trailList(TrailListStore.Action)
+            case editor(EditorStore.Action)
+            case run(RunStore.Action)
+            case settings(SettingsStore.Action)
         }
-        
+
         var body: some ReducerOf<Self> {
             Scope(state: \.onboarding, action: \.onboarding) { OnboardingStore() }
             Scope(state: \.trailList, action: \.trailList) { TrailListStore() }
+            Scope(state: \.editor, action: \.editor) { EditorStore() }
+            Scope(state: \.run, action: \.run) { RunStore() }
+            Scope(state: \.settings, action: \.settings) { SettingsStore() }
         }
     }
 }
